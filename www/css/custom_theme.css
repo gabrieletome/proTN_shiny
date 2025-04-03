@@ -32,6 +32,12 @@ img.image-thumb {
   width: 600px;
 }
 
+#panel_results {
+  background: white;
+  border-color: #e3ebf2;
+  border-style: groove;
+}
+
 hr {
   width: 100%;
   border-top: 3px solid #000000;

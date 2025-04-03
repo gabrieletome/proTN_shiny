@@ -6,7 +6,8 @@
 # PI: Dr. Toma Tebaldi, PhD                                                    #
 list.of.packages <- c("shiny","tidyverse","markdown","knitr","shinydashboard",
                       "shinydashboardPlus","shinymaterial","shinyjs","magrittr",
-                      "dplyr","stringr","shinyBS","proTN","DT")
+                      "dplyr","stringr","shinyBS","DT","bslib","readr",
+                      "plotly","rhandsontable")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) suppressMessages(suppressWarnings({install.packages(new.packages, dependencies = T)}))
 
@@ -29,6 +30,8 @@ library(plotly)
 library(readr)
 library(DT)
 library(proTN)
+library(data.table)
+library(rhandsontable)
 
 tmpdir<-stri_replace_all_regex(tempdir(), pattern = "/Rtmp\\w+", replacement = "")
 if (!dir.exists(file.path(tmpdir, "ProTN_shiny"))){
@@ -38,9 +41,25 @@ Sys.setenv(TMPDIR=file.path(tmpdir, "ProTN_shiny"))
 unlink(tempdir(), recursive = T)
 tempdir(check = T)
 #Javascript code to disable click when is running the app
-jsCode <- "shinyjs.pageDisable = function(params){
-              $('body').css('pointer-events', params);
-            };"
+# jsCode <- "shinyjs.pageDisable = function(params){
+#               $('body').css('pointer-events', params);
+#             };"
+
+jsCode_STRINGdb <- "
+    shinyjs.loadStringData = function(params) {
+      var defaultParams = {
+        taxonomy : null,
+        gene : ['TP53'],
+        score_thr : 700
+      };
+      params = shinyjs.getParams(params, defaultParams);
+
+      getSTRING('https://string-db.org', {
+            'species': params.taxonomy,
+            'identifiers': params.gene,
+            'required_score': params.score_thr})
+    }"
+
 
 # Define UI for application that draws a histogram
 ui <- tagList(
@@ -68,11 +87,13 @@ ui <- tagList(
       tags$meta(charset = "UTF-8"),
       tags$head(tags$link(rel="shortcut icon", href="images/logo_black.ico")),
       tags$head(tags$script(src="https://kit.fontawesome.com/5d5f342cf8.js")),
+      tags$head(tags$script(src = "http://string-db.org/javascript/combined_embedded_network_v2.0.4.js")),
       tags$link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=El+Messiri"),
       includeCSS("www/css/custom_theme.css"),
       includeCSS("www/css/materialize.css"),
       includeScript("www/js/materialize.js"),
-      extendShinyjs(text = jsCode, functions = c("pageDisable")),
+      extendShinyjs(text = jsCode_STRINGdb, functions = c("loadStringData")),
+      # extendShinyjs(text = jsCode, functions = c("pageDisable")),
       
       #Busy panel when app is running
       conditionalPanel(
@@ -124,10 +145,12 @@ ui <- tagList(
                 uiOutput("differential_params_ui")
               ),
               column(
+                id="panel_results",
                 width = 8,
+                tags$br(),
                 fluidRow(
                   actionButton("report_proteome", "Generate report"),
-                  actionButton("case_study_proteome", "Case Study Example")
+                  actionButton("download_proteome", "Download results")
                 ),
                 textOutput("messagge_read"),
                 uiOutput("protn_results_ui"),
@@ -209,7 +232,13 @@ ui <- tagList(
                   )
                 ),
                 uiOutput("render_enrichement_analysis"),
-                uiOutput("render_stringdb")
+                uiOutput("render_stringdb"),
+                fluidRow(
+                  column(
+                    width = 12,
+                    tags$div(id = "stringEmbedded")
+                  )
+                )
               )
             )
           )
@@ -243,8 +272,10 @@ server <- function(input, output, session) {
                                  imputed_data = list(),
                                  normalized_data = list(),
                                  formule_contrast = list(),
+                                 dt_formule_contrast = data.table("Name"=c("","","",""),"Formule"=c("","","","")),
                                  differential_results = list(),
                                  enrichmnent_results = list())
+  
   # Optional visibility based on the selection ----
   
   ## PROTN: Visibility of the proteomics files for ProTN ----
@@ -295,7 +326,10 @@ server <- function(input, output, session) {
   output$differential_params_ui <- renderUI({ 
     if(input$differential_analysis_checkbox){
       tagList(
-        textAreaInput("formule_contrast", "Write in each line a different comparison", rows = 4),
+        tags$label("Write in each line a different comparison"),
+        tags$label("(right click to add row)"),
+        rHandsontableOutput('render_formule_contrast_table'),
+        # textAreaInput("formule_contrast", "Write in each line a different comparison", rows = 4),
         textInput("FC_thr", "Fold change threshold for significance:",value = 0.5),
         radioButtons("pval_fdr", "Select which p.value use:", 
                      choiceNames = c("Adj.P.Val", "P.Val"),
@@ -320,6 +354,10 @@ server <- function(input, output, session) {
         uiOutput("stringdb_params_ui")
       )
     } 
+  })
+  
+  output$render_formule_contrast_table <- renderRHandsontable({
+    rhandsontable(db_execution$dt_formule_contrast, rowHeaders = NULL, stretchH = "all")
   })
   
   ## PROTN: show enrichment parameter ----
@@ -350,7 +388,9 @@ server <- function(input, output, session) {
         selectizeInput("taxonomy", "NCBI Taxonomy ID", 
                        choice = data.table::fread("data/subset_tax.csv", select = "name"), 
                        selected = "Homo sapiens", multiple = F),
-        actionButton("execute_stringdb_analysis_btn", "Run!")
+        sliderInput("score_thr_stringdb", "Score thr for STRINGdb", 500, 1000, step = 10, value = 700),
+        actionButton("execute_stringdb_analysis_btn", "Run!"),
+        tags$br()
       )
     }
   })
@@ -392,6 +432,7 @@ server <- function(input, output, session) {
             file.copy(from = input$pep_file_proteome$datapath, to = paste0(dir_input,'/PEP_',file_pep_proteome)) 
             
             message(software)
+            progress=0
             withCallingHandlers(
               {
                 shinyjs::html("text", "")
@@ -410,6 +451,8 @@ server <- function(input, output, session) {
               },
               message = function(m) {
                 shinyjs::html(id = "messagge_read", html = paste0("<p>",m$message,"</p>"), add = TRUE)
+                progress=progress+0.05
+                setProgress(value = progress)
               }
             )
             
@@ -552,18 +595,27 @@ server <- function(input, output, session) {
   ## PROTN: differential analysis ----
   observeEvent(input$execute_differential_analysis_btn, {
     output$render_differential_analysis <- renderUI({
-      # req(input$formule_contrast)
       isolate({
-        formule_diff <- stri_split(input$formule_contrast, regex = "\n")[[1]]
+        db_execution$dt_formule_contrast <- as.data.table(hot_to_r(input$render_formule_contrast_table))
+        db_execution$dt_formule_contrast <- db_execution$dt_formule_contrast[Formule!=""]
+        print(db_execution$dt_formule_contrast)
+        formule_diff <- as.list(db_execution$dt_formule_contrast$Formule)
+        names(formule_diff) <- stri_replace_all(db_execution$dt_formule_contrast$Name, replacement = "_", regex = "-")
         
-        db_execution$formule_contrast <- as.list(formule_diff)
-        names(db_execution$formule_contrast) <- stri_replace_all(formule_diff, replacement = "_VS_", regex = "-")
+        names(formule_diff) <- lapply(1:length(formule_diff), function(x){
+          if(names(formule_diff)[x] == ""){
+            stri_replace_all(formule_diff[[x]], replacement = "_VS_", regex = "-")
+          } else{
+            names(formule_diff)[x]
+          }
+        })
+        db_execution$formule_contrast <- formule_diff
         message(db_execution$formule_contrast)
-        
+
         withProgress(message = "Differential analysis in process, please wait!", {
           message(session$token)
           message(tempdir())
-          
+
           db_execution$differential_results <- differential_analysis(proteome_data = db_execution$normalized_data,
                                                                      formule_contrast = db_execution$formule_contrast,
                                                                      fc_thr=as.double(input$FC_thr),
@@ -571,7 +623,7 @@ server <- function(input, output, session) {
                                                                      pval_thr=as.double(input$pval_thr),
                                                                      signal_thr=0)
         })
-        
+
         tags$h2("Differential Analysis")
       })
     })
@@ -724,14 +776,17 @@ server <- function(input, output, session) {
   observeEvent(input$execute_stringdb_analysis_btn, {
     output$render_stringdb <- renderUI({
       isolate({
-        withProgress(message = "Differential analysis in process, please wait!", {
-          
-        strindb_res <- STRINGdb_network(differential_results = db_execution$differential_results,
-                                        species=taxonomy, 
-                                        dirOutput=db_execution$dirOutput)
+        withProgress(message = "STRINGdb analysis in process, please wait!", {
+        
+          stringdb_res <- STRINGdb_network(differential_results = db_execution$differential_results,
+                                        species=input$taxonomy, 
+                                        dirOutput=db_execution$dirOutput, 
+                                        score_thr=input$score_thr_stringdb,
+                                        shiny = T)
+        js$loadStringData(input$taxonomy, stringdb_res[[1]], input$score_thr_stringdb)
         tagList(
-          tags$h3("STRINGdb analysis"),
-          renderPlot(strindb_res)
+          tags$h3("STRINGdb analysis")
+          # renderPlot(stringdb_res)
         )
         })
       })
