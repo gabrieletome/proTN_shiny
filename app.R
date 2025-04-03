@@ -208,7 +208,8 @@ ui <- tagList(
                     uiOutput("render_pca_peptide_diff")
                   )
                 ),
-                uiOutput("render_enrichement_analysis")
+                uiOutput("render_enrichement_analysis"),
+                uiOutput("render_stringdb")
               )
             )
           )
@@ -314,9 +315,9 @@ server <- function(input, output, session) {
         tags$h3("Enrichment Analysis:"),
         checkboxInput("enrichment_analysis", "Execute enrichment analysis", FALSE),
         uiOutput("enrichment_params_ui"),
-        #TODO: show parameter
         tags$h3("STRINGdb network:"),
-        checkboxInput("stringdb_analysis", "Execute STRINGdb", FALSE)
+        checkboxInput("stringdb_analysis", "Execute STRINGdb", FALSE),
+        uiOutput("stringdb_params_ui")
       )
     } 
   })
@@ -340,6 +341,18 @@ server <- function(input, output, session) {
         actionButton("execute_enrichment_analysis_btn", "Run!")
       )
     } 
+  })
+  
+  ## PROTN: show stringdb parameter ----
+  output$stringdb_params_ui <- renderUI({
+    if(input$stringdb_analysis){
+      tagList(
+        selectizeInput("taxonomy", "NCBI Taxonomy ID", 
+                       choice = data.table::fread("data/subset_tax.csv", select = "name"), 
+                       selected = "Homo sapiens", multiple = F),
+        actionButton("execute_stringdb_analysis_btn", "Run!")
+      )
+    }
   })
   
   # PROTN: Execution pipeline ----
@@ -545,7 +558,6 @@ server <- function(input, output, session) {
         
         db_execution$formule_contrast <- as.list(formule_diff)
         names(db_execution$formule_contrast) <- stri_replace_all(formule_diff, replacement = "_VS_", regex = "-")
-        # db_execution$formule_contrast <- list("A2016vsWT"="A2016T-wt")
         message(db_execution$formule_contrast)
         
         withProgress(message = "Differential analysis in process, please wait!", {
@@ -677,6 +689,7 @@ server <- function(input, output, session) {
         )
       }
     })
+    
   })
   
   ## PROTN: enrichment analysis ----
@@ -692,15 +705,35 @@ server <- function(input, output, session) {
                                                           pval_enrich_thr=as.double(input$pval_thr),
                                                           dirOutput=db_execution$dirOutput)
         
-        terms_enrich <- unlist(stri_split(stri_replace_all(regex = " |\"|;|.",replacement = "",str = input$terms_enrich), regex=","))
+        terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich), regex=","))
         plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
-                                        category = c("down","up"),
+                                        category = c("down","up"), 
+                                        enrich_filter_term = terms_enrich,
                                         save=F)
-        navset_card_underline(
+        navset_tab(
+          title = "Enrichment analysis",
+          widths=100,
           nav_panel("1", renderPlot(plots_down[[1]])),
-          nav_panel("2", renderPlot(plots_down[[2]]))
+          nav_panel("2", renderPlot(plots_down[[2]])) 
         )
         
+      })
+    })
+  })
+  ## PROTN: stringdb analysis ----
+  observeEvent(input$execute_stringdb_analysis_btn, {
+    output$render_stringdb <- renderUI({
+      isolate({
+        withProgress(message = "Differential analysis in process, please wait!", {
+          
+        strindb_res <- STRINGdb_network(differential_results = db_execution$differential_results,
+                                        species=taxonomy, 
+                                        dirOutput=db_execution$dirOutput)
+        tagList(
+          tags$h3("STRINGdb analysis"),
+          renderPlot(strindb_res)
+        )
+        })
       })
     })
   })
