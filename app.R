@@ -232,13 +232,7 @@ ui <- tagList(
                   )
                 ),
                 uiOutput("render_enrichement_analysis"),
-                uiOutput("render_stringdb"),
-                fluidRow(
-                  column(
-                    width = 12,
-                    tags$div(id = "stringEmbedded")
-                  )
-                )
+                uiOutput("render_stringdb")
               )
             )
           )
@@ -762,13 +756,34 @@ server <- function(input, output, session) {
                                         category = c("down","up"), 
                                         enrich_filter_term = terms_enrich,
                                         save=F)
-        navset_tab(
-          title = "Enrichment analysis",
-          widths=100,
-          nav_panel("1", renderPlot(plots_down[[1]])),
-          nav_panel("2", renderPlot(plots_down[[2]])) 
-        )
+        # Generate tabPanels in a for loop
+        tabs <- list()
+        for (i in seq_along(plots_down)) {
+          plot_id <- names(plots_down)[i]
+          
+          # Create an output slot for each plot
+          local({
+            my_i <- i
+            my_plot_id <- plot_id
+            output[[my_plot_id]] <- renderPlot({
+              plots_down[[names(plots_down)[my_i]]]
+            }, width = 500, height = 1000)
+          })
+          
+          tabs[[i]] <- tabPanel(
+            title = paste(names(plots_down)[i]),
+            plotOutput(plot_id)
+          )
+          
+          # tabs[[i]] <- tabPanel(
+          #   title = paste(names(plots_down)[i]),
+          #   # tags$h3(paste0("Test",i))
+          #   renderPlot(plots_down[[names(plots_down)[i]]], width = 500, height = 1000)
+          # )
+        }
         
+        # Use do.call to unpack the tab list into tabsetPanel
+        do.call(tabsetPanel, c(list(id = "dynamic_tabs_enrichment"), tabs))
       })
     })
   })
@@ -783,10 +798,42 @@ server <- function(input, output, session) {
                                         dirOutput=db_execution$dirOutput, 
                                         score_thr=input$score_thr_stringdb,
                                         shiny = T)
-        js$loadStringData(input$taxonomy, stringdb_res[[1]], input$score_thr_stringdb)
+        
+        
+        # Generate tabPanels in a for loop
+        tabs <- list()
+        for (i in seq_along(stringdb_res)) {
+          
+          plot_id <- names(stringdb_res)[i]
+          
+          # Create an output slot for each plot
+          local({
+            my_i <- i
+            my_plot_id <- plot_id
+            output[[my_plot_id]] <- js$loadStringData(input$taxonomy, stringdb_res[[i]], input$score_thr_stringdb)
+          })
+          
+          tabs[[i]] <- tabPanel(
+            title = paste(names(stringdb_res)[i]),
+            fluidRow(
+              column(
+                width = 12,
+                tags$div(id = "stringEmbedded")
+              )
+            )
+          )
+          
+          # tabs[[i]] <- tabPanel(
+          #   title = paste(names(stringdb_res)[i]),
+          #   js$loadStringData(input$taxonomy, stringdb_res[[i]], input$score_thr_stringdb)
+          # )
+        }
+        
         tagList(
-          tags$h3("STRINGdb analysis")
+          tags$h3("STRINGdb analysis"),
           # renderPlot(stringdb_res)
+          # Use do.call to unpack the tab list into tabsetPanel
+          do.call(tabsetPanel, c(list(id = "dynamic_tabs_stringdb"), tabs))
         )
         })
       })
