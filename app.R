@@ -57,7 +57,8 @@ jsCode_STRINGdb <- "
       getSTRING('https://string-db.org', {
             'species': params.taxonomy,
             'identifiers': params.gene,
-            'required_score': params.score_thr})
+            'required_score': params.score_thr,
+            'hide_disconnected_nodes': '1'})
     }"
 
 
@@ -113,7 +114,7 @@ ui <- tagList(
           tagList(
             fluidRow(
               column(
-                width = 4,
+                width = 3,
                 fluidRow(
                   textInput("title_exp", "Title of the analysis"),
                 ),
@@ -146,7 +147,7 @@ ui <- tagList(
               ),
               column(
                 id="panel_results",
-                width = 8,
+                width = 9,
                 tags$br(),
                 fluidRow(
                   actionButton("report_proteome", "Generate report"),
@@ -268,7 +269,8 @@ server <- function(input, output, session) {
                                  formule_contrast = list(),
                                  dt_formule_contrast = data.table("Name"=c("","","",""),"Formule"=c("","","","")),
                                  differential_results = list(),
-                                 enrichmnent_results = list())
+                                 enrichmnent_results = list(),
+                                 stringdb_res = list())
   
   # Optional visibility based on the selection ----
   
@@ -767,7 +769,7 @@ server <- function(input, output, session) {
             my_plot_id <- plot_id
             output[[my_plot_id]] <- renderPlot({
               plots_down[[names(plots_down)[my_i]]]
-            }, width = 500, height = 1000)
+            }, width = 500)
           })
           
           tabs[[i]] <- tabPanel(
@@ -792,52 +794,29 @@ server <- function(input, output, session) {
     output$render_stringdb <- renderUI({
       isolate({
         withProgress(message = "STRINGdb analysis in process, please wait!", {
-        
-          stringdb_res <- STRINGdb_network(differential_results = db_execution$differential_results,
-                                        species=input$taxonomy, 
-                                        dirOutput=db_execution$dirOutput, 
-                                        score_thr=input$score_thr_stringdb,
-                                        shiny = T)
-        
-        
-        # Generate tabPanels in a for loop
-        tabs <- list()
-        for (i in seq_along(stringdb_res)) {
           
-          plot_id <- names(stringdb_res)[i]
+          db_execution$stringdb_res <- STRINGdb_network(differential_results = db_execution$differential_results,
+                                                        species=input$taxonomy, 
+                                                        dirOutput=db_execution$dirOutput, 
+                                                        score_thr=input$score_thr_stringdb,
+                                                        shiny = T)
           
-          # Create an output slot for each plot
-          local({
-            my_i <- i
-            my_plot_id <- plot_id
-            output[[my_plot_id]] <- js$loadStringData(input$taxonomy, stringdb_res[[i]], input$score_thr_stringdb)
-          })
-          
-          tabs[[i]] <- tabPanel(
-            title = paste(names(stringdb_res)[i]),
+          tagList(
+            tags$h3("STRINGdb analysis"),
             fluidRow(
-              column(
-                width = 12,
-                tags$div(id = "stringEmbedded")
-              )
-            )
+              selectInput("stringdb_show", label = "Select StringDB to show: (click on STRING logo to open the results on stringDB website)", 
+                          choices = names(db_execution$stringdb_res), width = "15%"),
+              actionButton("stringdb_selected", "Select!", width = "10%")  
+            ),
+            tags$div(id = "stringEmbedded")
           )
-          
-          # tabs[[i]] <- tabPanel(
-          #   title = paste(names(stringdb_res)[i]),
-          #   js$loadStringData(input$taxonomy, stringdb_res[[i]], input$score_thr_stringdb)
-          # )
-        }
-        
-        tagList(
-          tags$h3("STRINGdb analysis"),
-          # renderPlot(stringdb_res)
-          # Use do.call to unpack the tab list into tabsetPanel
-          do.call(tabsetPanel, c(list(id = "dynamic_tabs_stringdb"), tabs))
-        )
         })
       })
     })
+  })
+  
+  observeEvent(input$stringdb_selected, {
+    js$loadStringData(input$taxonomy, db_execution$stringdb_res[[input$stringdb_show]], input$score_thr_stringdb)
   })
   # ----
   # -- DELETE TEMP FILES WHEN SESSION ENDS -- #

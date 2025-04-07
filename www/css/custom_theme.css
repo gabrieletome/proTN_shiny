@@ -23,13 +23,19 @@
 .main-sidebar {
   padding-top: 70px;
 }
-
+/*
 .col-sm-8 {
   width: 100%;
 }
-
+*/
 img.image-thumb {
   width: 600px;
+}
+
+#stringdb_selected{
+  height: fit-content;
+  align-self: center;
+  margin-left: 15px;
 }
 
 #panel_results {
@@ -41,8 +47,9 @@ img.image-thumb {
 #stringEmbedded {
     position: relative;
     width: 100%;
-    height: 500px;
+    height: 800px;
     overflow-y: scroll;
+    overflow-x: scroll;
 }
 
 hr {
