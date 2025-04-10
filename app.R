@@ -151,7 +151,7 @@ ui <- tagList(
                 tags$br(),
                 fluidRow(
                   actionButton("report_proteome", "Generate report"),
-                  actionButton("download_proteome", "Download results")
+                  downloadButton("download_proteome", "Download results (ZIP file)")
                 ),
                 textOutput("messagge_read"),
                 uiOutput("protn_results_ui"),
@@ -270,7 +270,25 @@ server <- function(input, output, session) {
                                  dt_formule_contrast = data.table("Name"=c("","","",""),"Formule"=c("","","","")),
                                  differential_results = list(),
                                  enrichmnent_results = list(),
-                                 stringdb_res = list())
+                                 stringdb_res = list(),
+                                 generate_abundance = NULL,
+                                 generate_peptide_distribution = NULL,
+                                 protein_abundance_distribution = NULL,
+                                 peptide_abundance_distirbution = NULL,
+                                 protein_MDS = NULL,
+                                 peptide_MDS = NULL,
+                                 protein_PCA = NULL,
+                                 peptide_PCA = NULL,
+                                 protein_boxplot = NULL,
+                                 protein_heatmap = NULL,
+                                 protein_differential_barplot = NULL,
+                                 peptide_differential_barplot = NULL,
+                                 protein_vulcano = NULL,
+                                 peptide_vulcano = NULL,
+                                 protein_differential_MDS = NULL,
+                                 peptide_differential_MDS = NULL,
+                                 protein_differential_PCA = NULL,
+                                 peptide_differential_PCA = NULL)
   
   # Optional visibility based on the selection ----
   
@@ -456,6 +474,7 @@ server <- function(input, output, session) {
             db_execution$imputed_data <- impute_intensity(proteome_data = db_execution$proteome_data)
             db_execution$normalized_data <- normalization_ProTN(proteome_data = db_execution$imputed_data)
             
+            updateActionButton(inputId = "download_proteome", disabled = FALSE)
             
             output$c_anno <- DT::renderDT(db_execution$proteome_data$c_anno)
             DT::DTOutput("c_anno")
@@ -476,6 +495,7 @@ server <- function(input, output, session) {
     output$render_abundance_plot <- renderUI({ 
       if(input$abundance_plot){
         generate_abundance <- generate_abundance_plot(proteome_data = db_execution$proteome_data)
+        db_execution$generate_abundance = generate_abundance$plot
         tagList(
           tags$h3("Percentage missing values respect detected abundance"),
           renderPlot(generate_abundance$plot)
@@ -486,7 +506,8 @@ server <- function(input, output, session) {
     output$render_peptide_distribution <- renderUI({ 
       if(input$peptide_distribution){
         generate_peptide_distribution <- generate_peptide_distribution_plot(proteome_data = db_execution$proteome_data)
-        tagList(
+        db_execution$generate_peptide_distribution = generate_peptide_distribution$plot
+          tagList(
           tags$h3("N° peptides per proteins"),
           renderPlot(generate_peptide_distribution$plot)
         )
@@ -497,6 +518,7 @@ server <- function(input, output, session) {
       if(input$protein_violin){
         generate_protein_violin <- plot_abundance_distribution(proteome_data = db_execution$normalized_data,
                                                                type = "protein")
+        db_execution$protein_abundance_distribution = generate_protein_violin$plot
         tagList(
           tags$h3("Distribution protein abundance"),
           renderPlot(generate_protein_violin$plot)
@@ -508,6 +530,7 @@ server <- function(input, output, session) {
       if(input$peptide_violin){
         generate_peptide_violin <- plot_abundance_distribution(proteome_data = db_execution$normalized_data,
                                                                type = "peptide")
+        db_execution$peptide_abundance_distirbution = generate_peptide_violin$plot
         tagList(
           tags$h3("Distribution peptide abundace"),
           renderPlot(generate_peptide_violin$plot)
@@ -519,6 +542,7 @@ server <- function(input, output, session) {
       if(input$mds_protein){
         res_plot <- mds_plot(proteome_data = db_execution$normalized_data,
                              type = "protein")
+        db_execution$protein_MDS = res_plot$plot
         tagList(
           tags$h3("MDS based on proteins"),
           renderPlot(res_plot$plot)
@@ -530,6 +554,7 @@ server <- function(input, output, session) {
       if(input$mds_peptide){
         res_plot <- mds_plot(proteome_data = db_execution$normalized_data,
                              type = "peptide")
+        db_execution$peptide_MDS = res_plot$plot
         tagList(
           tags$h3("MDS based on peptides"),
           renderPlot(res_plot$plot)
@@ -541,6 +566,7 @@ server <- function(input, output, session) {
       if(input$pca_protein){
         res_plot <- pca_plot(proteome_data = db_execution$normalized_data,
                              type = "protein")
+        db_execution$protein_PCA = res_plot$plot
         tagList(
           tags$h3("PCA based on proteins"),
           renderPlot(res_plot$plot)
@@ -552,6 +578,7 @@ server <- function(input, output, session) {
       if(input$pca_peptide){
         res_plot <- pca_plot(proteome_data = db_execution$normalized_data,
                              type = "peptide")
+        db_execution$peptide_PCA = res_plot$plot
         tagList(
           tags$h3("PCA based on peptides"),
           renderPlot(res_plot$plot)
@@ -563,8 +590,10 @@ server <- function(input, output, session) {
       if(input$boxplot_protein){
         req(input$list_proteins)
         list_proteins <- stri_split(stri_replace_all(regex = " |\"|;|.",replacement = "",str = input$list_proteins), regex=",")
+        print(list_proteins)
         prot_boxplot <- plot_selected_proteins(proteome_data = db_execution$normalized_data,
                                                list_protein = unlist(list_proteins))
+        db_execution$protein_boxplot = prot_boxplot$plot
         
         tagList(
           tags$h3("Boxplot selected proteins"),
@@ -579,6 +608,7 @@ server <- function(input, output, session) {
         list_proteins <- stri_split(stri_replace_all(regex = " |\"|;|.",replacement = "",str = input$list_proteins), regex=",")
         prot_boxplot <- heatmap_selected_proteins(proteome_data = db_execution$normalized_data,
                                                   list_protein = unlist(list_proteins))
+        db_execution$protein_heatmap = prot_boxplot$plot
         
         tagList(
           tags$h3("Heatmap selected proteins"),
@@ -642,6 +672,7 @@ server <- function(input, output, session) {
       if(input$protein_diff_barplot){
         ploft_diff_number <- generate_differential_barplots(db_execution$differential_results,
                                                             data_type="protein")
+        db_execution$protein_differential_barplot = ploft_diff_number$plot
         tagList(
           tags$h3("N° differential proteins"),
           renderPlot(ploft_diff_number$plot)
@@ -653,6 +684,7 @@ server <- function(input, output, session) {
       if(input$peptide_diff_barplot){
         ploft_diff_number_pep <- generate_differential_barplots(db_execution$differential_results,
                                                                 data_type="peptide")
+        db_execution$peptide_differential_barplot = ploft_diff_number_pep$plot
         tagList(
           tags$h3("N° differential peptides"),
           renderPlot(ploft_diff_number_pep$plot)
@@ -662,16 +694,42 @@ server <- function(input, output, session) {
     
     output$render_protein_vulcano <- renderUI({
       if(input$protein_vulcano){
-        generate_volcano_plots_protein<-generate_volcano_plots(db_execution$differential_results,
-                                                               data_type="protein",
-                                                               comparison=names(db_execution$formule_contrast)[[1]],
-                                                               fc_thr=as.double(input$FC_thr),
-                                                               pval_fdr = input$pval_fdr,
-                                                               pval_thr=as.double(input$pval_thr))
+        generate_volcano_plots_protein <- list()
+        for(comp in names(db_execution$formule_contrast)){
+          generate_volcano_plots_protein[[comp]]<-c(generate_volcano_plots_protein,
+                                            generate_volcano_plots(db_execution$differential_results,
+                                                                 data_type="protein",
+                                                                 comparison=comp,
+                                                                 fc_thr=as.double(input$FC_thr),
+                                                                 pval_fdr = input$pval_fdr,
+                                                                 pval_thr=as.double(input$pval_thr)))
+        }
+        
+        db_execution$protein_vulcano = generate_volcano_plots_protein
+        # Generate tabPanels in a for loop
+        tabs <- list()
+        for (i in seq_along(generate_volcano_plots_protein)) {
+          plot_id <- names(generate_volcano_plots_protein)[i]
+          # Create an output slot for each plot
+          local({
+            my_i <- i
+            my_plot_id <- plot_id
+            output[[my_plot_id]] <- renderPlotly(generate_volcano_plots_protein[[names(generate_volcano_plots_protein)[my_i]]])
+          })
+          
+          tabs[[i]] <- tabPanel(
+            title = paste(names(generate_volcano_plots_protein)[i]),
+            plotlyOutput(plot_id)
+          )
+        }
+        
+        # Use do.call to unpack the tab list into tabsetPanel
         tagList(
           tags$h3("Vulcano Plot differential proteins"),
-          renderPlotly(generate_volcano_plots_protein[[names(db_execution$formule_contrast)[[1]]]])
+          do.call(tabsetPanel, c(list(id = "dynamic_tabs_vulcano_protein"), tabs))
+          # renderPlotly(generate_volcano_plots_protein[[names(db_execution$formule_contrast)[[1]]]])
         )
+        
       }
     })
     
@@ -683,6 +741,8 @@ server <- function(input, output, session) {
                                                                fc_thr=as.double(input$FC_thr),
                                                                pval_fdr = input$pval_fdr,
                                                                pval_thr=as.double(input$pval_thr))
+        
+        db_execution$peptide_vulcano = generate_volcano_plots_peptide
         tagList(
           tags$h3("Vulcano Plot differential peptides"),
           renderPlotly(generate_volcano_plots_peptide[[names(db_execution$formule_contrast)[[1]]]])
@@ -695,6 +755,7 @@ server <- function(input, output, session) {
         ploft_diff_number_pep <- mds_differential_analysis_plot(differential_analysis = db_execution$differential_results,
                                                                 proteome_data = db_execution$normalized_data,
                                                                 type = "protein")
+        db_execution$protein_differential_MDS = ploft_diff_number_pep$plot
         tagList(
           tags$h3("MDS based on differential proteins"),
           renderPlot(ploft_diff_number_pep$plot)
@@ -707,6 +768,7 @@ server <- function(input, output, session) {
         ploft_diff_number_pep <- mds_differential_analysis_plot(differential_analysis = db_execution$differential_results,
                                                                 proteome_data = db_execution$normalized_data,
                                                                 type = "peptide")
+        db_execution$peptide_differential_MDS = ploft_diff_number_pep$plot
         tagList(
           tags$h3("MDS based on differential peptides"),
           renderPlot(ploft_diff_number_pep$plot)
@@ -716,9 +778,10 @@ server <- function(input, output, session) {
     
     output$render_pca_protein_diff <- renderUI({
       if(input$pca_diff_protein){
-        ploft_diff_number_pep <- mds_differential_analysis_plot(differential_analysis = db_execution$differential_results,
+        ploft_diff_number_pep <- pca_differential_analysis_plot(differential_analysis = db_execution$differential_results,
                                                                 proteome_data = db_execution$normalized_data,
                                                                 type = "protein")
+        db_execution$protein_differential_PCA = ploft_diff_number_pep$plot
         tagList(
           tags$h3("PCA based on differential proteins"),
           renderPlot(ploft_diff_number_pep$plot)
@@ -728,9 +791,10 @@ server <- function(input, output, session) {
     
     output$render_pca_peptide_diff <- renderUI({
       if(input$pca_diff_peptide){
-        ploft_diff_number_pep <- mds_differential_analysis_plot(differential_analysis = db_execution$differential_results,
+        ploft_diff_number_pep <- pca_differential_analysis_plot(differential_analysis = db_execution$differential_results,
                                                                 proteome_data = db_execution$normalized_data,
                                                                 type = "peptide")
+        db_execution$peptide_differential_PCA = ploft_diff_number_pep$plot
         tagList(
           tags$h3("PCA based on differential peptides"),
           renderPlot(ploft_diff_number_pep$plot)
@@ -758,6 +822,7 @@ server <- function(input, output, session) {
                                         category = c("down","up"), 
                                         enrich_filter_term = terms_enrich,
                                         save=F)
+        
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(plots_down)) {
@@ -776,12 +841,6 @@ server <- function(input, output, session) {
             title = paste(names(plots_down)[i]),
             plotOutput(plot_id)
           )
-          
-          # tabs[[i]] <- tabPanel(
-          #   title = paste(names(plots_down)[i]),
-          #   # tags$h3(paste0("Test",i))
-          #   renderPlot(plots_down[[names(plots_down)[i]]], width = 500, height = 1000)
-          # )
         }
         
         # Use do.call to unpack the tab list into tabsetPanel
@@ -818,6 +877,210 @@ server <- function(input, output, session) {
   observeEvent(input$stringdb_selected, {
     js$loadStringData(input$taxonomy, db_execution$stringdb_res[[input$stringdb_show]], input$score_thr_stringdb)
   })
+  # PROTN: download results ----
+  output$download_proteome <- downloadHandler(
+    filename = "results_case_study.zip",
+    content = function(file) {
+      tryCatch(
+        {
+          withProgress(message = "Prepraring files to download, please wait!", {
+            #Zip the dir resutls
+            message(session$token)
+            message(db_execution$dirOutput)
+            setProgress(value = 0.01)
+            # Prepare file for the download
+            if(length(db_execution$normalized_data)>0){
+              save_abundance_tables(proteome_data = db_execution$normalized_data, 
+                                    dirOutput = db_execution$dirOutput)
+            }
+            setProgress(value = 0.1)
+            
+            if(length(db_execution$differential_results)>0){
+              save_differential_analysis_table(proteome_data = db_execution$normalized_data,
+                                               differential_results = db_execution$differential_results,
+                                               dirOutput=db_execution$dirOutput)
+            }
+            setProgress(value = 0.2)
+            
+            if(input$abundance_plot & !is.null(db_execution$generate_abundance)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/missing_available_abundance.pdf"), 
+                     plot = db_execution$generate_abundance, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.25)
+            
+            if(input$peptide_distribution & !is.null(db_execution$generate_peptide_distribution)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_per_protein.pdf"), 
+                     plot = db_execution$generate_peptide_distribution, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.30)
+            
+            if(input$protein_violin & !is.null(db_execution$protein_abundance_distribution)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_abundance_distribution.pdf"), 
+                     plot = db_execution$protein_abundance_distribution, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.35)
+            
+            if(input$peptide_violin & !is.null(db_execution$peptide_abundance_distirbution)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_abundance_distribution.pdf"), 
+                     plot = db_execution$peptide_abundance_distirbution, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.40)
+            
+            if(input$mds_protein & !is.null(db_execution$protein_MDS)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_MDS.pdf"), 
+                     plot = db_execution$protein_MDS, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.43)
+            
+            if(input$mds_peptide & !is.null(db_execution$peptide_MDS)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_MDS.pdf"), 
+                     plot = db_execution$peptide_MDS, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.45)
+            
+            if(input$pca_protein & !is.null(db_execution$protein_PCA)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_PCA.pdf"), 
+                     plot = db_execution$protein_PCA, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.47)
+            
+            if(input$pca_peptide & !is.null(db_execution$peptide_PCA)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_PCA.pdf"), 
+                     plot = db_execution$peptide_PCA, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.50)
+            
+            if(input$boxplot_protein & !is.null(db_execution$protein_boxplot)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_boxplot.pdf"), 
+                     plot = db_execution$protein_boxplot, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.52)
+            
+            if(input$heatmap_protein & !is.null(db_execution$protein_heatmap)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_heatmap.pdf"), 
+                     plot = db_execution$protein_heatmap, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.55)
+            
+            if(input$protein_diff_barplot & !is.null(db_execution$protein_differential_barplot)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_barplot.pdf"), 
+                     plot = db_execution$protein_differential_barplot, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.58)
+            
+            if(input$peptide_diff_barplot & !is.null(db_execution$peptide_differential_barplot)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_barplot.pdf"), 
+                     plot = db_execution$peptide_differential_barplot, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.60)
+            
+            if(input$protein_vulcano & !is.null(db_execution$protein_vulcano)){
+              message("Doing vulcano:")
+              message(names(db_execution$protein_vulcano))
+              for(comp in names(db_execution$protein_vulcano)){
+                message(comp)
+                plotly::save_image(db_execution$protein_vulcano[[comp]], 
+                                        file = paste0(db_execution$dirOutput,"pics/",comp,"_protein_vulcano.png"))
+                htmlwidgets::saveWidget(db_execution$protein_vulcano[[comp]], 
+                                   file = paste0(db_execution$dirOutput,"pics/",comp,"_protein_vulcano.html"))
+              }
+            } 
+            setProgress(value = 0.64)
+            
+            if(input$peptide_vulcano & !is.null(db_execution$peptide_vulcano)){
+              for(comp in names(db_execution$peptide_vulcano)){
+                plotly::save_image(db_execution$peptide_vulcano[[comp]], 
+                             file = paste0(db_execution$dirOutput,"pics/",comp,"_protein_vulcano.png"))
+                htmlwidgets::saveWidget(db_execution$peptide_vulcano[[comp]], 
+                                   file = paste0(db_execution$dirOutput,"pics/",comp,"_protein_vulcano.html"))
+              }
+            } 
+            setProgress(value = 0.68)
+            
+            if(input$mds_diff_protein & !is.null(db_execution$protein_differential_MDS)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_MDS.pdf"), 
+                     plot = db_execution$protein_differential_MDS, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.69)
+            
+            if(input$mds_diff_peptide & !is.null(db_execution$peptide_differential_MDS)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_MDS.pdf"), 
+                     plot = db_execution$peptide_differential_MDS, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.70)
+            
+            if(input$pca_diff_protein & !is.null(db_execution$protein_differential_PCA)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_PCA.pdf"), 
+                     plot = db_execution$protein_differential_PCA, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.72)
+            
+            if(input$pca_diff_peptide & !is.null(db_execution$peptide_differential_PCA)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_PCA.pdf"), 
+                     plot = db_execution$peptide_differential_PCA, 
+                     create.dir = T)
+            } 
+            setProgress(value = 0.75)
+            
+            if(length(db_execution$enrichmnent_results)>0){
+              terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",
+                                                                 str = input$terms_enrich), regex=","))
+              plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
+                                              category = c("down","up"), 
+                                              enrich_filter_term = terms_enrich,
+                                              save=T, 
+                                              dirOutput = db_execution$dirOutput)
+            } 
+            setProgress(value = 0.82)
+            
+            if(length(db_execution$stringdb_res)>0){
+              tmp_res <- STRINGdb_network(differential_results = db_execution$differential_results,
+                                                            species=input$taxonomy, 
+                                                            dirOutput=db_execution$dirOutput, 
+                                                            score_thr=input$score_thr_stringdb,
+                                                            shiny = F)
+              
+            } 
+            setProgress(value = 0.95)
+            
+            #Save folder for the download
+            oldwd <- getwd()
+            message(db_execution$dirOutput)
+            setwd(db_execution$dirOutput)
+            files2zip <- list.files("./", recursive = TRUE)
+            zip(zipfile = file, files = files2zip, extra = "-r")
+            setwd(oldwd)
+            
+          })
+        },
+        error = function(e) {
+          #Create error report and reactivate the click in the page
+          showNotification(paste0("ERROR: ", e), type = "error", duration = 30)
+          html_text<-str_replace(read_file("R/error.html"), 
+                                 pattern = "The page you’re looking for doesn’t exist.</p>", 
+                                 replacement = paste0("Description:", e, "</p>"))
+          write_file(html_text, file = paste0(tempdir(), "/error.html"))
+          zip(zipfile = file, files = paste0(tempdir(), "/error.html"), extra = "-j")
+        }
+      )
+    }
+  )
+  
   # ----
   # -- DELETE TEMP FILES WHEN SESSION ENDS -- #
   # session$onSessionEnded(function() {
