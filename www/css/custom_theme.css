@@ -32,6 +32,10 @@ img.image-thumb {
   width: 600px;
 }
 
+.shiny-plot-output {
+  height: 100%;
+}
+
 #stringdb_selected{
   height: fit-content;
   align-self: center;

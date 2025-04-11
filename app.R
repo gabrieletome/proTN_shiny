@@ -589,8 +589,7 @@ server <- function(input, output, session) {
     output$render_protein_boxplot <- renderUI({
       if(input$boxplot_protein){
         req(input$list_proteins)
-        list_proteins <- stri_split(stri_replace_all(regex = " |\"|;|.",replacement = "",str = input$list_proteins), regex=",")
-        print(list_proteins)
+        list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins), regex=",")
         prot_boxplot <- plot_selected_proteins(proteome_data = db_execution$normalized_data,
                                                list_protein = unlist(list_proteins))
         db_execution$protein_boxplot = prot_boxplot$plot
@@ -605,7 +604,7 @@ server <- function(input, output, session) {
     output$render_protein_heatmap <- renderUI({
       if(input$heatmap_protein){
         req(input$list_proteins)
-        list_proteins <- stri_split(stri_replace_all(regex = " |\"|;|.",replacement = "",str = input$list_proteins), regex=",")
+        list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins), regex=",")
         prot_boxplot <- heatmap_selected_proteins(proteome_data = db_execution$normalized_data,
                                                   list_protein = unlist(list_proteins))
         db_execution$protein_heatmap = prot_boxplot$plot
@@ -696,7 +695,7 @@ server <- function(input, output, session) {
       if(input$protein_vulcano){
         generate_volcano_plots_protein <- list()
         for(comp in names(db_execution$formule_contrast)){
-          generate_volcano_plots_protein[[comp]]<-c(generate_volcano_plots_protein,
+          generate_volcano_plots_protein<-c(generate_volcano_plots_protein,
                                             generate_volcano_plots(db_execution$differential_results,
                                                                  data_type="protein",
                                                                  comparison=comp,
@@ -704,7 +703,6 @@ server <- function(input, output, session) {
                                                                  pval_fdr = input$pval_fdr,
                                                                  pval_thr=as.double(input$pval_thr)))
         }
-        
         db_execution$protein_vulcano = generate_volcano_plots_protein
         # Generate tabPanels in a for loop
         tabs <- list()
@@ -735,17 +733,38 @@ server <- function(input, output, session) {
     
     output$render_peptide_vulcano <- renderUI({
       if(input$peptide_vulcano){
-        generate_volcano_plots_peptide<-generate_volcano_plots(db_execution$differential_results,
-                                                               data_type="peptide",
-                                                               comparison=names(db_execution$formule_contrast)[[1]],
-                                                               fc_thr=as.double(input$FC_thr),
-                                                               pval_fdr = input$pval_fdr,
-                                                               pval_thr=as.double(input$pval_thr))
-        
+        generate_volcano_plots_peptide <- list()
+        for(comp in names(db_execution$formule_contrast)){
+          generate_volcano_plots_peptide<-c(generate_volcano_plots_peptide,
+                                            generate_volcano_plots(db_execution$differential_results,
+                                                                   data_type="peptide",
+                                                                   comparison=comp,
+                                                                   fc_thr=as.double(input$FC_thr),
+                                                                   pval_fdr = input$pval_fdr,
+                                                                   pval_thr=as.double(input$pval_thr)))
+        }
         db_execution$peptide_vulcano = generate_volcano_plots_peptide
+        # Generate tabPanels in a for loop
+        tabs_pep_vulcano <- list()
+        for (i in seq_along(generate_volcano_plots_peptide)) {
+          plot_id <- names(generate_volcano_plots_peptide)[i]
+          # Create an output slot for each plot
+          local({
+            my_i <- i
+            my_plot_id <- plot_id
+            output[[my_plot_id]] <- renderPlotly(generate_volcano_plots_peptide[[names(generate_volcano_plots_peptide)[my_i]]])
+          })
+          
+          tabs_pep_vulcano[[i]] <- tabPanel(
+            title = paste(names(generate_volcano_plots_peptide)[i]),
+            plotlyOutput(plot_id)
+          )
+        }
+        
+        # Use do.call to unpack the tab list into tabsetPanel
         tagList(
           tags$h3("Vulcano Plot differential peptides"),
-          renderPlotly(generate_volcano_plots_peptide[[names(db_execution$formule_contrast)[[1]]]])
+          do.call(tabsetPanel, c(list(id = "dynamic_tabs_vulcano_peptide"), tabs_pep_vulcano))
         )
       }
     })
@@ -823,23 +842,28 @@ server <- function(input, output, session) {
                                         enrich_filter_term = terms_enrich,
                                         save=F)
         
+        #LOAD category EnrichR
+        dbs_default <- read_tsv("data/dbs_enrichR.txt", col_names = FALSE) %>% as.data.frame()
+        dbs_category <- dbs_default %>% split(f = as.factor(.$X2))
+        category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution$enrichmnent_results$anno_class), input$DB_enrichment))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(plots_down)) {
           plot_id <- names(plots_down)[i]
-          
           # Create an output slot for each plot
           local({
             my_i <- i
             my_plot_id <- plot_id
             output[[my_plot_id]] <- renderPlot({
               plots_down[[names(plots_down)[my_i]]]
-            }, width = 500)
+            }, height = max(min(20,uniqueN(db_execution$enrichmnent_results[anno_class %in% category_db[[my_plot_id]][,1],
+                                                                            "anno_name"])*0.3),3)*85)
           })
           
           tabs[[i]] <- tabPanel(
             title = paste(names(plots_down)[i]),
-            plotOutput(plot_id)
+            plotOutput(plot_id, height = max(min(20,uniqueN(db_execution$enrichmnent_results[anno_class %in% category_db[[names(plots_down)[i]]][,1],
+                                                                                             "anno_name"])*0.3),3)*85)
           )
         }
         
@@ -987,24 +1011,23 @@ server <- function(input, output, session) {
             setProgress(value = 0.60)
             
             if(input$protein_vulcano & !is.null(db_execution$protein_vulcano)){
-              message("Doing vulcano:")
-              message(names(db_execution$protein_vulcano))
+              dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution$protein_vulcano)){
-                message(comp)
                 plotly::save_image(db_execution$protein_vulcano[[comp]], 
-                                        file = paste0(db_execution$dirOutput,"pics/",comp,"_protein_vulcano.png"))
+                                        file = paste0(db_execution$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution$protein_vulcano[[comp]], 
-                                   file = paste0(db_execution$dirOutput,"pics/",comp,"_protein_vulcano.html"))
+                                   file = paste0(db_execution$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.html"))
               }
             } 
             setProgress(value = 0.64)
             
             if(input$peptide_vulcano & !is.null(db_execution$peptide_vulcano)){
+              dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "peptide_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution$peptide_vulcano)){
                 plotly::save_image(db_execution$peptide_vulcano[[comp]], 
-                             file = paste0(db_execution$dirOutput,"pics/",comp,"_protein_vulcano.png"))
+                             file = paste0(db_execution$dirOutput,"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution$peptide_vulcano[[comp]], 
-                                   file = paste0(db_execution$dirOutput,"pics/",comp,"_protein_vulcano.html"))
+                                   file = paste0(db_execution$dirOutput,"pics/peptide_vulcano/",comp,"_protein_vulcano.html"))
               }
             } 
             setProgress(value = 0.68)
@@ -1051,7 +1074,7 @@ server <- function(input, output, session) {
             if(length(db_execution$stringdb_res)>0){
               tmp_res <- STRINGdb_network(differential_results = db_execution$differential_results,
                                                             species=input$taxonomy, 
-                                                            dirOutput=db_execution$dirOutput, 
+                                                            dirOutput=db_execution$dirOutput,
                                                             score_thr=input$score_thr_stringdb,
                                                             shiny = F)
               
