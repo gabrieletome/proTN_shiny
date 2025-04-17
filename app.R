@@ -938,15 +938,15 @@ server <- function(input, output, session) {
             
             # Render in background the report
             p = callr::r_bg(
-              func = function(db_execution, params, dirOutput) {
+              func = function(db_execution, params, dirOutput, env) {
                 rmarkdown::render("R/protn_report.Rmd",
                                   output_file = "protn_report.html",
                                   output_dir = dirOutput,
                                   params = params,
-                                  envir = new.env(parent = globalenv())
+                                  envir = env
                 )
               },
-              args = list(db_execution, params, dirOutput),
+              args = list(db_execution, params, db_execution$dirOutput, new.env(parent = globalenv())),
               stdout = "|",
               stderr = "|",
               error = getOption("callr.error", "error")
@@ -971,84 +971,86 @@ server <- function(input, output, session) {
             if(input$abundance_plot & !is.null(db_execution$generate_abundance)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/missing_available_abundance.pdf"), 
                      plot = db_execution$generate_abundance, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.25)
             
             if(input$peptide_distribution & !is.null(db_execution$generate_peptide_distribution)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_per_protein.pdf"), 
                      plot = db_execution$generate_peptide_distribution, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.30)
             
             if(input$protein_violin & !is.null(db_execution$protein_abundance_distribution)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_abundance_distribution.pdf"), 
                      plot = db_execution$protein_abundance_distribution, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.35)
             
             if(input$peptide_violin & !is.null(db_execution$peptide_abundance_distirbution)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_abundance_distribution.pdf"), 
                      plot = db_execution$peptide_abundance_distirbution, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.40)
             
             if(input$mds_protein & !is.null(db_execution$protein_MDS)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_MDS.pdf"), 
                      plot = db_execution$protein_MDS, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.43)
             
             if(input$mds_peptide & !is.null(db_execution$peptide_MDS)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_MDS.pdf"), 
                      plot = db_execution$peptide_MDS, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.45)
             
             if(input$pca_protein & !is.null(db_execution$protein_PCA)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_PCA.pdf"), 
                      plot = db_execution$protein_PCA, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.47)
             
             if(input$pca_peptide & !is.null(db_execution$peptide_PCA)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_PCA.pdf"), 
                      plot = db_execution$peptide_PCA, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.50)
             
+            # TODO: adapt based on number of protein
             if(input$boxplot_protein & !is.null(db_execution$protein_boxplot)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_boxplot.pdf"), 
                      plot = db_execution$protein_boxplot, 
-                     create.dir = T)
+                     create.dir = T, width = 8, height = 7)
             } 
             setProgress(value = 0.52)
             
+            # TODO: adapt based on number of protein
             if(input$heatmap_protein & !is.null(db_execution$protein_heatmap)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_heatmap.pdf"), 
                      plot = db_execution$protein_heatmap, 
-                     create.dir = T)
+                     create.dir = T, width = 8, height = 7)
             } 
             setProgress(value = 0.55)
             
             if(input$protein_diff_barplot & !is.null(db_execution$protein_differential_barplot)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_barplot.pdf"), 
                      plot = db_execution$protein_differential_barplot, 
-                     create.dir = T)
+                     create.dir = T, width = 8, height = 4)
             } 
             setProgress(value = 0.58)
             
             if(input$peptide_diff_barplot & !is.null(db_execution$peptide_differential_barplot)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_barplot.pdf"), 
                      plot = db_execution$peptide_differential_barplot, 
-                     create.dir = T)
+                     create.dir = T, width = 8, height = 4)
             } 
             setProgress(value = 0.60)
             
@@ -1077,28 +1079,28 @@ server <- function(input, output, session) {
             if(input$mds_diff_protein & !is.null(db_execution$protein_differential_MDS)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_MDS.pdf"), 
                      plot = db_execution$protein_differential_MDS, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.69)
             
             if(input$mds_diff_peptide & !is.null(db_execution$peptide_differential_MDS)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_MDS.pdf"), 
                      plot = db_execution$peptide_differential_MDS, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.70)
             
             if(input$pca_diff_protein & !is.null(db_execution$protein_differential_PCA)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_PCA.pdf"), 
                      plot = db_execution$protein_differential_PCA, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.72)
             
             if(input$pca_diff_peptide & !is.null(db_execution$peptide_differential_PCA)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_PCA.pdf"), 
                      plot = db_execution$peptide_differential_PCA, 
-                     create.dir = T)
+                     create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.75)
             
@@ -1143,7 +1145,7 @@ server <- function(input, output, session) {
             # Save RData db_execution
             db_results_proTN = reactiveValuesToList(db_execution)
             db_results_proTN <- db_results_proTN[!(unlist(lapply(db_results_proTN, is.null)))]
-            save(db_results_proTN, file = paste0(db_results_proTN$dirOutput,"rdata/db_results_proTN.RData"))
+            save(db_results_proTN, file = paste0(db_results_proTN$dirOutput,"db_results_proTN.RData"))
             
             #Save folder for the download
             oldwd <- getwd()
