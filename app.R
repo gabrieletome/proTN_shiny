@@ -912,6 +912,48 @@ server <- function(input, output, session) {
             message(session$token)
             message(db_execution$dirOutput)
             setProgress(value = 0.01)
+            
+            # Generate report
+            params <- list(
+              doc_title = input$title_exp,
+              description = input$description_exp,
+              readPD_files = if (input$sw_analyzer == "PD") {TRUE} else {FALSE},
+              readMQ_files = if (input$sw_analyzer == "MQ") {TRUE} else {FALSE},
+              db_execution = reactiveValuesToList(db_execution),
+              file_input = paste(db_execution$dirOutput, "input_protn", sep = ""),
+              batch_corr_exe = if(input$batch_correction){input$batch_correction_col}else{NULL},
+              prot_boxplot = if(input$boxplot_protein | input$heatmap_protein){input$list_proteins}else{NULL},
+              fc_thr = if(is.null(input$FC_thr)){"0.75"}else{input$FC_thr},
+              pval_fdr = input$pval_fdr,
+              pval_thr = if(is.null(input$pval_thr)){"0.05"}else{input$pval_thr},
+              pval_fdr_enrich = input$pval_fdr_enrich,
+              pval_enrich_thr = if(is.null(input$pvalue_enrich)){"0.05"}else{input$pvalue_enrich},
+              overlap_size_enrich_thr = if(is.null(input$os_enrich)){as.integer(5)}else{input$os_enrich},
+              enrich_filter_term = input$terms_enrich,
+              enrich_filter_DBs = input$DB_enrichment,
+              taxonomy=input$taxonomy, 
+              score_thr=input$score_thr_stringdb,
+              dirOutput = db_execution$dirOutput
+            )
+            
+            # Render in background the report
+            p = callr::r_bg(
+              func = function(db_execution, params, dirOutput) {
+                rmarkdown::render("R/protn_report.Rmd",
+                                  output_file = "protn_report.html",
+                                  output_dir = dirOutput,
+                                  params = params,
+                                  envir = new.env(parent = globalenv())
+                )
+              },
+              args = list(db_execution, params, dirOutput),
+              stdout = "|",
+              stderr = "|",
+              error = getOption("callr.error", "error")
+            )
+            
+            
+            
             # Prepare file for the download
             if(length(db_execution$normalized_data)>0){
               save_abundance_tables(proteome_data = db_execution$normalized_data, 
@@ -1080,6 +1122,28 @@ server <- function(input, output, session) {
               
             } 
             setProgress(value = 0.95)
+            
+            #Get results Report
+            #Wait 10 minutes. If do not end in 10 minutes, kill the process
+            hide_res<-p$read_output()
+            p$wait(30000)
+            for (i in 1:15) {
+              p$read_output()
+              p$wait(1000*60)  
+            }
+            if(p$is_alive() | is.null(p$get_result())){
+              p$kill()
+              print("\n ERROR: An error occur during the report rendering. \n ")
+            } else{
+              report<-p$get_result()
+              p$kill()
+              message("Render report DONE.")
+            }
+            
+            # Save RData db_execution
+            db_results_proTN = reactiveValuesToList(db_execution)
+            db_results_proTN <- db_results_proTN[!(unlist(lapply(db_results_proTN, is.null)))]
+            save(db_results_proTN, file = paste0(db_results_proTN$dirOutput,"rdata/db_results_proTN.RData"))
             
             #Save folder for the download
             oldwd <- getwd()

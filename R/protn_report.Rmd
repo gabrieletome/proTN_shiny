@@ -1,0 +1,453 @@
+---
+author: "Gabriele Tomè, Toma Tebaldi"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  rmdformats::readthedown:
+    css: custom_theme_report.css
+    df_print: paged
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: true
+params:
+  doc_title: "ProTN report"
+  description: NA
+  readPD_files: NA
+  readMQ_files: NA
+  db_execution: NA
+  file_input: NA
+  batch_corr_exe: NA
+  prot_boxplot: NA
+  fc_thr: "0.75"
+  pval_fdr: NA
+  pval_thr: "0.05"
+  pval_fdr_enrich: NA
+  pval_enrich_thr: "0.05"
+  overlap_size_enrich_thr: 5
+  enrich_filter_term: NA
+  enrich_filter_DBs: NA
+  taxonomy: NA
+  score_thr: NA
+  dirOutput: NA
+  filt_absent_value: "0"
+---
+
+
+```{r setup, message=F, warning=F, echo=F,results='hide'}
+library(proTN)
+library(stringi)
+library(stringr)
+
+doc_title <- params$doc_title
+description <- params$description
+readPD_files <- params$readPD_files
+readMQ_files <- params$readMQ_files
+db_execution <- params$db_execution
+file_input <- params$file_input
+batch_corr_exe <- params$batch_corr_exe
+list_proteins <- stri_split(stri_replace_all(regex = " ",
+                                             replacement = "",
+                                             str = params$prot_boxplot), regex=",")
+
+fc_thr <- as.double(params$fc_thr)
+pval_fdr <- params$pval_fdr
+pval_thr <- as.double(params$pval_thr)
+pval_fdr_enrich <- params$pval_fdr_enrich
+pval_enrich_thr <- as.double(params$pval_enrich_thr)
+overlap_size_enrich_thr <- as.double(params$overlap_size_enrich_thr)
+enrich_filter_term <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",
+                                                         replacement = "",
+                                                         str = params$enrich_filter_term), regex=","))
+
+enrich_filter_DBs <- params$enrich_filter_DBs
+taxonomy <- params$taxonomy
+score_thr <- params$score_thr
+dirOutput <- params$dirOutput
+filt_absent_value <- params$filt_absent_value
+
+### Knit Tab for figure ----
+
+in_tabs <- function(l, labels = names(l), level, knit = TRUE, close_tabset = FALSE) {                       
+  if(is.null(labels)) {                               
+    stop("labels are NULL, it is required not to be so that the tabs have proper names")             
+  }                       
+  names(l) <- labels      
+  rmd_code <- lapply(seq_along(l), FUN = function(i) obj_to_rmd(l[[i]], name = names(l)[i], level = level + 1L))                     
+  if(isTRUE(getOption("knitr.in.progress"))) {                 
+    res <- knitr::knit(text = unlist(rmd_code), quiet = TRUE)  
+    cat(res)                                                   
+  } else {                
+    if(!knit) {             
+      cat(unlist(rmd_code))         
+    } else {           
+      return(l)       
+    }                   
+  }                      
+  if(close_tabset) {                            
+    cat(paste(get_section(level), "{.unlisted .unnumbered .toc-ignore .tabset}", "\n"))                    
+  }                     
+}                                                                                                                                      
+get_section <- function(level) {  
+  paste(rep("#", times = level), collapse = "")      
+}                 
+
+get_tabset <- function(obj) { 
+  ifelse(inherits(obj, "list"), "{.tabset}", "")
+}                                                                                                              
+
+obj_to_rmd <- function(obj, parent_name = "l", name, level) {                          
+  section_code <- sprintf("%s %s %s\n", get_section(level), name, get_tabset(obj))              
+  if(!inherits(obj, "list")) {             
+    rmd_code <- c("```{r, echo = FALSE}\n",  
+                  sprintf("%s$`%s`\n", parent_name, name),
+                  "```\n",                        
+                  "\n")                    
+  } else {               
+    rmd_code <- c("\n",            
+                  lapply(X = seq_along(obj),                         
+                         FUN = function(i) obj_to_rmd(obj[[i]], sprintf("%s$`%s`", parent_name, name), names(obj)[i], level + 1L)))
+  }                           
+  return(c(section_code, rmd_code))    
+} 
+
+### Function to plot Enrichment category ----
+
+resize_plot <- function(resizePlot, resizeHeight) {
+  resizePlot <- resizePlot
+  resizeHeight <- resizeHeight
+  res <- rmarkdown::render("enrich_plot.Rmd", quiet = T)
+  htmltools::includeHTML(res)
+}
+
+save(list=ls(), file = "tmp.RData")
+```
+
+
+---
+title: `r if(doc_title==""){"ProTN report"}else{doc_title}`
+---
+
+`r description`
+
+The following report summarizes the results obtained by the proTN integrative pipeline for proteomics analysis. Full results can be found in the output folder.
+
+```{r print_readme, warning=FALSE, echo=F, message=FALSE}
+
+text_readme<- c("Description of the output files")
+
+```
+
+## Summary of input parameters and thresholds
+
+```{r print_settings, warning=FALSE, echo=F, message=FALSE, results='asis'}
+cat(" \n \n")
+#Print summary of filter and contrast design
+if(readPD_files){
+  cat("**Source files:** Proteome Discoverer")
+  cat(" \n")
+} else if(readMQ_files){
+  cat("**Source files:** MaxQuant")
+  cat(" \n")
+} else if(readTMT_files){
+  cat("**Source files:** TMT with Protein Discoverer")
+  cat(" \n")
+}
+cat(" \n \n")
+if(!is.null(batch_corr_exe)){
+  cat("**Pipeline** \n ")
+  cat(" \n")
+  cat("- Execution of batch effect correction.")
+}
+cat(" \n \n ")
+cat("**Differential expression** \n ")
+cat(" \n")
+cat(paste0("- Fold Change threshold: log2_FC > ",fc_thr," (+), log2_FC < -",fc_thr," (-) "))
+cat(" \n")
+cat(paste0("- Statistical significance threshold: p.val < ",pval_thr," "))
+cat(" \n")
+if(filt_absent_value != 0){cat(paste0("- Threshold of acceptable missing values for condition = ",filt_absent_value," "))}
+cat(" \n \n ")
+if(length(db_execution$enrichmnent_results)>0){
+  cat("**Enrichment analysis** \n ")
+  cat(" \n")
+  cat(paste0("- Statistical significance threshold: p.val < ",pval_enrich_thr," "))
+  cat(" \n")
+  cat(paste0("- Overlap size threshold for enrichment analysis: OverlapSize > ",overlap_size_enrich_thr," "))
+  cat(" \n \n ")
+}
+cat(" \n \n ")
+if(length(db_execution$stringdb_res)>0){
+  cat("**Network analysis** \n ")
+  cat(" \n")
+  cat("- Execution of PPI network analysis with STRINGdb.")
+  cat(paste0("- Score threshold: ", score_thr,"\n"))
+}
+```
+
+## Analysis
+
+### Sample annotation
+The sample table below annotates the samples of the study as in the **Sample_Annotation** file. Important columns for the analysis:
+
+- **Sample**: sample name used in the results,
+- **Condition**: condition of the sample used in study design and differential analyses
+
+```{r print_sample, warning=FALSE, echo=F, message=FALSE, results='asis'}
+cat(" \n")
+kable(db_execution$proteome_data$c_anno,
+      row.names = F,
+      col.names = str_to_title(colnames(db_execution$proteome_data$c_anno)))
+cat(" \n")
+```
+
+
+Raw abundances are determined from the area under the peak (m/z, time, number of events) for each PSM (Peptide-to-Spectrum Match).
+
+Initial filtering removes the following peptides:
+
+-   Low/missing abundance: PSMs not consistently present in all replicates of at least one condition are removed.
+-   Contaminants.
+
+After filtering, raw abundances are log2 transformed
+
+```{r read_proteomics_MQ, warning=F, echo=F, eval=readMQ_files, results='asis'}
+proteome_data <- read_proteomics(software = "MQ",
+                                 folder = file_input,
+                                 peptide_filename = "evidence")
+```
+
+```{r read_proteomics_PD, warning=F, echo=F, eval=readPD_files, results='asis'}
+proteome_data <- read_proteomics(software = "PD",
+                                 folder = file_input)
+```
+
+```{r preprocess_figure_1, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
+cat("#### Distributions of log2 raw abundances \n")
+cat("Violin plot showing sample distributions of log2 raw abundances of peptides. \n ")
+# Avalaible abundance. The red percentage will be imputed.
+db_execution$generate_abundance
+```
+
+```{r preprocess_figure_2, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
+cat("#### Percentage of quantified peptides per sample \n")
+cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
+# Number peptide per each protein
+db_execution$generate_peptide_distribution
+```
+
+#### Imputation, normalization, peptide-to-protein summarization 
+
+**Imputation** is performed on peptide and protein abundances with the Bioconductor package [PhosR](https://www.sciencedirect.com/science/article/pii/S221112472100084X). Round imputation is performed in absence of replicates. ProTN uses two function of PhosR for the imputation, the first impute the missing values for a peptide across replicates within a single condition, the second is a tail-based imputation approach as implemented in Perseus.
+
+**Normalization:**
+
+**Peptides** abundances are normalized with the equalMedianNormalization function from the Bioconductor package [DEqMS](<https://www.bioconductor.org/packages/release/bioc/html/DEqMS.html>) (equal medians in all samples). 
+
+**Protein** normalized abundances were calculated with the medianSweeping function from the Bioconductor package [DEqMS](<https://www.bioconductor.org/packages/release/bioc/html/DEqMS.html>).
+
+
+
+```{r normalized_plot_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
+cat("# Distribution of protein normalized abundance \n")
+cat("Violin plot showing sample distributions of log2 normalized and imputed abundances. \n ")
+#Abundance per Protein
+db_execution$protein_abundance_distribution
+```
+
+```{r normalized_plot_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
+cat("# Distribution of peptide normalized abundance \n")
+cat("Violin plot showing sample distributions of log2 normalized and imputed abundances. \n ")
+#Abundance per Peptide
+db_execution$peptide_abundance_distirbution
+```
+
+```{r mds_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_MDS)}
+cat("# MDS based on protein normalized data \n ")
+cat("Multidimensional scaling (MDS) takes a set of dissimilarities and returns a set of points such that the distances between the points are approximately equal to the dissimilarities. Classical multidimensional scaling is also known as principal coordinates analysis. \n \n ")
+#Abundance per Protein
+db_execution$protein_MDS
+```
+
+```{r mds_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_MDS)}
+cat("# MDS based on peptide normalized data \n")
+cat("Multidimensional scaling (MDS) takes a set of dissimilarities and returns a set of points such that the distances between the points are approximately equal to the dissimilarities. Classical multidimensional scaling is also known as principal coordinates analysis. \n  \n ")
+#Abundance per Peptide
+db_execution$peptide_MDS
+```
+
+```{r pca_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_PCA)}
+cat("# PCA based on protein normalized data \n")
+cat("Principal component analysis (PCA) is performed on normalized Protein and Peptide abundances. \n \n ")
+#Abundance per Protein
+db_execution$protein_PCA
+```
+
+```{r pca_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_PCA)}
+cat("# PCA based on peptide normalized data \n")
+cat("Principal component analysis (PCA) is performed on normalized Protein and Peptide abundances. \n \n ")
+#Abundance per Peptide
+db_execution$peptide_PCA
+```
+
+
+```{r boxplot_protein, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=(length(list_proteins[[1]])>0 & !is.null(db_execution$protein_boxplot))}
+cat("#### Boxplot abundances of selected proteins \n")
+cat("Normalized log2 abundances are displayed for proteins selected in the input. Abundances are grouped per condition. \n \n ")
+cat("Selected proteins with available abundances: \n")
+cat(paste(list_proteins[[1]], sep = ", "))
+cat(" \n \n ")
+db_execution$protein_boxplot
+```
+
+```{r heatmap_protein, fig.height=7, fig.width=7,results='asis', echo=FALSE, eval=(length(list_proteins[[1]])>0 & !is.null(db_execution$protein_heatmap))}
+cat("#### Heatmap abundances of selected proteins \n")
+cat("Normalized log2 abundances are displayed for proteins selected in the input. \n ")
+cat("Selected proteins with available abundances: \n")
+cat(paste(list_proteins[[1]], sep = ", "))
+cat(" \n \n ")
+db_execution$protein_heatmap
+```
+
+
+
+```{r differential_analysis, echo=FALSE, results='asis', eval=length(db_execution$differential_results)>0}
+cat("## Differentially analysis \n")
+# cat("Differentially expressed peptides are identified using the Limma Bioconductor package. \n ")
+eval_single_Cond <- length(db_execution$differential_results)>0
+```
+
+```{r print_settings_diff_analysis, warning=FALSE, echo=F, message=FALSE, results='asis', eval=eval_single_Cond}
+cat(" \n \n")
+#Print summary of filter and contrast design
+cat("**Thresholds used:** \n ")
+cat(" \n")
+cat(paste0("- Fold Change threshold: log2_FC > ",fc_thr," (+), log2_FC < -",fc_thr," (-) "))
+cat(" \n")
+cat(paste0("- Statistical significance threshold: p.val < ",pval_thr," "))
+cat(" \n")
+
+```
+
+```{r print_settings_design, warning=FALSE, echo=F, message=FALSE, results='asis', eval=eval_single_Cond}
+cat("### Differential expression contrasts \n \n")
+cat("The following table contains the names and the formulas of the contrasts considered for differential expression analysis. \n \n")
+cat("**Contrast design formula are:** ")
+cat(" \n")
+kable(data.frame("Name"=names(db_execution$formule_contrast), 
+                 "Formula"=unlist(db_execution$formule_contrast)), 
+      row.names = F)
+cat(" \n")
+```
+
+```{r differentiated_protein, fig.height=3, fig.width=7, echo=FALSE, results='asis', eval=(eval_single_Cond & !is.null(db_execution$protein_differential_barplot))}
+cat("#### Number of differentially expressed proteins for each comparison \n")
+db_execution$protein_differential_barplot
+```
+
+```{r differentiated_peptide, fig.height=3, fig.width=7, echo=FALSE, results='asis', eval=(eval_single_Cond & !is.null(db_execution$peptide_differential_barplot))}
+cat("#### Number of differentially expressed peptide for each comparison \n")
+db_execution$peptide_differential_barplot
+```
+
+```{r volcano_protein, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(eval_single_Cond & !is.null(db_execution$protein_vulcano))}
+cat("#### Volcano plots of Proteins {.tabset} \n")
+cat("Differentially expressed proteins are displayes according to the thresholds set in the input. \n ")
+cat("\n - \"+\" up-regulated protein \n ")
+cat("\n - \"-\" down-regulated protein \n ")
+cat("\n - \"=\" invariant protein \n \n ")
+cat("Top enriched proteins are labeled. \n")
+cat(" \n \n")
+in_tabs(db_execution$protein_vulcano, labels = names(db_execution$protein_vulcano), level = 4L)
+cat(" \n \n")
+```
+
+```{r volcano_peptide, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(eval_single_Cond & !is.null(db_execution$peptide_vulcano))}
+cat("#### Volcano plots of Peptide {.tabset} \n")
+cat("Differentially expressed peptide are displayes according to the thresholds set in the input. \n ")
+cat("\n - \"+\" up-regulated peptide \n ")
+cat("\n - \"-\" down-regulated peptide \n ")
+cat("\n - \"=\" invariant peptide \n \n ")
+cat("Top enriched peptide are labeled. \n")
+cat(" \n \n")
+in_tabs(db_execution$peptide_vulcano, labels = names(db_execution$peptide_vulcano), level = 4L)
+cat(" \n \n")
+```
+
+
+```{r mds_differential_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_differential_MDS)}
+cat("# MDS based on differentially expressed proteins \n")
+cat("Multidimensional scaling (MDS) are performed on normalized abundances of differentially expressed Proteins. \n")
+#Abundance per Protein
+db_execution$protein_differential_MDS
+```
+
+```{r mds_differential_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_differential_MDS)}
+cat("# MDS based on differentially expressed peptides \n")
+cat("Multidimensional scaling (MDS) are performed on normalized abundances of differentially expressed Peptides. \n")
+#Abundance per Peptide
+db_execution$peptide_differential_MDS
+```
+
+```{r pca_differential_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_differential_PCA)}
+cat("# PCA based on differentially expressed proteins \n")
+cat("Principal component analysis (PCA) are performed on normalized abundances of differentially expressed Proteins. \n")
+#Abundance per Protein
+db_execution$protein_differential_PCA
+```
+
+```{r pca_differential_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_differential_PCA)}
+cat("# PCA based on differentially expressed peptides \n")
+cat("Principal component analysis (PCA) are performed on normalized abundances of differentially expressed  Peptides. \n")
+#Abundance per Peptide
+db_execution$peptide_differential_PCA
+```
+
+```{r enrichment_sms,message=F, warning=F,echo=F, eval=length(db_execution$enrichmnent_results)>0, results='asis'}
+cat("## Functional enrichment analysis \n")
+cat("Annotation enrichment analysis is performed using the web-based application [EnrichR](https://maayanlab.cloud/Enrichr/), against an updated collection of 98 databases covering Transcription, Pathways, Ontologies, Diseases, Drugs, Cell Types, Experimental Datasets. \n \n ")
+cat("For each comparison enrichment is calculate over up-regulated proteins (UP), down-regulated proteins (DOWN), and their union (ALL). \n")
+cat(" \n")
+cat(paste0("- Statistical significance threshold: p.val < ",pval_enrich_thr," "))
+cat(" \n")
+cat(paste0("- Overlap size threshold for enrichment analysis: OverlapSize > ",overlap_size_enrich_thr," "))
+cat(" \n")
+def_val_height=  knitr::opts_chunk$get("fig.height")
+run_enrich <- length(db_execution$enrichmnent_results)>0
+```
+
+```{r enrichment, echo=F, message=F, warning=F, eval = length(db_execution$enrichmnent_results)>0, results='asis'}
+
+terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",
+                                                   str = enrich_filter_term), regex=","))
+plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
+                                category = c("down","up"), 
+                                enrich_filter_term = terms_enrich,
+                                save=F)
+
+#LOAD category EnrichR
+dbs_default <- read_tsv("data/dbs_enrichR.txt", col_names = FALSE) %>% as.data.frame()
+dbs_category <- dbs_default %>% split(f = as.factor(.$X2))
+category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution$enrichmnent_results$anno_class), enrich_filter_DBs))})
+
+
+cat("#### Top enrichments in selected annotation databases. {.tabset}  \n")
+cat("Significant enrichments are displayed as filled dots, non-significant as empty dots. Point size is proportional to log2 Odds Ratio. \n ")
+cat("The dot plots shows the top significant terms considering selected annotation databases. \n ")
+cat("**Up-regulated and down-regulated proteins (UP,DOWN)** \n ")
+cat(" \n \n")
+
+for(db in names(plots_down)){
+  cat(paste0("##### ",db," \n"))
+  print(resize_plot(resizePlot = plots_down[[db]], resizeHeight =  max(min(20,uniqueN(db_execution$enrichmnent_results[anno_class %in% category_db[[db]][,1],
+                                                                            "anno_name"])*0.3),3)))
+  cat(" \n \n")
+}
+cat(" \n \n")
+```
+
+```{r string network, echo=F, message=F, warning=F, eval=length(db_execution$stringdb_res)>0, results='asis'}
+cat("## Protein-protein interaction network analysis of differentially expressed proteins \n")
+cat(paste0("Protein-protein interactions (PPIs) are crucial for understanding cell physiopathology. PPI analysis of differentially expressed proteins is based on the [STRING](https://string-db.org/) database.  Communities within the network are identified with the Clauset-Newman-Moore (CNM) algorithm. \n \n"))
+# cat("For a better visualization of the network, only the top 500 differential proteins are considered for each contrast.")
+db_execution$stringdb_res
+```
