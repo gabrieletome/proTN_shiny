@@ -38,6 +38,8 @@ library(proTN)
 library(stringi)
 library(stringr)
 library(knitr)
+library(readr)
+library(data.table)
 
 doc_title <- params$doc_title
 description <- params$description
@@ -120,7 +122,6 @@ resize_plot <- function(resizePlot, resizeHeight) {
   htmltools::includeHTML(res)
 }
 
-save(list=ls(), file = "tmp.RData")
 ```
 
 
@@ -213,15 +214,40 @@ Initial filtering removes the following peptides:
 After filtering, raw abundances are log2 transformed
 
 ```{r read_proteomics_MQ, warning=F, echo=F, eval=readMQ_files, results='asis'}
-msg <- read_proteomics(software = "MQ",
-                                      folder = file_input,
-                                      peptide_filename = "evidence")
+messaggi <- character()
+risultato <- withCallingHandlers(
+  {
+    read_proteomics(software = "MQ",
+                    folder = file_input,
+                    peptide_filename = "evidence")
+  },
+  message = function(m) {
+    messaggi <<- c(messaggi, m$message)
+    invokeRestart("muffleMessage")
+  }
+)
 
+cat("\nStat:\n")
+cat(paste(messaggi, collapse = " \n "))
+cat("\n\n")
 ```
 
 ```{r read_proteomics_PD, warning=F, echo=F, eval=readPD_files, results='asis'}
-msg <- read_proteomics(software = "PD",
+messaggi <- character()
+risultato <- withCallingHandlers(
+  {
+    read_proteomics(software = "PD",
                                       folder = file_input)
+  },
+  message = function(m) {
+    messaggi <<- c(messaggi, m$message)
+    invokeRestart("muffleMessage")
+  }
+)
+
+cat("\nStat: \n ")
+cat(paste(messaggi, collapse = " \n "))
+cat("\n\n")
 ```
 
 ```{r preprocess_figure_1, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
@@ -251,65 +277,70 @@ db_execution$generate_peptide_distribution
 
 
 
-```{r normalized_plot_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
-cat("# Distribution of protein normalized abundance \n")
+```{r normalized_plot_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_abundance_distribution)}
+cat("#### Distribution of protein normalized abundance \n")
 cat("Violin plot showing sample distributions of log2 normalized and imputed abundances. \n ")
 #Abundance per Protein
 db_execution$protein_abundance_distribution
 ```
 
-```{r normalized_plot_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
-cat("# Distribution of peptide normalized abundance \n")
+```{r normalized_plot_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_abundance_distirbution)}
+cat("#### Distribution of peptide normalized abundance \n")
 cat("Violin plot showing sample distributions of log2 normalized and imputed abundances. \n ")
 #Abundance per Peptide
 db_execution$peptide_abundance_distirbution
 ```
 
 ```{r mds_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_MDS)}
-cat("# MDS based on protein normalized data \n ")
+cat("#### MDS based on protein normalized data \n ")
 cat("Multidimensional scaling (MDS) takes a set of dissimilarities and returns a set of points such that the distances between the points are approximately equal to the dissimilarities. Classical multidimensional scaling is also known as principal coordinates analysis. \n \n ")
 #Abundance per Protein
 db_execution$protein_MDS
 ```
 
 ```{r mds_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_MDS)}
-cat("# MDS based on peptide normalized data \n")
+cat("#### MDS based on peptide normalized data \n")
 cat("Multidimensional scaling (MDS) takes a set of dissimilarities and returns a set of points such that the distances between the points are approximately equal to the dissimilarities. Classical multidimensional scaling is also known as principal coordinates analysis. \n  \n ")
 #Abundance per Peptide
 db_execution$peptide_MDS
 ```
 
 ```{r pca_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_PCA)}
-cat("# PCA based on protein normalized data \n")
+cat("#### PCA based on protein normalized data \n")
 cat("Principal component analysis (PCA) is performed on normalized Protein and Peptide abundances. \n \n ")
 #Abundance per Protein
 db_execution$protein_PCA
 ```
 
 ```{r pca_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_PCA)}
-cat("# PCA based on peptide normalized data \n")
+cat("#### PCA based on peptide normalized data \n")
 cat("Principal component analysis (PCA) is performed on normalized Protein and Peptide abundances. \n \n ")
 #Abundance per Peptide
 db_execution$peptide_PCA
 ```
 
 
-```{r boxplot_protein, fig.height=7, fig.width=7,results='asis', echo=FALSE, eval=(length(list_proteins[[1]])>0 & !is.null(db_execution$protein_boxplot))}
-cat("#### Boxplot abundances of selected proteins \n")
-cat("Normalized log2 abundances are displayed for proteins selected in the input. Abundances are grouped per condition. \n \n ")
-cat("Selected proteins with available abundances: \n")
-cat(paste(list_proteins[[1]], sep = ", "))
-cat(" \n \n ")
-db_execution$protein_boxplot
+```{r boxplot_protein, fig.height=7, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_boxplot)}
+if(length(list_proteins[[1]])>0){
+  cat("#### Boxplot abundances of selected proteins \n")
+  cat("Normalized log2 abundances are displayed for proteins selected in the input. Abundances are grouped per condition. \n \n ")
+  cat("Selected proteins with available abundances: \n")
+  cat(paste(list_proteins[[1]], sep = ", "))
+  cat(" \n \n ")
+  db_execution$protein_boxplot
+  
+}
 ```
 
-```{r heatmap_protein, fig.height=7, fig.width=7,results='asis', echo=FALSE, eval=(length(list_proteins[[1]])>0 & !is.null(db_execution$protein_heatmap))}
-cat("#### Heatmap abundances of selected proteins \n")
-cat("Normalized log2 abundances are displayed for proteins selected in the input. \n ")
-cat("Selected proteins with available abundances: \n")
-cat(paste(list_proteins[[1]], sep = ", "))
-cat(" \n \n ")
-db_execution$protein_heatmap
+```{r heatmap_protein, fig.height=7, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_heatmap)}
+if(length(list_proteins[[1]])>0){
+  cat("#### Heatmap abundances of selected proteins \n")
+  cat("Normalized log2 abundances are displayed for proteins selected in the input. \n ")
+  cat("Selected proteins with available abundances: \n")
+  cat(paste(list_proteins[[1]], sep = ", "))
+  cat(" \n \n ")
+  db_execution$protein_heatmap
+}
 ```
 
 
@@ -320,7 +351,7 @@ cat("## Differentially analysis \n")
 eval_single_Cond <- length(db_execution$differential_results)>0
 ```
 
-```{r print_settings_diff_analysis, warning=FALSE, echo=F, message=FALSE, results='asis', eval=eval_single_Cond}
+```{r print_settings_diff_analysis, warning=FALSE, echo=F, message=FALSE, results='asis', eval=length(db_execution$differential_results)>0}
 cat(" \n \n")
 #Print summary of filter and contrast design
 cat("**Thresholds used:** \n ")
@@ -332,7 +363,7 @@ cat(" \n")
 
 ```
 
-```{r print_settings_design, warning=FALSE, echo=F, message=FALSE, results='asis', eval=eval_single_Cond}
+```{r print_settings_design, warning=FALSE, echo=F, message=FALSE, results='asis', eval=length(db_execution$differential_results)>0}
 cat("### Differential expression contrasts \n \n")
 cat("The following table contains the names and the formulas of the contrasts considered for differential expression analysis. \n \n")
 cat("**Contrast design formula are:** ")
@@ -343,17 +374,17 @@ kable(data.frame("Name"=names(db_execution$formule_contrast),
 cat(" \n")
 ```
 
-```{r differentiated_protein, fig.height=3, fig.width=7, echo=FALSE, results='asis', eval=(eval_single_Cond & !is.null(db_execution$protein_differential_barplot))}
+```{r differentiated_protein, fig.height=3, fig.width=7, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_differential_barplot))}
 cat("#### Number of differentially expressed proteins for each comparison \n")
 db_execution$protein_differential_barplot
 ```
 
-```{r differentiated_peptide, fig.height=3, fig.width=7, echo=FALSE, results='asis', eval=(eval_single_Cond & !is.null(db_execution$peptide_differential_barplot))}
+```{r differentiated_peptide, fig.height=3, fig.width=7, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_differential_barplot))}
 cat("#### Number of differentially expressed peptide for each comparison \n")
 db_execution$peptide_differential_barplot
 ```
 
-```{r volcano_protein, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(eval_single_Cond & !is.null(db_execution$protein_vulcano))}
+```{r volcano_protein, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_vulcano))}
 cat("#### Volcano plots of Proteins {.tabset} \n")
 cat("Differentially expressed proteins are displayes according to the thresholds set in the input. \n ")
 cat("\n - \"+\" up-regulated protein \n ")
@@ -365,7 +396,7 @@ in_tabs(db_execution$protein_vulcano, labels = names(db_execution$protein_vulcan
 cat(" \n \n")
 ```
 
-```{r volcano_peptide, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(eval_single_Cond & !is.null(db_execution$peptide_vulcano))}
+```{r volcano_peptide, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_vulcano))}
 cat("#### Volcano plots of Peptide {.tabset} \n")
 cat("Differentially expressed peptide are displayes according to the thresholds set in the input. \n ")
 cat("\n - \"+\" up-regulated peptide \n ")
@@ -379,28 +410,28 @@ cat(" \n \n")
 
 
 ```{r mds_differential_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_differential_MDS)}
-cat("# MDS based on differentially expressed proteins \n")
+cat("#### MDS based on differentially expressed proteins \n")
 cat("Multidimensional scaling (MDS) are performed on normalized abundances of differentially expressed Proteins. \n")
 #Abundance per Protein
 db_execution$protein_differential_MDS
 ```
 
 ```{r mds_differential_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_differential_MDS)}
-cat("# MDS based on differentially expressed peptides \n")
+cat("#### MDS based on differentially expressed peptides \n")
 cat("Multidimensional scaling (MDS) are performed on normalized abundances of differentially expressed Peptides. \n")
 #Abundance per Peptide
 db_execution$peptide_differential_MDS
 ```
 
 ```{r pca_differential_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_differential_PCA)}
-cat("# PCA based on differentially expressed proteins \n")
+cat("#### PCA based on differentially expressed proteins \n")
 cat("Principal component analysis (PCA) are performed on normalized abundances of differentially expressed Proteins. \n")
 #Abundance per Protein
 db_execution$protein_differential_PCA
 ```
 
 ```{r pca_differential_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_differential_PCA)}
-cat("# PCA based on differentially expressed peptides \n")
+cat("#### PCA based on differentially expressed peptides \n")
 cat("Principal component analysis (PCA) are performed on normalized abundances of differentially expressed  Peptides. \n")
 #Abundance per Peptide
 db_execution$peptide_differential_PCA
@@ -429,9 +460,10 @@ plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
                                 save=F)
 
 #LOAD category EnrichR
-dbs_default <- read_tsv("data/dbs_enrichR.txt", col_names = FALSE) %>% as.data.frame()
+dbs_default <- read_tsv(system.file("extdata", 
+    "dbs_enrichR.txt", package = "proTN"), col_names = FALSE) %>% as.data.frame()
 dbs_category <- dbs_default %>% split(f = as.factor(.$X2))
-category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution$enrichmnent_results$anno_class), enrich_filter_DBs))})
+category_db <- lapply(dbs_category, function(x){as.data.table(x)[X1 %in% intersect(unique(db_execution$enrichmnent_results$anno_class), enrich_filter_DBs)]})
 
 
 cat("#### Top enrichments in selected annotation databases. {.tabset}  \n")
@@ -442,8 +474,9 @@ cat(" \n \n")
 
 for(db in names(plots_down)){
   cat(paste0("##### ",db," \n"))
-  print(resize_plot(resizePlot = plots_down[[db]], resizeHeight =  max(min(20,uniqueN(db_execution$enrichmnent_results[anno_class %in% category_db[[db]][,1],
-                                                                            "anno_name"])*0.3),3)))
+  print(resize_plot(resizePlot = plots_down[[db]], 
+                    resizeHeight =  max(min(20,
+                                            uniqueN( db_execution$enrichmnent_results[anno_class %in% category_db[[db]]$X1 & Significant == T,                                                       "anno_name"])*0.25),3)))
   cat(" \n \n")
 }
 cat(" \n \n")

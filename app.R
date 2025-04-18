@@ -127,13 +127,14 @@ ui <- tagList(
                                choiceValues = c("PD","MQ","TMT_PD"), inline = TRUE),
                 ),
                 uiOutput("input_proteome"),
+                checkboxInput("batch_correction", "Batch Correction", FALSE),
+                uiOutput("batch_correction_ui"),
+                actionButton("report_proteome", "Load data!"),
                 tags$h3("Select what execute:"),
                 checkboxInput("abundance_plot", "% missing values", TRUE),
                 checkboxInput("peptide_distribution", "N° peptides per protein", TRUE),
                 checkboxInput("protein_violin", "Distribution abundance proteins", FALSE),
                 checkboxInput("peptide_violin", "Distribution abundance peptides", FALSE),
-                checkboxInput("batch_correction", "Batch Correction", FALSE),
-                uiOutput("batch_correction_ui"),
                 checkboxInput("mds_protein", "MDS based on protein", FALSE),
                 checkboxInput("mds_peptide", "MDS based on peptide", FALSE),
                 checkboxInput("pca_protein", "PCA based on protein", TRUE),
@@ -149,10 +150,6 @@ ui <- tagList(
                 id="panel_results",
                 width = 9,
                 tags$br(),
-                fluidRow(
-                  actionButton("report_proteome", "Generate report"),
-                  downloadButton("download_proteome", "Download results (ZIP file)")
-                ),
                 textOutput("messagge_read"),
                 uiOutput("protn_results_ui"),
                 fluidRow(
@@ -390,6 +387,7 @@ server <- function(input, output, session) {
                      choiceValues = c("p_adj","p_val"), inline = TRUE, selected = "p_adj"),
         textInput("pvalue_enrich", "P.value threshold for significance:", value = 0.05),
         sliderInput("os_enrich", "Overlap size thr for enrichment", 1, 30, step = 1, value = 5),
+        checkboxInput("enrich_with_background", "Enrichment with background", FALSE),
         actionButton("execute_enrichment_analysis_btn", "Run!")
       )
     } 
@@ -413,83 +411,111 @@ server <- function(input, output, session) {
   observeEvent(input$report_proteome, {
     
     output$protn_results_ui <- renderUI({
-      tryCatch(
-        {
-          withProgress(message = "Rendering, please wait!", {
-            message(session$token)
-            message(tempdir())
-            #Creation directory for the results
-            dirOutput_2 <- tempdir()
-            currentTime <- gsub(".*?([0-9]+).*?", "\\1", Sys.time())
-            dirOutput_1 <- paste("/", currentTime, "/", sep = "")
-            dir.create(file.path(dirOutput_2, dirOutput_1), showWarnings = FALSE)
-            dirOutput_Server <- paste(dirOutput_2, dirOutput_1, sep = "")
-            message(dirOutput_Server)
-            db_execution$dirOutput <- dirOutput_Server
-            #Save folder for the download
-            readr::write_csv(data.frame("session"=session$token,
-                                        "outdir"=dirOutput_Server),
-                             file = paste0(tempdir(),"/outdir_log_ProTN.log"), append = T)
-            
-            
-            #Read parameter and execution
-            software <- input$sw_analyzer
-            file_input_proteome = input$input_file_proteome$name
-            file_prot_proteome = if(software=="PD"){input$prot_file_proteome$name}else{NA}
-            file_pep_proteome = input$pep_file_proteome$name
-            
-            # Move data in correct folder
-            dir.create(file.path(dirOutput_Server, "input_protn"), showWarnings = FALSE)
-            dir_input <- paste(dirOutput_Server, "input_protn", sep = "")
-            file.copy(from = input$input_file_proteome$datapath, to = paste0(dir_input,'/ANNOTATION_',file_input_proteome)) 
-            if(software=="PD"){file.copy(from = input$prot_file_proteome$datapath, to =paste0(dir_input,'/PROT_',file_prot_proteome))} 
-            file.copy(from = input$pep_file_proteome$datapath, to = paste0(dir_input,'/PEP_',file_pep_proteome)) 
-            
-            message(software)
-            progress=0
-            withCallingHandlers(
-              {
-                shinyjs::html("text", "")
-                if(software == "PD"){
-                  db_execution$proteome_data <- read_proteomics(software = "PD",
-                                                                folder = dir_input,
-                                                                peptide_filename = "PEP_",
-                                                                annotation_filename = "ANNOTATION_",
-                                                                proteinGroup_filename = "PROT_")
-                } else if(software == "MQ"){
-                  db_execution$proteome_data <- read_proteomics(software = "MQ",
-                                                                folder = dir_input,
-                                                                peptide_filename = "PEP_",
-                                                                annotation_filename = "ANNOTATION_")
-                }
-              },
-              message = function(m) {
-                shinyjs::html(id = "messagge_read", html = paste0("<p>",m$message,"</p>"), add = TRUE)
-                progress=progress+0.05
-                setProgress(value = progress)
+      isolate({
+        tryCatch(
+          {
+            withProgress(message = "Rendering, please wait!", {
+              message(session$token)
+              message(tempdir())
+              #Creation directory for the results
+              dirOutput_2 <- tempdir()
+              currentTime <- gsub(".*?([0-9]+).*?", "\\1", Sys.time())
+              dirOutput_1 <- paste("/", currentTime, "/", sep = "")
+              dir.create(file.path(dirOutput_2, dirOutput_1), showWarnings = FALSE)
+              dirOutput_Server <- paste(dirOutput_2, dirOutput_1, sep = "")
+              message(dirOutput_Server)
+              db_execution$dirOutput <- dirOutput_Server
+              #Save folder for the download
+              readr::write_csv(data.frame("session"=session$token,
+                                          "outdir"=dirOutput_Server),
+                               file = paste0(tempdir(),"/outdir_log_ProTN.log"), append = T)
+              
+              
+              #Read parameter and execution
+              software <- input$sw_analyzer
+              file_input_proteome = input$input_file_proteome$name
+              file_prot_proteome = if(software=="PD"){input$prot_file_proteome$name}else{NA}
+              file_pep_proteome = input$pep_file_proteome$name
+              
+              # Move data in correct folder
+              dir.create(file.path(dirOutput_Server, "input_protn"), showWarnings = FALSE)
+              dir_input <- paste(dirOutput_Server, "input_protn", sep = "")
+              file.copy(from = input$input_file_proteome$datapath, to = paste0(dir_input,'/ANNOTATION_',file_input_proteome)) 
+              if(software=="PD"){file.copy(from = input$prot_file_proteome$datapath, to =paste0(dir_input,'/PROT_',file_prot_proteome))} 
+              file.copy(from = input$pep_file_proteome$datapath, to = paste0(dir_input,'/PEP_',file_pep_proteome)) 
+              
+              # If to batch corrected read column
+              if(input$batch_correction){
+                batch_corr <- TRUE
+                batch_correction_col <- input$batch_correction_col
+              } else{
+                batch_corr <- FALSE
+                batch_correction_col <- "batch"
               }
-            )
-            
-            db_execution$data_loaded <- TRUE
-            db_execution$imputed_data <- impute_intensity(proteome_data = db_execution$proteome_data)
-            db_execution$normalized_data <- normalization_ProTN(proteome_data = db_execution$imputed_data)
-            
-            updateActionButton(inputId = "download_proteome", disabled = FALSE)
-            
-            output$c_anno <- DT::renderDT(db_execution$proteome_data$c_anno)
-            DT::DTOutput("c_anno")
-          })
-        },
-        error = function(e) {
-          #Create error report and reactivate the click in the page
-          showNotification(paste0("ERROR: ", e), type = "error", duration = 30)
-          html_text<-str_replace(read_file("R/error.html"), 
-                                 pattern = "The page you’re looking for doesn’t exist.</p>", 
-                                 replacement = paste0("Description:", e, "</p>"))
-          write_file(html_text, file = paste0(tempdir(), "/error.html"))
-          tags$iframe(src = "basedir/error.html", height = "100%", width = "100%", scrolling = "yes")
-        }
-      )
+              
+              message(software)
+              progress=0
+              msg_read_function <- c()
+              withCallingHandlers(
+                {
+                  shinyjs::html("text", "")
+                  if(software == "PD"){
+                    db_execution$proteome_data <- read_proteomics(software = "PD",
+                                                                  folder = dir_input,
+                                                                  peptide_filename = "PEP_",
+                                                                  annotation_filename = "ANNOTATION_",
+                                                                  proteinGroup_filename = "PROT_", 
+                                                                  batch_corr_exe = batch_corr, 
+                                                                  batch_col = batch_correction_col)
+                  } else if(software == "MQ"){
+                    db_execution$proteome_data <- read_proteomics(software = "MQ",
+                                                                  folder = dir_input,
+                                                                  peptide_filename = "PEP_",
+                                                                  annotation_filename = "ANNOTATION_", 
+                                                                  batch_corr_exe = batch_corr, 
+                                                                  batch_col = batch_correction_col)
+                  }
+                },
+                message = function(m) {
+                  msg_read_function <- c(msg_read_function, m$message)
+                  shinyjs::html(id = "messagge_read", html = paste0("<p>",m$message,"</p>"), add = TRUE)
+                  progress=progress+0.05
+                  setProgress(value = progress)
+                }
+              )
+              
+              db_execution$data_loaded <- TRUE
+              db_execution$imputed_data <- impute_intensity(proteome_data = db_execution$proteome_data)
+              db_execution$normalized_data <- normalization_ProTN(proteome_data = db_execution$imputed_data)
+              if(batch_corr){
+                message("Executing batch correction...")
+                db_execution$normalized_data <- batch_correction(proteome_data = db_execution$normalized_data, 
+                                                                 batch_col = str_to_lower(batch_correction_col))
+              }
+              
+              output$c_anno <- DT::renderDT(db_execution$proteome_data$c_anno)
+              tagList(
+                fluidRow(
+                  downloadButton("download_proteome", "Download results (ZIP file)", width = "240px")
+                ),
+                # html(html = paste0("<p>",msg_read_function,"</p><br>"), id = "messagge_read"),
+                # shinyjs::html(id = "messagge_read", html = paste0("<p>",m$message,"</p>"), add = TRUE),
+                DT::DTOutput("c_anno")
+              )
+            })
+          },
+          error = function(e) {
+            #Create error report and reactivate the click in the page
+            showNotification(paste0("ERROR: ", e), type = "error", duration = 30)
+            html_text<-str_replace(read_file("R/error.html"), 
+                                   pattern = "The page you’re looking for doesn’t exist.</p>", 
+                                   replacement = paste0("Description:", e, "</p>"))
+            write_file(html_text, file = paste0(tempdir(), "/error.html"))
+            tags$iframe(src = "basedir/error.html", height = "100%", width = "100%", scrolling = "yes")
+          }
+        )
+      })
+      
     })
     
     output$render_abundance_plot <- renderUI({ 
@@ -834,7 +860,8 @@ server <- function(input, output, session) {
                                                           overlap_size_enrich_thr=as.double(input$FC_thr),
                                                           pval_fdr_enrich = input$pval_fdr,
                                                           pval_enrich_thr=as.double(input$pval_thr),
-                                                          dirOutput=db_execution$dirOutput)
+                                                          dirOutput=db_execution$dirOutput, 
+                                                          with_background = input$enrich_with_background)
         
         terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich), regex=","))
         plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
@@ -867,8 +894,11 @@ server <- function(input, output, session) {
           )
         }
         
-        # Use do.call to unpack the tab list into tabsetPanel
-        do.call(tabsetPanel, c(list(id = "dynamic_tabs_enrichment"), tabs))
+        tagList(
+          tags$h2("Enrichment Analysis"),
+          do.call(tabsetPanel, c(list(id = "dynamic_tabs_enrichment"), tabs))
+        )
+        
       })
     })
   })
@@ -885,7 +915,7 @@ server <- function(input, output, session) {
                                                         shiny = T)
           
           tagList(
-            tags$h3("STRINGdb analysis"),
+            tags$h2("STRINGdb analysis"),
             fluidRow(
               selectInput("stringdb_show", label = "Select StringDB to show: (click on STRING logo to open the results on stringDB website)", 
                           choices = names(db_execution$stringdb_res), width = "15%"),
@@ -1040,21 +1070,21 @@ server <- function(input, output, session) {
             } 
             setProgress(value = 0.55)
             
-            if(input$protein_diff_barplot & !is.null(db_execution$protein_differential_barplot)){
+            if(!is.null(db_execution$protein_differential_barplot)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_barplot.pdf"), 
                      plot = db_execution$protein_differential_barplot, 
                      create.dir = T, width = 8, height = 4)
             } 
             setProgress(value = 0.58)
             
-            if(input$peptide_diff_barplot & !is.null(db_execution$peptide_differential_barplot)){
+            if(!is.null(db_execution$peptide_differential_barplot)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_barplot.pdf"), 
                      plot = db_execution$peptide_differential_barplot, 
                      create.dir = T, width = 8, height = 4)
             } 
             setProgress(value = 0.60)
             
-            if(input$protein_vulcano & !is.null(db_execution$protein_vulcano)){
+            if(!is.null(db_execution$protein_vulcano)){
               dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution$protein_vulcano)){
                 plotly::save_image(db_execution$protein_vulcano[[comp]], 
@@ -1065,7 +1095,7 @@ server <- function(input, output, session) {
             } 
             setProgress(value = 0.64)
             
-            if(input$peptide_vulcano & !is.null(db_execution$peptide_vulcano)){
+            if(!is.null(db_execution$peptide_vulcano)){
               dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "peptide_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution$peptide_vulcano)){
                 plotly::save_image(db_execution$peptide_vulcano[[comp]], 
@@ -1076,28 +1106,28 @@ server <- function(input, output, session) {
             } 
             setProgress(value = 0.68)
             
-            if(input$mds_diff_protein & !is.null(db_execution$protein_differential_MDS)){
+            if(!is.null(db_execution$protein_differential_MDS)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_MDS.pdf"), 
                      plot = db_execution$protein_differential_MDS, 
                      create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.69)
             
-            if(input$mds_diff_peptide & !is.null(db_execution$peptide_differential_MDS)){
+            if(!is.null(db_execution$peptide_differential_MDS)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_MDS.pdf"), 
                      plot = db_execution$peptide_differential_MDS, 
                      create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.70)
             
-            if(input$pca_diff_protein & !is.null(db_execution$protein_differential_PCA)){
+            if(!is.null(db_execution$protein_differential_PCA)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_PCA.pdf"), 
                      plot = db_execution$protein_differential_PCA, 
                      create.dir = T, width = 7, height = 5)
             } 
             setProgress(value = 0.72)
             
-            if(input$pca_diff_peptide & !is.null(db_execution$peptide_differential_PCA)){
+            if(!is.null(db_execution$peptide_differential_PCA)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_PCA.pdf"), 
                      plot = db_execution$peptide_differential_PCA, 
                      create.dir = T, width = 7, height = 5)
