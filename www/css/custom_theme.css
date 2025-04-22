@@ -36,13 +36,13 @@ img.image-thumb {
   height: 100%;
 }
 
-#stringdb_selected{
+#stringdb_selected, #stringdb_selected_phos{
   height: fit-content;
   align-self: center;
   margin-left: 15px;
 }
 
-#panel_results {
+#panel_results, #panel_results_phos {
   background: white;
   border-color: #e3ebf2;
   border-style: groove;
@@ -474,7 +474,7 @@ footer {
   width: 60%;
 }
 
-#download_report, #download_report_CS, #download_report_PhosProTN, #download_report_PhosProTN_CS {
+#download_proteome_phos, #download_proteome, #download_report_PhosProTN, #download_report_PhosProTN_CS {
   background-color: #9F2042;
   width: max-content;
   margin-right: 0%;

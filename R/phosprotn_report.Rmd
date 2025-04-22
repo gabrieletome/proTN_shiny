@@ -10,7 +10,7 @@ output:
     lightbox: true
     gallery: true
 params:
-  doc_title: "ProTN report"
+  doc_title: "PhosProTN report"
   description: NA
   readPD_files: NA
   readMQ_files: NA
@@ -126,12 +126,12 @@ resize_plot <- function(resizePlot, resizeHeight) {
 
 
 ---
-title: `r if(doc_title==""){"ProTN report"}else{doc_title}`
+title: `r if(doc_title==""){"PhosProTN report"}else{doc_title}`
 ---
 
 `r description`
 
-The following report summarizes the results obtained by the proTN integrative pipeline for proteomics analysis. Full results can be found in the output folder.
+The following report summarizes the results obtained by the proTN integrative pipeline for phospho-proteomics analysis. Full results can be found in the output folder.
 
 ```{r print_readme, warning=FALSE, echo=F, message=FALSE}
 
@@ -217,12 +217,13 @@ After filtering, raw abundances are log2 transformed
 messaggi <- character()
 risultato <- withCallingHandlers(
   {
-    read_proteomics(software = "MQ",
-                    folder = file_input,
-                    peptide_filename = "evidence")
+    read_phosphoproteomics(software = "MQ",
+                           folder = file_input,
+                           peptide_filename = "evidence",
+                           phospho_thr = 0.75)
   },
   message = function(m) {
-    messaggi <<- c(messaggi, m$message)
+    messaggi <- c(messaggi, m$message)
     invokeRestart("muffleMessage")
   }
 )
@@ -236,11 +237,12 @@ cat("\n\n")
 messaggi <- character()
 risultato <- withCallingHandlers(
   {
-    read_proteomics(software = "PD",
-                    folder = file_input)
+    read_phosphoproteomics(software = "PD",
+                           folder = file_input,
+                           phospho_thr = 0.75)
   },
   message = function(m) {
-    messaggi <<- c(messaggi, m$message)
+    messaggi <- c(messaggi, m$message)
     invokeRestart("muffleMessage")
   }
 )
@@ -248,6 +250,14 @@ risultato <- withCallingHandlers(
 cat("\nStat: \n ")
 cat(paste(messaggi, collapse = " \n "))
 cat("\n\n")
+```
+
+```{r phospho_percentage, fig.height=4, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$phospho_percentage)}
+cat("#### Percentage of phosphosite residue \n ")
+cat("The following graph represent the percentage of the phosphosites located on Serine (S), Throenines (T) and Tyrosines (Y). \n ")
+cat("\n \n")
+# Avalaible abundance. The red percentage will be imputed.
+db_execution$phospho_percentage
 ```
 
 ```{r preprocess_figure_1, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
