@@ -10,12 +10,13 @@ output:
     lightbox: true
     gallery: true
 params:
-  doc_title: "ProTN report"
+  doc_title: "PhosProTN with proteome report"
   description: NA
   readPD_files: NA
   readMQ_files: NA
   db_execution: NA
-  file_input: NA
+  file_input_phospho: NA
+  file_input_proteome: NA
   batch_corr_exe: NA
   prot_boxplot: NA
   fc_thr: "0.75"
@@ -46,7 +47,8 @@ description <- params$description
 readPD_files <- params$readPD_files
 readMQ_files <- params$readMQ_files
 db_execution <- params$db_execution
-file_input <- params$file_input
+file_input_phospho <- params$file_input_phospho
+file_input_proteome <- params$file_input_proteome
 batch_corr_exe <- params$batch_corr_exe
 list_proteins <- stri_split(stri_replace_all(regex = " ",
                                              replacement = "",
@@ -126,12 +128,12 @@ resize_plot <- function(resizePlot, resizeHeight) {
 
 
 ---
-title: `r if(doc_title==""){"ProTN report"}else{doc_title}`
+title: `r if(doc_title==""){"PhosProTN with proteome report"}else{doc_title}`
 ---
 
 `r description`
 
-The following report summarizes the results obtained by the proTN integrative pipeline for proteomics analysis. Full results can be found in the output folder.
+The following report summarizes the results obtained by the proTN integrative pipeline for phospho-proteomics with proteome background analysis. Full results can be found in the output folder.
 
 ```{r print_readme, warning=FALSE, echo=F, message=FALSE}
 
@@ -195,11 +197,23 @@ The sample table below annotates the samples of the study as in the **Sample_Ann
 - **Sample**: sample name used in the results,
 - **Condition**: condition of the sample used in study design and differential analyses
 
-```{r print_sample, warning=FALSE, echo=F, message=FALSE, results='asis'}
+#### Phospho-proteomics sample
+
+```{r print_sample_phos, warning=FALSE, echo=F, message=FALSE, results='asis'}
 cat(" \n")
-kable(db_execution$proteome_data$c_anno,
+kable(db_execution$proteome_data$c_anno_phospho,
       row.names = F,
-      col.names = str_to_title(colnames(db_execution$proteome_data$c_anno)))
+      col.names = str_to_title(colnames(db_execution$proteome_data$c_anno_phospho)))
+cat(" \n")
+```
+
+#### Proteomics sample
+
+```{r print_sample_prot, warning=FALSE, echo=F, message=FALSE, results='asis'}
+cat(" \n")
+kable(db_execution$proteome_data$c_anno_proteome,
+      row.names = F,
+      col.names = str_to_title(colnames(db_execution$proteome_data$c_anno_proteome)))
 cat(" \n")
 ```
 
@@ -217,12 +231,15 @@ After filtering, raw abundances are log2 transformed
 messaggi <- character()
 risultato <- withCallingHandlers(
   {
-    read_proteomics(software = "MQ",
-                    folder = file_input,
-                    peptide_filename = "evidence")
+    read_phospho_proteome_proteomics(software = "MQ",
+                                     folder_phospho = file_input_phospho,
+                                     folder_proteome = file_input_proteome,
+                                     peptide_phospho_filename = "evidence", 
+                                     peptide_proteome_filename = "evidence",
+                                     phospho_thr = 0.7)
   },
   message = function(m) {
-    messaggi <<- c(messaggi, m$message)
+    messaggi <- c(messaggi, m$message)
     invokeRestart("muffleMessage")
   }
 )
@@ -236,11 +253,13 @@ cat("\n\n")
 messaggi <- character()
 risultato <- withCallingHandlers(
   {
-    read_proteomics(software = "PD",
-                    folder = file_input)
+    read_phospho_proteome_proteomics(software = "PD",
+                                     folder_phospho = file_input_phospho,
+                                     folder_proteome = file_input_proteome,
+                                     phospho_thr = 0.7)
   },
   message = function(m) {
-    messaggi <<- c(messaggi, m$message)
+    messaggi <- c(messaggi, m$message)
     invokeRestart("muffleMessage")
   }
 )
@@ -250,19 +269,42 @@ cat(paste(messaggi, collapse = " \n "))
 cat("\n\n")
 ```
 
-```{r preprocess_figure_1, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
-cat("#### Distributions of log2 raw abundances \n ")
+```{r phospho_percentage, fig.height=4, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$phospho_percentage)}
+cat("#### Percentage of phosphosite residue \n ")
+cat("The following graph represent the percentage of the phosphosites located on Serine (S), Throenines (T) and Tyrosines (Y). \n ")
+cat("\n \n")
+# Avalaible abundance. The red percentage will be imputed.
+db_execution$phospho_percentage
+```
+
+```{r preprocess_figure_1_phos, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
+cat("#### Distributions of log2 raw abundances - Phospho-proteomics \n ")
 cat("Violin plot showing sample distributions of log2 raw abundances of peptides. \n ")
 cat("\n \n")
 # Avalaible abundance. The red percentage will be imputed.
-db_execution$generate_abundance
+db_execution$generate_abundance$phospho_plot
 ```
 
-```{r preprocess_figure_2, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
-cat("#### Percentage of quantified peptides per sample \n")
+```{r preprocess_figure_1_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
+cat("#### Distributions of log2 raw abundances - Proteomics \n ")
+cat("Violin plot showing sample distributions of log2 raw abundances of peptides. \n ")
+cat("\n \n")
+# Avalaible abundance. The red percentage will be imputed.
+db_execution$generate_abundance$proteome_plot
+```
+
+```{r preprocess_figure_2_phos, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
+cat("#### Percentage of quantified peptides per sample - Phospho-proteomics \n")
 cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
 # Number peptide per each protein
-db_execution$generate_peptide_distribution
+db_execution$generate_peptide_distribution$phospho_plot
+```
+
+```{r preprocess_figure_2_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
+cat("#### Percentage of quantified peptides per sample - Proteomics \n")
+cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
+# Number peptide per each protein
+db_execution$generate_peptide_distribution$proteome_plot
 ```
 
 #### Imputation, normalization, peptide-to-protein summarization 
@@ -347,7 +389,7 @@ if(length(list_proteins[[1]])>0){
 
 ```{r differential_analysis, echo=FALSE, results='asis', eval=length(db_execution$differential_results)>0}
 cat("## Differentially analysis \n")
-# cat("Differentially expressed peptides are identified using the Limma Bioconductor package. \n ")
+cat("Differentially phosphorylated peptides are identified using the Limma Bioconductor package. In each comparison, phospho-peptide changes are scaled for differences in the corresponding protein levels. PhosProTN also perform phosphorylation enrichment analysis for each condition  \n ")
 eval_single_Cond <- length(db_execution$differential_results)>0
 ```
 
@@ -365,7 +407,9 @@ cat(" \n")
 
 ```{r print_settings_design, warning=FALSE, echo=F, message=FALSE, results='asis', eval=length(db_execution$differential_results)>0}
 cat("### Differential expression contrasts \n \n")
-cat("The following table contains the names and the formulas of the contrasts considered for differential expression analysis. \n \n")
+cat("The following table contains the names and the formulas of the contrasts considered for differential phosphorylation analysis.
+
+The conditions from the phospho-proteomics are represented by an **_phospho** at the end of the condition, the **_proteome** represent the conditions from the proteomics. Also, the comparison provided in input by the user are adapted for the differential phosphorylation analysis. \n \n")
 cat("**Contrast design formula are:** ")
 cat(" \n")
 kable(data.frame("Name"=names(db_execution$formule_contrast), 
@@ -408,26 +452,11 @@ in_tabs(db_execution$peptide_vulcano, labels = names(db_execution$peptide_vulcan
 cat(" \n \n")
 ```
 
-
-```{r mds_differential_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_differential_MDS)}
-cat("#### MDS based on differentially expressed proteins \n")
-cat("Multidimensional scaling (MDS) are performed on normalized abundances of differentially expressed Proteins. \n")
-#Abundance per Protein
-db_execution$protein_differential_MDS
-```
-
 ```{r mds_differential_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_differential_MDS)}
 cat("#### MDS based on differentially expressed peptides \n")
 cat("Multidimensional scaling (MDS) are performed on normalized abundances of differentially expressed Peptides. \n")
 #Abundance per Peptide
 db_execution$peptide_differential_MDS
-```
-
-```{r pca_differential_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_differential_PCA)}
-cat("#### PCA based on differentially expressed proteins \n")
-cat("Principal component analysis (PCA) are performed on normalized abundances of differentially expressed Proteins. \n")
-#Abundance per Protein
-db_execution$protein_differential_PCA
 ```
 
 ```{r pca_differential_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_differential_PCA)}
@@ -471,7 +500,6 @@ cat("Significant enrichments are displayed as filled dots, non-significant as em
 cat("The dot plots shows the top significant terms considering selected annotation databases. \n ")
 cat("**Up-regulated and down-regulated proteins (UP,DOWN)** \n ")
 cat(" \n \n")
-
 for(db in names(plots_down)){
   cat(paste0("##### ",db," \n"))
   print(resize_plot(resizePlot = plots_down[[db]], 
@@ -482,9 +510,20 @@ for(db in names(plots_down)){
 cat(" \n \n")
 ```
 
-```{r string network, echo=F, message=F, warning=F, eval=length(db_execution$stringdb_res)>0, results='asis'}
+```{r string_network, echo=F, message=F, warning=F, eval=length(db_execution$stringdb_res)>0, results='asis'}
 cat("## Protein-protein interaction network analysis of differentially expressed proteins \n")
 cat(paste0("Protein-protein interactions (PPIs) are crucial for understanding cell physiopathology. PPI analysis of differentially expressed proteins is based on the [STRING](https://string-db.org/) database.  Communities within the network are identified with the Clauset-Newman-Moore (CNM) algorithm. \n \n"))
 # cat("For a better visualization of the network, only the top 500 differential proteins are considered for each contrast.")
 cat("The results can be found in the pics directory.")
+```
+
+```{r kinase_tree, echo=F, message=F, warning=F, eval=length(db_execution$kinase_tree_res)>0, results='asis'}
+cat("## Kinase Trees \n")
+cat(paste0("In this step, PhosProTN identifies alterations in the activity of kinases, based on the differentially phosphorylated sites observed in each contrast. The identification of the altered kinases is perfomed by [PhosR](https://github.com/PYangLab/PhosR) package (Kim et al. 2021), which provide a score of kinase activities based on the comparison formula provided. The activities of the kinases are saved in txt files inside the KinaseTree folder \n \n In addition, graphical kinase trees are generated using an adapted version of the webtool [CORAL](http://phanstiel-lab.med.unc.edu/CORAL/) (Metz K.S. et al. 2018). \n \n "))
+cat((paste0("DISCLAIMER CORAL: The kinome tree plots generated by CORAL make use the data generated by",
+                tags$a("Manning et al., Science, 2002",href="http://science.sciencemag.org/content/298/5600/1912.long", target="_blank"),
+                " and are based on a figure generated by ",
+                tags$a("Cell Signaling Technology",href="https://www.cellsignal.com/contents/science/protein-kinases-introduction/kinases", target="_blank"),
+                ".")))
+cat("\n \n Results inside folder: *pics/KinaseTree*")
 ```

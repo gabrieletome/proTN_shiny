@@ -80,6 +80,8 @@ ui <- tagList(
         menuItem("Run ProTN", tabName = "analysis_protn", icon = icon("rocket", "fa-regular")),
         menuItem("Info PhosProTN", tabName = "info_phos", icon = icon("info-circle", lib="font-awesome")),
         menuItem("Run PhosProTN", tabName = "analysis_protn_phos", icon = icon("rocket", "fa-regular")),
+        menuItem("Info PhosProTN with prot.", tabName = "info_phos_protn", icon = icon("info-circle", lib="font-awesome")),
+        menuItem("Run PhosProTN with prot.", tabName = "analysis_protn_phos_protn", icon = icon("rocket", "fa-regular")),
         menuItem("Contacts", tabName = "contacts", icon = icon("comment", lib="font-awesome"))
       )
     ),
@@ -263,6 +265,7 @@ ui <- tagList(
                 uiOutput("input_proteome_phos"),
                 checkboxInput("batch_correction_phos", "Batch Correction", FALSE),
                 uiOutput("batch_correction_ui_phos"),
+                sliderInput("phos_thr", "Phosphorylation threshold", 0, 100, step = 5, value = 75),
                 actionButton("report_proteome_phos", "Load data!"),
                 tags$h3("Select what execute:"),
                 checkboxInput("phospho_percentage_plot_phos", "% phosphorylated site", TRUE),
@@ -272,8 +275,8 @@ ui <- tagList(
                 checkboxInput("peptide_violin_phos", "Distribution abundance peptides", FALSE),
                 checkboxInput("mds_protein_phos", "MDS based on protein", FALSE),
                 checkboxInput("mds_peptide_phos", "MDS based on peptide", FALSE),
-                checkboxInput("pca_protein_phos", "PCA based on protein", TRUE),
-                checkboxInput("pca_peptide_phos", "PCA based on peptide", FALSE),
+                checkboxInput("pca_protein_phos", "PCA based on protein", FALSE),
+                checkboxInput("pca_peptide_phos", "PCA based on peptide", TRUE),
                 checkboxInput("boxplot_protein_phos", "Boxplot selected proteins", FALSE),
                 checkboxInput("heatmap_protein_phos", "Heatmap selected proteins", FALSE),
                 uiOutput("list_protein_ui_phos"),
@@ -368,6 +371,134 @@ ui <- tagList(
                 uiOutput("render_enrichement_analysis_phos"),
                 uiOutput("render_stringdb_phos"),
                 uiOutput("render_kinase_tree_phos")
+              )
+            )
+          )
+        ),
+        #INFO tab PhosProTN_with_prot
+        tabItem(
+          tabName = "info_phos_protn",
+          includeHTML("www/README_phos_protn.html")
+        ),
+        #Execution tab of PhosProTN_with_prot
+        tabItem(
+          tabName = "analysis_protn_phos_protn",
+          tagList(
+            fluidRow(
+              column(
+                width = 3,
+                fluidRow(
+                  textInput("title_exp_phos_protn", "Title of the analysis"),
+                ),
+                fluidRow(
+                  textAreaInput("description_exp_phos_protn", "Brief description", rows = 4),
+                ),
+                fluidRow(
+                  radioButtons("sw_analyzer_phos_protn", "Software Analyzer", 
+                               choiceNames = c("ProteomeDiscoverer", "MaxQuant", "TMT_PD"),
+                               choiceValues = c("PD","MQ","TMT_PD"), inline = TRUE),
+                ),
+                uiOutput("input_proteome_phos_protn"),
+                checkboxInput("batch_correction_phos_protn", "Batch Correction", FALSE),
+                uiOutput("batch_correction_ui_phos_protn"),
+                sliderInput("phos_thr", "Phosphorylation threshold", 0, 100, step = 5, value = 75),
+                actionButton("report_proteome_phos_protn", "Load data!"),
+                tags$h3("Select what execute:"),
+                checkboxInput("phospho_percentage_plot_phos_protn", "% phosphorylated site", TRUE),
+                checkboxInput("abundance_plot_phos_protn", "% missing values", TRUE),
+                checkboxInput("peptide_distribution_phos_protn", "N° peptides per protein", TRUE),
+                checkboxInput("protein_violin_phos_protn", "Distribution abundance proteins", FALSE),
+                checkboxInput("peptide_violin_phos_protn", "Distribution abundance peptides", FALSE),
+                checkboxInput("mds_protein_phos_protn", "MDS based on protein", FALSE),
+                checkboxInput("mds_peptide_phos_protn", "MDS based on peptide", FALSE),
+                checkboxInput("pca_protein_phos_protn", "PCA based on protein", FALSE),
+                checkboxInput("pca_peptide_phos_protn", "PCA based on peptide", TRUE),
+                checkboxInput("boxplot_protein_phos_protn", "Boxplot selected proteins", FALSE),
+                checkboxInput("heatmap_protein_phos_protn", "Heatmap selected proteins", FALSE),
+                uiOutput("list_protein_ui_phos_protn"),
+                tags$h3("Differential Analysis:"),
+                checkboxInput("differential_analysis_checkbox_phos_protn", "Execute differential analysis", FALSE),
+                uiOutput("differential_params_ui_phos_protn")
+              ),
+              column(
+                id="panel_results_phos_protn",
+                width = 9,
+                tags$br(),
+                textOutput("messagge_read_phos_protn"),
+                uiOutput("protn_results_ui_phos_protn"),
+                uiOutput("render_phospho_percentage_plot_phos_protn"),
+                uiOutput("render_abundance_plot_phos_protn"),
+                uiOutput("render_peptide_distribution_phos_protn"),
+                fluidRow(
+                  column(
+                    width = 6,
+                    uiOutput("render_protein_violin_phos_protn")
+                  ),
+                  column(
+                    width = 6,
+                    uiOutput("render_peptide_violin_phos_protn")
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width = 6,
+                    uiOutput("render_mds_protein_phos_protn")
+                  ),
+                  column(
+                    width = 6,
+                    uiOutput("render_mds_peptide_phos_protn")
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width = 6,
+                    uiOutput("render_pca_protein_phos_protn")
+                  ),
+                  column(
+                    width = 6,
+                    uiOutput("render_pca_peptide_phos_protn")
+                  )
+                ),
+                uiOutput("render_protein_boxplot_phos_protn"),
+                uiOutput("render_protein_heatmap_phos_protn"),
+                uiOutput("render_differential_analysis_phos_protn"),
+                uiOutput("render_protein_diff_table_phos_protn"),
+                uiOutput("render_peptide_diff_table_phos_protn"),
+                uiOutput("render_protein_diff_barplot_phos_protn"),
+                uiOutput("render_peptide_diff_barplot_phos_protn"),
+                fluidRow(
+                  column(
+                    width = 6,
+                    uiOutput("render_protein_vulcano_phos_protn")
+                  ),
+                  column(
+                    width = 6,
+                    uiOutput("render_peptide_vulcano_phos_protn")
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width = 6,
+                    uiOutput("render_mds_protein_diff_phos_protn")
+                  ),
+                  column(
+                    width = 6,
+                    uiOutput("render_mds_peptide_diff_phos_protn")
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width = 6,
+                    uiOutput("render_pca_protein_diff_phos_protn")
+                  ),
+                  column(
+                    width = 6,
+                    uiOutput("render_pca_peptide_diff_phos_protn")
+                  )
+                ),
+                uiOutput("render_enrichement_analysis_phos_protn"),
+                uiOutput("render_stringdb_phos_protn"),
+                uiOutput("render_kinase_tree_phos_protn")
               )
             )
           )
@@ -666,7 +797,9 @@ server <- function(input, output, session) {
           tags$h3("Percentage missing values respect detected abundance"),
           renderPlot(generate_abundance$plot)
         )
-      } 
+      } else{
+        db_execution$generate_abundance = NULL
+      }
     })
     
     output$render_peptide_distribution <- renderUI({ 
@@ -677,7 +810,9 @@ server <- function(input, output, session) {
           tags$h3("N° peptides per proteins"),
           renderPlot(generate_peptide_distribution$plot)
         )
-      } 
+      } else{
+        db_execution$generate_peptide_distribution = NULL
+      }
     })
     
     output$render_protein_violin <- renderUI({ 
@@ -689,7 +824,9 @@ server <- function(input, output, session) {
           tags$h3("Distribution protein abundance"),
           renderPlot(generate_protein_violin$plot)
         )
-      } 
+      } else{
+        db_execution$protein_abundance_distribution = NULL
+      }
     })
     
     output$render_peptide_violin <- renderUI({ 
@@ -701,7 +838,9 @@ server <- function(input, output, session) {
           tags$h3("Distribution peptide abundace"),
           renderPlot(generate_peptide_violin$plot)
         )
-      } 
+      } else{
+        db_execution$peptide_abundance_distirbution = NULL
+      }
     })
     
     output$render_mds_protein <- renderUI({ 
@@ -713,7 +852,9 @@ server <- function(input, output, session) {
           tags$h3("MDS based on proteins"),
           renderPlot(res_plot$plot)
         )
-      } 
+      } else{
+        db_execution$protein_MDS = NULL
+      }
     })
     
     output$render_mds_peptide <- renderUI({ 
@@ -725,7 +866,9 @@ server <- function(input, output, session) {
           tags$h3("MDS based on peptides"),
           renderPlot(res_plot$plot)
         )
-      } 
+      } else{
+        db_execution$peptide_MDS = NULL
+      }
     })
     
     output$render_pca_protein <- renderUI({ 
@@ -737,7 +880,9 @@ server <- function(input, output, session) {
           tags$h3("PCA based on proteins"),
           renderPlot(res_plot$plot)
         )
-      } 
+      } else{
+        db_execution$protein_PCA = NULL
+      }
     })
     
     output$render_pca_peptide <- renderUI({ 
@@ -749,7 +894,9 @@ server <- function(input, output, session) {
           tags$h3("PCA based on peptides"),
           renderPlot(res_plot$plot)
         )
-      } 
+      } else{
+        db_execution$peptide_PCA = NULL
+      }
     })
     
     output$render_protein_boxplot <- renderUI({
@@ -764,6 +911,8 @@ server <- function(input, output, session) {
           tags$h3("Boxplot selected proteins"),
           renderPlot(prot_boxplot$plot)
         )
+      }else{
+        db_execution$protein_boxplot = NULL
       }
     })
     
@@ -779,6 +928,8 @@ server <- function(input, output, session) {
           tags$h3("Heatmap selected proteins"),
           renderPlot(prot_boxplot$plot)
         )
+      }else{
+        db_execution$protein_heatmap = NULL
       }
     })
   })
@@ -842,6 +993,8 @@ server <- function(input, output, session) {
           tags$h3("N° differential proteins"),
           renderPlot(ploft_diff_number$plot)
         )
+      }else{
+        db_execution$protein_differential_barplot = NULL
       }
     })
     
@@ -854,6 +1007,8 @@ server <- function(input, output, session) {
           tags$h3("N° differential peptides"),
           renderPlot(ploft_diff_number_pep$plot)
         )
+      }else{
+        db_execution$peptide_differential_barplot = NULL
       }
     })
     
@@ -894,6 +1049,8 @@ server <- function(input, output, session) {
           # renderPlotly(generate_volcano_plots_protein[[names(db_execution$formule_contrast)[[1]]]])
         )
         
+      }else{
+        db_execution$protein_vulcano = NULL
       }
     })
     
@@ -932,6 +1089,8 @@ server <- function(input, output, session) {
           tags$h3("Vulcano Plot differential peptides"),
           do.call(tabsetPanel, c(list(id = "dynamic_tabs_vulcano_peptide"), tabs_pep_vulcano))
         )
+      }else{
+        db_execution$peptide_vulcano = NULL
       }
     })
     
@@ -945,6 +1104,8 @@ server <- function(input, output, session) {
           tags$h3("MDS based on differential proteins"),
           renderPlot(ploft_diff_number_pep$plot)
         )
+      }else{
+        db_execution$protein_differential_MDS = NULL
       }
     })
     
@@ -958,6 +1119,8 @@ server <- function(input, output, session) {
           tags$h3("MDS based on differential peptides"),
           renderPlot(ploft_diff_number_pep$plot)
         )
+      }else{
+        db_execution$peptide_differential_MDS = NULL
       }
     })
     
@@ -971,6 +1134,8 @@ server <- function(input, output, session) {
           tags$h3("PCA based on differential proteins"),
           renderPlot(ploft_diff_number_pep$plot)
         )
+      }else{
+        db_execution$protein_differential_PCA = NULL
       }
     })
     
@@ -984,6 +1149,8 @@ server <- function(input, output, session) {
           tags$h3("PCA based on differential peptides"),
           renderPlot(ploft_diff_number_pep$plot)
         )
+      }else{
+        db_execution$peptide_differential_PCA = NULL
       }
     })
     
@@ -1017,20 +1184,20 @@ server <- function(input, output, session) {
         tabs <- list()
         for (i in seq_along(plots_down)) {
           plot_id <- names(plots_down)[i]
+          height_id <- max(min(20, length(unique(plots_down[[names(plots_down)[i]]]$data$y_col))*0.4),3)*96
+          message(paste0("Height for ",names(plots_down)[i], ": ", height_id))
           # Create an output slot for each plot
           local({
             my_i <- i
             my_plot_id <- plot_id
             output[[my_plot_id]] <- renderPlot({
               plots_down[[names(plots_down)[my_i]]]
-            }, height = max(min(20,uniqueN(db_execution$enrichmnent_results[anno_class %in% category_db[[my_plot_id]][,1],
-                                                                            "anno_name"])*0.3),3)*85)
+            }, height = height_id)
           })
           
           tabs[[i]] <- tabPanel(
             title = paste(names(plots_down)[i]),
-            plotOutput(plot_id, height = max(min(20,uniqueN(db_execution$enrichmnent_results[anno_class %in% category_db[[names(plots_down)[i]]][,1],
-                                                                                             "anno_name"])*0.3),3)*85)
+            plotOutput(plot_id, height = height_id)
           )
         }
         
@@ -1356,6 +1523,9 @@ server <- function(input, output, session) {
         ),
         fluidRow(
           fileInput("prot_file_proteome_phos", "Select the PROT file of the PHOSPHO-PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("psm_file_proteome_phos", "Select the PSM file of the PHOSPHO-PROTEOMICS..."),
         )
       )
     } else if(input$sw_analyzer_phos == "MQ"){
@@ -1468,6 +1638,7 @@ server <- function(input, output, session) {
   output$kinase_tree_params_ui_phos <- renderUI({
     if(input$kinase_tree_analysis_phos){
       tagList(
+        sliderInput("score_thr_phosr_phos", "Score thr for PhosR", 0, 1, step = 0.05, value = 0.7),
         actionButton("execute_kinase_tree_analysis_btn_phos", "Run!"),
         tags$br()
       )
@@ -1502,6 +1673,7 @@ server <- function(input, output, session) {
               software <- input$sw_analyzer_phos
               file_input_proteome = input$input_file_proteome_phos$name
               file_prot_proteome = if(software=="PD"){input$prot_file_proteome_phos$name}else{NA}
+              file_psm_proteome = if(software=="PD"){input$psm_file_proteome_phos$name}else{NA}
               file_pep_proteome = input$pep_file_proteome_phos$name
               
               # Move data in correct folder
@@ -1509,6 +1681,7 @@ server <- function(input, output, session) {
               dir_input <- paste(dirOutput_Server, "input_phosprotn", sep = "")
               file.copy(from = input$input_file_proteome_phos$datapath, to = paste0(dir_input,'/ANNOTATION_',file_input_proteome)) 
               if(software=="PD"){file.copy(from = input$prot_file_proteome_phos$datapath, to =paste0(dir_input,'/PROT_',file_prot_proteome))} 
+              if(software=="PD"){file.copy(from = input$psm_file_proteome_phos$datapath, to =paste0(dir_input,'/PSM_',file_psm_proteome))} 
               file.copy(from = input$pep_file_proteome_phos$datapath, to = paste0(dir_input,'/PEP_',file_pep_proteome)) 
               
               # If to batch corrected read column
@@ -1532,9 +1705,10 @@ server <- function(input, output, session) {
                                                                         peptide_filename = "PEP_",
                                                                         annotation_filename = "ANNOTATION_",
                                                                         proteinGroup_filename = "PROT_", 
+                                                                        psm_filename = "PSM_",
                                                                         batch_corr_exe = batch_corr, 
                                                                         batch_col = batch_correction_col,
-                                                                        phospho_thr = 0.75)
+                                                                        phospho_thr = input$phos_thr/100)
                   } else if(software == "MQ"){
                     db_execution$proteome_data <- read_phosphoproteomics(software = "MQ",
                                                                          folder = dir_input,
@@ -1542,7 +1716,7 @@ server <- function(input, output, session) {
                                                                          annotation_filename = "ANNOTATION_", 
                                                                          batch_corr_exe = batch_corr, 
                                                                          batch_col = batch_correction_col,
-                                                                         phospho_thr = 0.75)
+                                                                         phospho_thr = input$phos_thr/100)
                   }
                 },
                 message = function(m) {
@@ -1596,6 +1770,8 @@ server <- function(input, output, session) {
           tags$h3("Percentage of phosphosite residue"),
           renderPlot(phospho_percentage$plot, height = 250)
         )
+      } else{
+        db_execution$phospho_percentage = NULL
       } 
     })
     
@@ -1607,6 +1783,8 @@ server <- function(input, output, session) {
           tags$h3("Percentage missing values respect detected abundance"),
           renderPlot(generate_abundance$plot)
         )
+      } else{
+        db_execution$generate_abundance = NULL
       } 
     })
     
@@ -1618,6 +1796,8 @@ server <- function(input, output, session) {
           tags$h3("N° peptides per proteins"),
           renderPlot(generate_peptide_distribution$plot)
         )
+      } else{
+        db_execution$generate_peptide_distribution = NULL
       } 
     })
     
@@ -1630,6 +1810,8 @@ server <- function(input, output, session) {
           tags$h3("Distribution protein abundance"),
           renderPlot(generate_protein_violin$plot)
         )
+      } else{
+        db_execution$protein_abundance_distribution = NULL
       } 
     })
     
@@ -1642,6 +1824,8 @@ server <- function(input, output, session) {
           tags$h3("Distribution peptide abundace"),
           renderPlot(generate_peptide_violin$plot)
         )
+      } else{
+        db_execution$peptide_abundance_distirbution = NULL
       } 
     })
     
@@ -1654,6 +1838,8 @@ server <- function(input, output, session) {
           tags$h3("MDS based on proteins"),
           renderPlot(res_plot$plot)
         )
+      } else{
+        db_execution$protein_MDS = NULL
       } 
     })
     
@@ -1666,6 +1852,8 @@ server <- function(input, output, session) {
           tags$h3("MDS based on peptides"),
           renderPlot(res_plot$plot)
         )
+      } else{
+        db_execution$peptide_MDS = NULL
       } 
     })
     
@@ -1678,6 +1866,8 @@ server <- function(input, output, session) {
           tags$h3("PCA based on proteins"),
           renderPlot(res_plot$plot)
         )
+      } else{
+        db_execution$protein_PCA = NULL
       } 
     })
     
@@ -1690,7 +1880,9 @@ server <- function(input, output, session) {
           tags$h3("PCA based on peptides"),
           renderPlot(res_plot$plot)
         )
-      } 
+      }  else{
+        db_execution$peptide_PCA = NULL
+      }
     })
     
     output$render_protein_boxplot_phos <- renderUI({
@@ -1705,6 +1897,8 @@ server <- function(input, output, session) {
           tags$h3("Boxplot selected proteins"),
           renderPlot(prot_boxplot$plot)
         )
+      } else{
+        db_execution$protein_boxplot = NULL
       }
     })
     
@@ -1720,6 +1914,8 @@ server <- function(input, output, session) {
           tags$h3("Heatmap selected proteins"),
           renderPlot(prot_boxplot$plot)
         )
+      } else{
+        db_execution$protein_heatmap = NULL
       }
     })
   })
@@ -1783,6 +1979,8 @@ server <- function(input, output, session) {
           tags$h3("N° differential proteins"),
           renderPlot(ploft_diff_number$plot)
         )
+      } else{
+        db_execution$protein_differential_barplot = NULL
       }
     })
     
@@ -1795,6 +1993,8 @@ server <- function(input, output, session) {
           tags$h3("N° differential peptides"),
           renderPlot(ploft_diff_number_pep$plot)
         )
+      } else{
+        db_execution$peptide_differential_barplot = NULL
       }
     })
     
@@ -1835,6 +2035,8 @@ server <- function(input, output, session) {
           # renderPlotly(generate_volcano_plots_protein[[names(db_execution$formule_contrast)[[1]]]])
         )
         
+      } else{
+        db_execution$protein_vulcano = NULL
       }
     })
     
@@ -1873,6 +2075,8 @@ server <- function(input, output, session) {
           tags$h3("Vulcano Plot differential peptides"),
           do.call(tabsetPanel, c(list(id = "dynamic_tabs_vulcano_peptide_phos"), tabs_pep_vulcano))
         )
+      } else{
+        db_execution$peptide_vulcano = NULL
       }
     })
     
@@ -1886,6 +2090,8 @@ server <- function(input, output, session) {
           tags$h3("MDS based on differential proteins"),
           renderPlot(ploft_diff_number_pep$plot)
         )
+      } else{
+        db_execution$protein_differential_MDS = NULL
       }
     })
     
@@ -1899,6 +2105,8 @@ server <- function(input, output, session) {
           tags$h3("MDS based on differential peptides"),
           renderPlot(ploft_diff_number_pep$plot)
         )
+      } else{
+        db_execution$peptide_differential_MDS = NULL
       }
     })
     
@@ -1912,6 +2120,8 @@ server <- function(input, output, session) {
           tags$h3("PCA based on differential proteins"),
           renderPlot(ploft_diff_number_pep$plot)
         )
+      } else{
+        db_execution$protein_differential_PCA = NULL
       }
     })
     
@@ -1925,6 +2135,8 @@ server <- function(input, output, session) {
           tags$h3("PCA based on differential peptides"),
           renderPlot(ploft_diff_number_pep$plot)
         )
+      } else{
+        db_execution$peptide_differential_PCA = NULL
       }
     })
     
@@ -1958,20 +2170,20 @@ server <- function(input, output, session) {
         tabs <- list()
         for (i in seq_along(plots_down)) {
           plot_id <- names(plots_down)[i]
+          height_id <- max(min(20, length(unique(plots_down[[names(plots_down)[i]]]$data$y_col))*0.4),3)*96
+          message(paste0("Height for ",names(plots_down)[i], ": ", height_id))
           # Create an output slot for each plot
           local({
             my_i <- i
             my_plot_id <- plot_id
             output[[my_plot_id]] <- renderPlot({
               plots_down[[names(plots_down)[my_i]]]
-            }, height = max(min(20,uniqueN(db_execution$enrichmnent_results[anno_class %in% category_db[[my_plot_id]][,1],
-                                                                            "anno_name"])*0.3),3)*85)
+            }, height = height_id)
           })
           
           tabs[[i]] <- tabPanel(
             title = paste(names(plots_down)[i]),
-            plotOutput(plot_id, height = max(min(20,uniqueN(db_execution$enrichmnent_results[anno_class %in% category_db[[names(plots_down)[i]]][,1],
-                                                                                             "anno_name"])*0.3),3)*85)
+            plotOutput(plot_id, height = height_id)
           )
         }
         
@@ -2022,7 +2234,8 @@ server <- function(input, output, session) {
           db_execution$kinase_tree_res <- kinase_tree(proteome_data = db_execution$normalized_data, 
                                                       differential_results = db_execution$differential_results, 
                                                       formule_CORAL = db_execution$formule_contrast, 
-                                                      dirOutput=db_execution$dirOutput)
+                                                      dirOutput=db_execution$dirOutput, 
+                                                      phosR_thr = input$score_thr_phosr_phos)
           
           tagList(
             tags$h2("Kinase Tree analysis"),
@@ -2031,7 +2244,7 @@ server <- function(input, output, session) {
                           choices = names(db_execution$kinase_tree_res), width = "15%"),
               actionButton("kinase_tree_selected", "Select!", width = "10%")  
             ),
-            imageOutput("render_kin_tree")
+            imageOutput("render_kin_tree", height = "auto")
           )
         })
       })
@@ -2040,10 +2253,12 @@ server <- function(input, output, session) {
   
   observeEvent(input$kinase_tree_selected, {
     output$render_kin_tree <- renderImage({
+      isolate({
         list(src = paste0(db_execution$dirOutput, "pics/kinaseTree/",input$kinase_tree_show,"_kinase_Tree_CORAL.svg"),
              alt = "Kinase Tree"
-      )
-    })
+        )
+      })
+    }, deleteFile = FALSE)
   })
   
   # PHOSPROTN: download results ----
@@ -2291,6 +2506,1001 @@ server <- function(input, output, session) {
             db_results_PhosProTN = reactiveValuesToList(db_execution)
             db_results_PhosProTN <- db_results_PhosProTN[!(unlist(lapply(db_results_PhosProTN, is.null)))]
             save(db_results_PhosProTN, file = paste0(db_results_PhosProTN$dirOutput,"db_results_PhosProTN.RData"))
+            
+            #Save folder for the download
+            oldwd <- getwd()
+            message(db_execution$dirOutput)
+            setwd(db_execution$dirOutput)
+            files2zip <- list.files("./", recursive = TRUE)
+            zip(zipfile = file, files = files2zip, extra = "-r")
+            setwd(oldwd)
+            
+          })
+        },
+        error = function(e) {
+          #Create error report and reactivate the click in the page
+          showNotification(paste0("ERROR: ", e), type = "error", duration = 30)
+          html_text<-str_replace(read_file("R/error.html"), 
+                                 pattern = "The page you’re looking for doesn’t exist.</p>", 
+                                 replacement = paste0("Description:", e, "</p>"))
+          write_file(html_text, file = paste0(tempdir(), "/error.html"))
+          zip(zipfile = file, files = paste0(tempdir(), "/error.html"), extra = "-j")
+        }
+      )
+    }
+  )
+  
+  ##############################################################################
+  ### PhosProTN_with_prot ----
+  # Optional visibility based on the selection ----
+  
+  ## PhosProTN_with_prot: Visibility of the proteomics files for PhosProTN_with_prot ----
+  output$input_proteome_phos_protn <- renderUI({
+    if (input$sw_analyzer_phos_protn == "PD"){
+      tagList(
+        fluidRow(
+          fileInput("input_file_phospho_phos_protn", "Select the SAMPLE_ANNOTATION file of the PHOSPHO-PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("pep_file_phospho_phos_protn", "Select the PEP file of the PHOSPHO-PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("prot_file_phospho_phos_protn", "Select the PROT file of the PHOSPHO-PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("psm_file_phospho_phos_protn", "Select the PROT file of the PHOSPHO-PROTEOMICS..."),
+        ),
+        tags$br(),
+        fluidRow(
+          fileInput("input_file_proteome_phos_protn", "Select the SAMPLE_ANNOTATION file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("pep_file_proteome_phos_protn", "Select the PEP file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("prot_file_proteome_phos_protn", "Select the PROT file of the PROTEOMICS..."),
+        )
+      )
+    } else if(input$sw_analyzer_phos_protn == "MQ"){
+      tagList(
+        fluidRow(
+          fileInput("input_file_phospho_phos_protn", "Select the SAMPLE_ANNOTATION file of the PHOSPHO-PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("pep_file_phospho_phos_protn", "Select the EVIDENCE file of the PHOSPHO-PROTEOMICS..."),
+        ),
+        tags$br(),
+        fluidRow(
+          fileInput("input_file_proteome_phos_protn", "Select the SAMPLE_ANNOTATION file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("pep_file_proteome_phos_protn", "Select the EVIDENCE file of the PROTEOMICS..."),
+        )
+      )
+    } else{
+      tagList(
+        tags$p("BACK")
+      )
+    }
+  })
+  
+  ## PhosProTN_with_prot: textbox for batch correction----
+  output$batch_correction_ui_phos_protn <- renderUI({ 
+    if(input$batch_correction_phos_protn){
+      textInput("batch_correction_col_phos_protn", "Column in Annotation file with the batch:")
+    } 
+  })
+  
+  ## PhosProTN_with_prot: textbox for list proteins ----
+  output$list_protein_ui_phos_protn <- renderUI({ 
+    if(input$boxplot_protein_phos_protn | input$heatmap_protein_phos_protn){
+      textInput("list_proteins_phos_protn", "List proteins to show (separate by: \",\"):")
+    } 
+  })
+  
+  ## PhosProTN_with_prot: show parameter for differential analysis ----
+  output$differential_params_ui_phos_protn <- renderUI({ 
+    if(input$differential_analysis_checkbox_phos_protn){
+      tagList(
+        tags$label("Write in each line a different comparison"),
+        tags$label("(right click to add row)"),
+        rHandsontableOutput('render_formule_contrast_table_phos_protn'),
+        # textAreaInput("formule_contrast", "Write in each line a different comparison", rows = 4),
+        textInput("FC_thr_phos_protn", "Fold change threshold for significance:",value = 0.5),
+        radioButtons("pval_fdr_phos_protn", "Select which p.value use:", 
+                     choiceNames = c("Adj.P.Val", "P.Val"),
+                     choiceValues = c("p_adj","p_val"), inline = TRUE, selected = "p_val"),
+        textInput("pval_thr_phos_protn", "P.value threshold for significance:", value = 0.05),
+        checkboxInput("peptide_diff_table_phos_protn", "Phospho-peptides differentiated table", FALSE),
+        checkboxInput("peptide_diff_barplot_phos_protn", "Phospho-peptides differentiated barplot", TRUE),
+        checkboxInput("peptide_vulcano_phos_protn", "Phospho-peptides vulcano plot", FALSE),
+        checkboxInput("mds_diff_peptide_phos_protn", "MDS based on diffential phospho-peptide", FALSE),
+        checkboxInput("pca_diff_peptide_phos_protn", "PCA based on diffential phospho-peptide", FALSE),
+        actionButton("execute_differential_analysis_btn_phos_protn", "Run!"),
+        tags$h3("Enrichment Analysis:"),
+        checkboxInput("enrichment_analysis_phos_protn", "Execute enrichment analysis", FALSE),
+        uiOutput("enrichment_params_ui_phos_protn"),
+        tags$h3("STRINGdb network:"),
+        checkboxInput("stringdb_analysis_phos_protn", "Execute STRINGdb", FALSE),
+        uiOutput("stringdb_params_ui_phos_protn"),
+        tags$h3("Kinase tree:"),
+        checkboxInput("kinase_tree_analysis_phos_protn", "Execute PhosR kinase tree", FALSE),
+        uiOutput("kinase_tree_params_ui_phos_protn")
+      )
+    } 
+  })
+  
+  output$render_formule_contrast_table_phos_protn <- renderRHandsontable({
+    rhandsontable(db_execution$dt_formule_contrast, rowHeaders = NULL, stretchH = "all")
+  })
+  
+  ## PhosProTN_with_prot: show enrichment parameter ----
+  output$enrichment_params_ui_phos_protn <- renderUI({ 
+    if(input$enrichment_analysis_phos_protn){
+      tagList(
+        # radioButtons("enrichR_universe", "Execute enrichment of the whole Universe", c("TRUE", "FALSE"), inline = TRUE, selected = FALSE),
+        selectizeInput("DB_enrichment_phos_protn", "DB to analyse:",
+                       choices = lapply(split(read_tsv("data/dbs_enrichR.txt", col_names = FALSE)$X1,
+                                              read_tsv("data/dbs_enrichR.txt", col_names = FALSE)[,2]), as.list),
+                       selected = NULL, multiple = TRUE
+        ),
+        textInput("terms_enrich_phos_protn", "Terms to search (separated by \",\"):"),
+        radioButtons("pval_fdr_enrich_phos_protn", "Select which p.value use:", 
+                     choiceNames = c("Adj.P.Val", "P.Val"),
+                     choiceValues = c("p_adj","p_val"), inline = TRUE, selected = "p_adj"),
+        textInput("pvalue_enrich_phos_protn", "P.value threshold for significance:", value = 0.05),
+        sliderInput("os_enrich_phos_protn", "Overlap size thr for enrichment", 1, 30, step = 1, value = 5),
+        checkboxInput("enrich_with_background_phos_protn", "Enrichment with background", FALSE),
+        actionButton("execute_enrichment_analysis_btn_phos_protn", "Run!")
+      )
+    } 
+  })
+  
+  ## PhosProTN_with_prot: show stringdb parameter ----
+  output$stringdb_params_ui_phos_protn <- renderUI({
+    if(input$stringdb_analysis_phos_protn){
+      tagList(
+        selectizeInput("taxonomy_phos_protn", "NCBI Taxonomy ID", 
+                       choice = data.table::fread("data/subset_tax.csv", select = "name"), 
+                       selected = "Homo sapiens", multiple = F),
+        sliderInput("score_thr_stringdb_phos_protn", "Score thr for STRINGdb", 500, 1000, step = 10, value = 700),
+        actionButton("execute_stringdb_analysis_btn_phos_protn", "Run!"),
+        tags$br()
+      )
+    }
+  })
+  ## PhosProTN_with_prot: show kinase_tree parameter ----
+  output$kinase_tree_params_ui_phos_protn <- renderUI({
+    if(input$kinase_tree_analysis_phos_protn){
+      tagList(
+        sliderInput("score_thr_phosr_phos_protn", "Score thr for PhosR", 0, 1, step = 0.05, value = 0.7),
+        actionButton("execute_kinase_tree_analysis_btn_phos_protn", "Run!"),
+        tags$br()
+      )
+    }
+  })
+  
+  # PhosProTN_with_prot: Execution pipeline ----
+  observeEvent(input$report_proteome_phos_protn, {
+    
+    output$protn_results_ui_phos_protn <- renderUI({
+      isolate({
+        tryCatch(
+          {
+            withProgress(message = "Rendering, please wait!", {
+              message(session$token)
+              message(tempdir())
+              #Creation directory for the results
+              dirOutput_2 <- tempdir()
+              currentTime <- gsub(".*?([0-9]+).*?", "\\1", Sys.time())
+              dirOutput_1 <- paste("/", currentTime, "/", sep = "")
+              dir.create(file.path(dirOutput_2, dirOutput_1), showWarnings = FALSE)
+              dirOutput_Server <- paste(dirOutput_2, dirOutput_1, sep = "")
+              message(dirOutput_Server)
+              db_execution$dirOutput <- dirOutput_Server
+              #Save folder for the download
+              readr::write_csv(data.frame("session"=session$token,
+                                          "outdir"=dirOutput_Server),
+                               file = paste0(tempdir(),"/outdir_log_PhosProTN_proteome.log"), append = T)
+              
+              ### PHOSPHO ----
+              #Read parameter and execution
+              software <- input$sw_analyzer_phos_protn
+              file_input_phospho = input$input_file_phospho_phos_protn$name
+              file_prot_phospho = if(software=="PD"){input$prot_file_phospho_phos_protn$name}else{NA}
+              file_psm_phospho = if(software=="PD"){input$psm_file_phospho_phos_protn$name}else{NA}
+              file_pep_phospho = input$pep_file_phospho_phos_protn$name
+              
+              # Move data in correct folder
+              dir.create(file.path(dirOutput_Server, "input_phospho"), showWarnings = FALSE)
+              dir_input_phospho <- paste(dirOutput_Server, "input_phospho", sep = "")
+              file.copy(from = input$input_file_phospho_phos_protn$datapath, to = paste0(dir_input_phospho,'/ANNOTATION_',file_input_phospho)) 
+              if(software=="PD"){file.copy(from = input$prot_file_phospho_phos_protn$datapath, to =paste0(dir_input_phospho,'/PROT_',file_prot_phospho))} 
+              if(software=="PD"){file.copy(from = input$psm_file_phospho_phos_protn$datapath, to =paste0(dir_input_phospho,'/PSM_',file_psm_phospho))} 
+              file.copy(from = input$pep_file_phospho_phos_protn$datapath, to = paste0(dir_input_phospho,'/PEP_',file_pep_phospho)) 
+              
+              ### PROTEOME ----
+              #Read parameter and execution
+              file_input_proteome = input$input_file_proteome_phos_protn$name
+              file_prot_proteome = if(software=="PD"){input$prot_file_proteome_phos_protn$name}else{NA}
+              file_pep_proteome = input$pep_file_proteome_phos_protn$name
+              
+              # Move data in correct folder
+              dir.create(file.path(dirOutput_Server, "input_proteome"), showWarnings = FALSE)
+              dir_input_proteome <- paste(dirOutput_Server, "input_proteome", sep = "")
+              file.copy(from = input$input_file_proteome_phos_protn$datapath, to = paste0(dir_input_proteome,'/ANNOTATION_',file_input_proteome)) 
+              if(software=="PD"){file.copy(from = input$prot_file_proteome_phos_protn$datapath, to =paste0(dir_input_proteome,'/PROT_',file_prot_proteome))} 
+              file.copy(from = input$pep_file_proteome_phos_protn$datapath, to = paste0(dir_input_proteome,'/PEP_',file_pep_proteome)) 
+              
+              ### ----
+              
+              # If to batch corrected read column
+              if(input$batch_correction_phos_protn){
+                batch_corr <- TRUE
+                batch_correction_col <- input$batch_correction_col_phos_protn
+              } else{
+                batch_corr <- FALSE
+                batch_correction_col <- "batch"
+              }
+              
+              message(software)
+              progress=0
+              msg_read_function <- c()
+              withCallingHandlers(
+                {
+                  shinyjs::html("text", "")
+                  if(software == "PD"){
+                    db_execution$proteome_data <- read_phospho_proteome_proteomics(software = "PD", 
+                                                                                   folder_proteome = dir_input_proteome,
+                                                                                   folder_phospho = dir_input_phospho,
+                                                                                   peptide_proteome_filename = "PEP_", 
+                                                                                   peptide_phospho_filename = "PEP_", 
+                                                                                   annotation_proteome_filename = "ANNOTATION_",
+                                                                                   proteinGroup_proteome_filename = "PROT_", 
+                                                                                   psm_proteome_filename = "PSM_",
+                                                                                   annotation_phospho_filename = "ANNOTATION_",
+                                                                                   proteinGroup_phospho_filename = "PROT_", 
+                                                                                   psm_phospho_filename = "PSM_",
+                                                                                   batch_corr_exe = batch_corr, 
+                                                                                   batch_col = batch_correction_col,
+                                                                                   phospho_thr = input$phos_thr/100)
+
+                  } else if(software == "MQ"){
+                    db_execution$proteome_data <- read_phospho_proteome_proteomics(software = "MQ", 
+                                                                                   folder_proteome = dir_input_proteome,
+                                                                                   folder_phospho = dir_input_phospho,
+                                                                                   peptide_proteome_filename = "PEP_", 
+                                                                                   peptide_phospho_filename = "PEP_", 
+                                                                                   annotation_proteome_filename = "ANNOTATION_",
+                                                                                   annotation_phospho_filename = "ANNOTATION_",
+                                                                                   batch_corr_exe = batch_corr, 
+                                                                                   batch_col = batch_correction_col,
+                                                                                   phospho_thr = input$phos_thr/100)
+                  }
+                },
+                message = function(m) {
+                  msg_read_function <- c(msg_read_function, m$message)
+                  shinyjs::html(id = "messagge_read_phos_protn", html = paste0("<p>",m$message,"</p>"), add = TRUE)
+                  progress=progress+0.05
+                  setProgress(value = progress)
+                }
+              )
+              
+              db_execution$data_loaded <- TRUE
+              db_execution$imputed_data <- impute_intensity(proteome_data = db_execution$proteome_data)
+              db_execution$normalized_data <- normalization_ProTN(proteome_data = db_execution$imputed_data)
+              if(batch_corr){
+                message("Executing batch correction...")
+                db_execution$normalized_data <- batch_correction(proteome_data = db_execution$normalized_data, 
+                                                                 batch_col = str_to_lower(batch_correction_col))
+              }
+              
+              output$c_anno_phos_protn <- DT::renderDT(db_execution$proteome_data$c_anno)
+              tagList(
+                fluidRow(
+                  downloadButton("download_proteome_phos_protn", "Download results (ZIP file)", width = "240px")
+                ),
+                # html(html = paste0("<p>",msg_read_function,"</p><br>"), id = "messagge_read"),
+                # shinyjs::html(id = "messagge_read", html = paste0("<p>",m$message,"</p>"), add = TRUE),
+                DT::DTOutput("c_anno_phos_protn")
+              )
+            })
+          },
+          error = function(e) {
+            #Create error report and reactivate the click in the page
+            showNotification(paste0("ERROR: ", e), type = "error", duration = 30)
+            html_text<-str_replace(read_file("R/error.html"), 
+                                   pattern = "The page you’re looking for doesn’t exist.</p>", 
+                                   replacement = paste0("Description:", e, "</p>"))
+            write_file(html_text, file = paste0(tempdir(), "/error.html"))
+            tags$iframe(src = "basedir/error.html", height = "100%", width = "100%", scrolling = "yes")
+          }
+        )
+      })
+      
+    })
+    
+    output$render_phospho_percentage_plot_phos_protn <- renderUI({ 
+      if(input$phospho_percentage_plot_phos_protn){
+        phospho_percentage <- create_phosphosite_plot(proteome_data = db_execution$proteome_data, 
+                                                      software = input$sw_analyzer_phos_protn)
+        db_execution$phospho_percentage = phospho_percentage$plot
+        tagList(
+          tags$h3("Percentage of phosphosite residue"),
+          renderPlot(phospho_percentage$plot, height = 250)
+        )
+      } else{
+        db_execution$phospho_percentage = NULL
+      } 
+    })
+    
+    output$render_abundance_plot_phos_protn <- renderUI({ 
+      if(input$abundance_plot_phos_protn){
+        generate_abundance <- generate_abundance_plot(proteome_data = db_execution$proteome_data, 
+                                                      phospho_with_proteome = TRUE)
+        db_execution$generate_abundance = generate_abundance
+        tagList(
+          fluidRow(
+            column(
+              width = 6,
+              tags$h3("Percentage missing values respect detected abundance - Proteomics"),
+              renderPlot(generate_abundance$proteome_plot)
+            ),
+            column(
+              width = 6,
+              tags$h3("Percentage missing values respect detected abundance - Phospho-proteomics"),
+              renderPlot(generate_abundance$phospho_plot)
+            )
+          )
+        )
+      } else{
+        db_execution$generate_abundance = NULL
+      } 
+    })
+    
+    output$render_peptide_distribution_phos_protn <- renderUI({ 
+      if(input$peptide_distribution_phos_protn){
+        generate_peptide_distribution <- generate_peptide_distribution_plot(proteome_data = db_execution$proteome_data, 
+                                                                            phospho_with_proteome = TRUE)
+        db_execution$generate_peptide_distribution = generate_peptide_distribution
+        tagList(
+          fluidRow(
+            column(
+              width = 6,
+              tags$h3("N° peptides per proteins - Proteomics"),
+              renderPlot(generate_peptide_distribution$proteome_plot)
+            ),
+            column(
+              width = 6,
+              tags$h3("N° peptides per proteins - Phospho-proteomics"),
+              renderPlot(generate_peptide_distribution$phospho_plot)
+            )
+          )
+        )
+      } else{
+        db_execution$generate_peptide_distribution = NULL
+      } 
+    })
+    
+    output$render_protein_violin_phos_protn <- renderUI({ 
+      if(input$protein_violin_phos_protn){
+        generate_protein_violin <- plot_abundance_distribution(proteome_data = db_execution$normalized_data,
+                                                               type = "protein")
+        db_execution$protein_abundance_distribution = generate_protein_violin$plot
+        tagList(
+          tags$h3("Distribution protein abundance"),
+          renderPlot(generate_protein_violin$plot)
+        )
+      } else{
+        db_execution$protein_abundance_distribution = NULL
+      } 
+    })
+    
+    output$render_peptide_violin_phos_protn <- renderUI({ 
+      if(input$peptide_violin_phos_protn){
+        generate_peptide_violin <- plot_abundance_distribution(proteome_data = db_execution$normalized_data,
+                                                               type = "peptide")
+        db_execution$peptide_abundance_distirbution = generate_peptide_violin$plot
+        tagList(
+          tags$h3("Distribution peptide abundace"),
+          renderPlot(generate_peptide_violin$plot)
+        )
+      } else{
+        db_execution$peptide_abundance_distirbution = NULL
+      } 
+    })
+    
+    output$render_mds_protein_phos_protn <- renderUI({ 
+      if(input$mds_protein_phos_protn){
+        res_plot <- mds_plot(proteome_data = db_execution$normalized_data,
+                             type = "protein")
+        db_execution$protein_MDS = res_plot$plot
+        tagList(
+          tags$h3("MDS based on proteins"),
+          renderPlot(res_plot$plot)
+        )
+      } else{
+        db_execution$protein_MDS = NULL
+      } 
+    })
+    
+    output$render_mds_peptide_phos_protn <- renderUI({ 
+      if(input$mds_peptide_phos_protn){
+        res_plot <- mds_plot(proteome_data = db_execution$normalized_data,
+                             type = "peptide")
+        db_execution$peptide_MDS = res_plot$plot
+        tagList(
+          tags$h3("MDS based on peptides"),
+          renderPlot(res_plot$plot)
+        )
+      } else{
+        db_execution$peptide_MDS = NULL
+      } 
+    })
+    
+    output$render_pca_protein_phos_protn <- renderUI({ 
+      if(input$pca_protein_phos_protn){
+        res_plot <- pca_plot(proteome_data = db_execution$normalized_data,
+                             type = "protein")
+        db_execution$protein_PCA = res_plot$plot
+        tagList(
+          tags$h3("PCA based on proteins"),
+          renderPlot(res_plot$plot)
+        )
+      } else{
+        db_execution$protein_PCA = NULL
+      } 
+    })
+    
+    output$render_pca_peptide_phos_protn <- renderUI({ 
+      if(input$pca_peptide_phos_protn){
+        res_plot <- pca_plot(proteome_data = db_execution$normalized_data,
+                             type = "peptide")
+        db_execution$peptide_PCA = res_plot$plot
+        tagList(
+          tags$h3("PCA based on peptides"),
+          renderPlot(res_plot$plot)
+        )
+      }  else{
+        db_execution$peptide_PCA = NULL
+      }
+    })
+    
+    output$render_protein_boxplot_phos_protn <- renderUI({
+      if(input$boxplot_protein_phos_protn){
+        req(input$list_proteins_phos_protn)
+        list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_phos_protn), regex=",")
+        prot_boxplot <- plot_selected_proteins(proteome_data = db_execution$normalized_data,
+                                               list_protein = unlist(list_proteins))
+        db_execution$protein_boxplot = prot_boxplot$plot
+        
+        tagList(
+          tags$h3("Boxplot selected proteins"),
+          renderPlot(prot_boxplot$plot)
+        )
+      } else{
+        db_execution$protein_boxplot = NULL
+      }
+    })
+    
+    output$render_protein_heatmap_phos_protn <- renderUI({
+      if(input$heatmap_protein_phos_protn){
+        req(input$list_proteins_phos_protn)
+        list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_phos_protn), regex=",")
+        prot_boxplot <- heatmap_selected_proteins(proteome_data = db_execution$normalized_data,
+                                                  list_protein = unlist(list_proteins))
+        db_execution$protein_heatmap = prot_boxplot$plot
+        
+        tagList(
+          tags$h3("Heatmap selected proteins"),
+          renderPlot(prot_boxplot$plot)
+        )
+      } else{
+        db_execution$protein_heatmap = NULL
+      }
+    })
+  })
+  
+  ## PhosProTN_with_prot: differential analysis ----
+  observeEvent(input$execute_differential_analysis_btn_phos_protn, {
+    output$render_differential_analysis_phos_protn <- renderUI({
+      isolate({
+        db_execution$dt_formule_contrast <- as.data.table(hot_to_r(input$render_formule_contrast_table_phos_protn))
+        db_execution$dt_formule_contrast <- db_execution$dt_formule_contrast[Formule!=""]
+        print(db_execution$dt_formule_contrast)
+        formule_diff <- as.list(db_execution$dt_formule_contrast$Formule)
+        names(formule_diff) <- stri_replace_all(db_execution$dt_formule_contrast$Name, replacement = "_", regex = "-")
+        
+        names(formule_diff) <- lapply(1:length(formule_diff), function(x){
+          if(names(formule_diff)[x] == ""){
+            stri_replace_all(formule_diff[[x]], replacement = "_VS_", regex = "-")
+          } else{
+            names(formule_diff)[x]
+          }
+        })
+        db_execution$formule_contrast <- formule_diff
+        message(db_execution$formule_contrast)
+        
+        withProgress(message = "Differential analysis in process, please wait!", {
+          message(session$token)
+          message(tempdir())
+          
+          db_execution$differential_results <- differential_analysis(proteome_data = db_execution$normalized_data,
+                                                                     formule_contrast = db_execution$formule_contrast,
+                                                                     fc_thr=as.double(input$FC_thr_phos_protn),
+                                                                     pval_fdr = input$pval_fdr_phos_protn,
+                                                                     pval_thr=as.double(input$pval_thr_phos_protn),
+                                                                     signal_thr=0)
+        })
+        
+        tags$h2("Differential Analysis")
+      })
+    })
+    
+    output$render_peptide_diff_table_phos_protn <- renderUI({
+      if(input$peptide_diff_table_phos_protn){
+        output$peptide_results_long_phos_protn <- DT::renderDT(db_execution$differential_results$peptide_results_long)
+        DT::DTOutput("peptide_results_long_phos_protn")
+      }
+    })
+    
+    output$render_peptide_diff_barplot_phos_protn <- renderUI({
+      if(input$peptide_diff_barplot_phos_protn){
+        ploft_diff_number_pep <- generate_differential_barplots(db_execution$differential_results,
+                                                                data_type="peptide")
+        db_execution$peptide_differential_barplot = ploft_diff_number_pep$plot
+        tagList(
+          tags$h3("N° differential phospho-peptides"),
+          renderPlot(ploft_diff_number_pep$plot)
+        )
+      } else{
+        db_execution$peptide_differential_barplot = NULL
+      }
+    })
+    
+    output$render_peptide_vulcano_phos_protn <- renderUI({
+      if(input$peptide_vulcano_phos_protn){
+        generate_volcano_plots_peptide <- list()
+        for(comp in names(db_execution$formule_contrast)){
+          generate_volcano_plots_peptide<-c(generate_volcano_plots_peptide,
+                                            generate_volcano_plots(db_execution$differential_results,
+                                                                   data_type="peptide",
+                                                                   comparison=comp,
+                                                                   fc_thr=as.double(input$FC_thr_phos_protn),
+                                                                   pval_fdr = input$pval_fdr_phos_protn,
+                                                                   pval_thr=as.double(input$pval_thr_phos_protn)))
+        }
+        db_execution$peptide_vulcano = generate_volcano_plots_peptide
+        # Generate tabPanels in a for loop
+        tabs_pep_vulcano <- list()
+        for (i in seq_along(generate_volcano_plots_peptide)) {
+          plot_id <- names(generate_volcano_plots_peptide)[i]
+          # Create an output slot for each plot
+          local({
+            my_i <- i
+            my_plot_id <- plot_id
+            output[[my_plot_id]] <- renderPlotly(generate_volcano_plots_peptide[[names(generate_volcano_plots_peptide)[my_i]]])
+          })
+          
+          tabs_pep_vulcano[[i]] <- tabPanel(
+            title = paste(names(generate_volcano_plots_peptide)[i]),
+            plotlyOutput(plot_id)
+          )
+        }
+        
+        # Use do.call to unpack the tab list into tabsetPanel
+        tagList(
+          tags$h3("Vulcano Plot differential phospho-peptides"),
+          do.call(tabsetPanel, c(list(id = "dynamic_tabs_vulcano_peptide_phos_protn"), tabs_pep_vulcano))
+        )
+      } else{
+        db_execution$peptide_vulcano = NULL
+      }
+    })
+    
+    output$render_mds_peptide_diff_phos_protn <- renderUI({
+      if(input$mds_diff_peptide_phos_protn){
+        ploft_diff_number_pep <- mds_differential_analysis_plot(differential_analysis = db_execution$differential_results,
+                                                                proteome_data = db_execution$normalized_data,
+                                                                type = "peptide")
+        db_execution$peptide_differential_MDS = ploft_diff_number_pep$plot
+        tagList(
+          tags$h3("MDS based on differential phospho-peptides"),
+          renderPlot(ploft_diff_number_pep$plot)
+        )
+      } else{
+        db_execution$peptide_differential_MDS = NULL
+      }
+    })
+    
+    output$render_pca_peptide_diff_phos_protn <- renderUI({
+      if(input$pca_diff_peptide_phos_protn){
+        ploft_diff_number_pep <- pca_differential_analysis_plot(differential_analysis = db_execution$differential_results,
+                                                                proteome_data = db_execution$normalized_data,
+                                                                type = "peptide")
+        db_execution$peptide_differential_PCA = ploft_diff_number_pep$plot
+        tagList(
+          tags$h3("PCA based on differential phospho-peptides"),
+          renderPlot(ploft_diff_number_pep$plot)
+        )
+      } else{
+        db_execution$peptide_differential_PCA = NULL
+      }
+    })
+    
+  })
+  
+  ## PhosProTN_with_prot: enrichment analysis ----
+  observeEvent(input$execute_enrichment_analysis_btn_phos_protn, {
+    output$render_enrichement_analysis_phos_protn <- renderUI({
+      isolate({
+        # TODO: gallery of plots
+        db_execution$enrichmnent_results <- perform_enrichment_analysis(differential_results = db_execution$differential_results,
+                                                                        enrichR_custom_DB = T,
+                                                                        enrich_filter_DBs=input$DB_enrichment_phos_protn,    
+                                                                        overlap_size_enrich_thr=as.double(input$FC_thr_phos_protn),
+                                                                        pval_fdr_enrich = input$pval_fdr_phos_protn,
+                                                                        pval_enrich_thr=as.double(input$pval_thr_phos_protn),
+                                                                        dirOutput=db_execution$dirOutput, 
+                                                                        with_background = input$enrich_with_background_phos_protn)
+        
+        terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich_phos_protn), regex=","))
+        plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
+                                        category = c("down","up"), 
+                                        enrich_filter_term = terms_enrich,
+                                        save=F)
+        
+        #LOAD category EnrichR
+        dbs_default <- read_tsv("data/dbs_enrichR.txt", col_names = FALSE) %>% as.data.frame()
+        dbs_category <- dbs_default %>% split(f = as.factor(.$X2))
+        category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution$enrichmnent_results$anno_class), input$DB_enrichment_phos_protn))})
+        # Generate tabPanels in a for loop
+        tabs <- list()
+        for (i in seq_along(plots_down)) {
+          plot_id <- names(plots_down)[i]
+          height_id <- max(min(20, length(unique(plots_down[[names(plots_down)[i]]]$data$y_col))*0.4),3)*96
+          message(paste0("Height for ",names(plots_down)[i], ": ", height_id))
+          # Create an output slot for each plot
+          local({
+            my_i <- i
+            my_plot_id <- plot_id
+            output[[my_plot_id]] <- renderPlot({
+              plots_down[[names(plots_down)[my_i]]]
+            }, height = height_id)
+          })
+          
+          tabs[[i]] <- tabPanel(
+            title = paste(names(plots_down)[i]),
+            plotOutput(plot_id, height = height_id)
+          )
+        }
+        
+        tagList(
+          tags$h2("Enrichment Analysis"),
+          do.call(tabsetPanel, c(list(id = "dynamic_tabs_enrichment_phos_protn"), tabs))
+        )
+        
+      })
+    })
+  })
+  ## PhosProTN_with_prot: stringdb analysis ----
+  observeEvent(input$execute_stringdb_analysis_btn_phos_protn, {
+    output$render_stringdb_phos_protn <- renderUI({
+      isolate({
+        withProgress(message = "STRINGdb analysis in process, please wait!", {
+          
+          db_execution$stringdb_res <- STRINGdb_network(differential_results = db_execution$differential_results,
+                                                        species=input$taxonomy_phos_protn, 
+                                                        dirOutput=db_execution$dirOutput, 
+                                                        score_thr=input$score_thr_stringdb_phos_protn,
+                                                        shiny = T)
+          
+          tagList(
+            tags$h2("STRINGdb analysis"),
+            fluidRow(
+              selectInput("stringdb_show", label = "Select StringDB to show: (click on STRING logo to open the results on stringDB website)", 
+                          choices = names(db_execution$stringdb_res), width = "15%"),
+              actionButton("stringdb_selected", "Select!", width = "10%")  
+            ),
+            tags$div(id = "stringEmbedded")
+          )
+        })
+      })
+    })
+  })
+  
+  observeEvent(input$stringdb_selected_phos_protn, {
+    js$loadStringData(input$taxonomy_phos_protn, db_execution$stringdb_res[[input$stringdb_show_phos_protn]], input$score_thr_stringdb_phos_protn)
+  })
+  
+  ## PhosProTN_with_prot: kinase tree analysis ----
+  observeEvent(input$execute_kinase_tree_analysis_btn_phos_protn, {
+    output$render_kinase_tree_phos_protn <- renderUI({
+      isolate({
+        withProgress(message = "Kinase Tree analysis in process, please wait!", {
+          
+          db_execution$kinase_tree_res <- kinase_tree(proteome_data = db_execution$normalized_data, 
+                                                      differential_results = db_execution$differential_results, 
+                                                      formule_CORAL = db_execution$formule_contrast, 
+                                                      dirOutput=db_execution$dirOutput, 
+                                                      phosR_thr = input$score_thr_phosr_phos_protn)
+          
+          tagList(
+            tags$h2("Kinase Tree analysis"),
+            fluidRow(
+              selectInput("kinase_tree_show", label = "Select Kinase Tree to show:", 
+                          choices = names(db_execution$kinase_tree_res), width = "15%"),
+              actionButton("kinase_tree_selected", "Select!", width = "10%")  
+            ),
+            imageOutput("render_kin_tree", height = "auto")
+          )
+        })
+      })
+    })
+  })
+  
+  observeEvent(input$kinase_tree_selected, {
+    output$render_kin_tree <- renderImage({
+      isolate({
+        list(src = paste0(db_execution$dirOutput, "pics/kinaseTree/",input$kinase_tree_show,"_kinase_Tree_CORAL.svg"),
+             alt = "Kinase Tree"
+        )
+      })
+    }, deleteFile = FALSE)
+  })
+  
+  # PhosProTN_with_prot: download results ----
+  output$download_proteome_phos_protn <- downloadHandler(
+    filename = "results_PhosProTN_with_proteome.zip",
+    content = function(file) {
+      tryCatch(
+        {
+          withProgress(message = "Prepraring files to download, please wait!", {
+            #Zip the dir resutls
+            message(session$token)
+            message(db_execution$dirOutput)
+            setProgress(value = 0.01)
+            
+            # Generate report
+            params <- list(
+              doc_title = input$title_exp_phos_protn,
+              description = input$description_exp_phos_protn,
+              readPD_files = if (input$sw_analyzer_phos_protn == "PD") {TRUE} else {FALSE},
+              readMQ_files = if (input$sw_analyzer_phos_protn == "MQ") {TRUE} else {FALSE},
+              db_execution = reactiveValuesToList(db_execution),
+              file_input_phospho = paste(db_execution$dirOutput, "input_phospho", sep = ""),
+              file_input_proteome = paste(db_execution$dirOutput, "input_proteome", sep = ""),
+              batch_corr_exe = if(input$batch_correction_phos_protn){input$batch_correction_col_phos_protn}else{NULL},
+              prot_boxplot = if(input$boxplot_protein_phos_protn | input$heatmap_protein_phos_protn){input$list_proteins_phos_protn}else{NULL},
+              fc_thr = if(is.null(input$FC_thr_phos_protn)){"0.75"}else{input$FC_thr_phos_protn},
+              pval_fdr = input$pval_fdr_phos_protn,
+              pval_thr = if(is.null(input$pval_thr_phos_protn)){"0.05"}else{input$pval_thr_phos_protn},
+              pval_fdr_enrich = input$pval_fdr_enrich_phos_protn,
+              pval_enrich_thr = if(is.null(input$pvalue_enrich_phos_protn)){"0.05"}else{input$pvalue_enrich_phos_protn},
+              overlap_size_enrich_thr = if(is.null(input$os_enrich_phos_protn)){as.integer(5)}else{input$os_enrich_phos_protn},
+              enrich_filter_term = input$terms_enrich_phos_protn,
+              enrich_filter_DBs = input$DB_enrichment_phos_protn,
+              taxonomy=input$taxonomy_phos_protn, 
+              score_thr=input$score_thr_stringdb_phos_protn,
+              dirOutput = db_execution$dirOutput
+            )
+            
+            # Render in background the report
+            p = callr::r_bg(
+              func = function(db_execution, params, dirOutput, env) {
+                rmarkdown::render("R/phosprotn_protn_report.Rmd",
+                                  output_file = "phosprotn_with_proteome_report.html",
+                                  output_dir = dirOutput,
+                                  params = params,
+                                  envir = env
+                )
+              },
+              args = list(db_execution, params, db_execution$dirOutput, new.env(parent = globalenv())),
+              stdout = "|",
+              stderr = "|",
+              error = getOption("callr.error", "error")
+            )
+            
+            
+            
+            # Prepare file for the download
+            if(length(db_execution$normalized_data)>0){
+              save_abundance_tables(proteome_data = db_execution$normalized_data, 
+                                    dirOutput = db_execution$dirOutput)
+            }
+            setProgress(value = 0.1)
+            
+            if(length(db_execution$differential_results)>0){
+              save_differential_analysis_table(proteome_data = db_execution$normalized_data,
+                                               differential_results = db_execution$differential_results,
+                                               dirOutput=db_execution$dirOutput)
+            }
+            setProgress(value = 0.2)
+            
+            if(input$abundance_plot_phos_protn & !is.null(db_execution$generate_abundance)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/missing_available_abundance_proteomics.pdf"), 
+                     plot = db_execution$generate_abundance$proteome_plot, 
+                     create.dir = T, width = 7, height = 5)
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/missing_available_abundance_phosphoproteomics.pdf"), 
+                     plot = db_execution$generate_abundance$phospho_plot, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.25)
+            
+            if(input$peptide_distribution_phos_protn & !is.null(db_execution$generate_peptide_distribution)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_per_protein_proteomics.pdf"), 
+                     plot = db_execution$generate_peptide_distribution$proteome_plot, 
+                     create.dir = T, width = 7, height = 5)
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_per_protein_phosphoproteomics.pdf"), 
+                     plot = db_execution$generate_peptide_distribution$phospho_plot, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.30)
+            
+            if(input$protein_violin_phos_protn & !is.null(db_execution$protein_abundance_distribution)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_abundance_distribution.pdf"), 
+                     plot = db_execution$protein_abundance_distribution, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.35)
+            
+            if(input$peptide_violin_phos_protn & !is.null(db_execution$peptide_abundance_distirbution)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_abundance_distribution.pdf"), 
+                     plot = db_execution$peptide_abundance_distirbution, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.40)
+            
+            if(input$mds_protein_phos_protn & !is.null(db_execution$protein_MDS)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_MDS.pdf"), 
+                     plot = db_execution$protein_MDS, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.43)
+            
+            if(input$mds_peptide_phos_protn & !is.null(db_execution$peptide_MDS)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_MDS.pdf"), 
+                     plot = db_execution$peptide_MDS, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.45)
+            
+            if(input$pca_protein_phos_protn & !is.null(db_execution$protein_PCA)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_PCA.pdf"), 
+                     plot = db_execution$protein_PCA, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.47)
+            
+            if(input$pca_peptide_phos_protn & !is.null(db_execution$peptide_PCA)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_PCA.pdf"), 
+                     plot = db_execution$peptide_PCA, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.50)
+            
+            # TODO: adapt based on number of protein
+            if(input$boxplot_protein_phos_protn & !is.null(db_execution$protein_boxplot)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_boxplot.pdf"), 
+                     plot = db_execution$protein_boxplot, 
+                     create.dir = T, width = 8, height = 7)
+            } 
+            setProgress(value = 0.52)
+            
+            # TODO: adapt based on number of protein
+            if(input$heatmap_protein_phos_protn & !is.null(db_execution$protein_heatmap)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_heatmap.pdf"), 
+                     plot = db_execution$protein_heatmap, 
+                     create.dir = T, width = 8, height = 7)
+            } 
+            setProgress(value = 0.55)
+            
+            if(!is.null(db_execution$protein_differential_barplot)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_barplot.pdf"), 
+                     plot = db_execution$protein_differential_barplot, 
+                     create.dir = T, width = 8, height = 4)
+            } 
+            setProgress(value = 0.58)
+            
+            if(!is.null(db_execution$peptide_differential_barplot)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_barplot.pdf"), 
+                     plot = db_execution$peptide_differential_barplot, 
+                     create.dir = T, width = 8, height = 4)
+            } 
+            setProgress(value = 0.60)
+            
+            if(!is.null(db_execution$protein_vulcano)){
+              dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
+              for(comp in names(db_execution$protein_vulcano)){
+                plotly::save_image(db_execution$protein_vulcano[[comp]], 
+                                   file = paste0(db_execution$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
+                htmlwidgets::saveWidget(db_execution$protein_vulcano[[comp]], 
+                                        file = paste0(db_execution$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.html"))
+              }
+            } 
+            setProgress(value = 0.64)
+            
+            if(!is.null(db_execution$peptide_vulcano)){
+              dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "peptide_vulcano"), showWarnings = FALSE)
+              for(comp in names(db_execution$peptide_vulcano)){
+                plotly::save_image(db_execution$peptide_vulcano[[comp]], 
+                                   file = paste0(db_execution$dirOutput,"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
+                htmlwidgets::saveWidget(db_execution$peptide_vulcano[[comp]], 
+                                        file = paste0(db_execution$dirOutput,"pics/peptide_vulcano/",comp,"_protein_vulcano.html"))
+              }
+            } 
+            setProgress(value = 0.68)
+            
+            if(!is.null(db_execution$protein_differential_MDS)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_MDS.pdf"), 
+                     plot = db_execution$protein_differential_MDS, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.69)
+            
+            if(!is.null(db_execution$peptide_differential_MDS)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_MDS.pdf"), 
+                     plot = db_execution$peptide_differential_MDS, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.70)
+            
+            if(!is.null(db_execution$protein_differential_PCA)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_PCA.pdf"), 
+                     plot = db_execution$protein_differential_PCA, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.72)
+            
+            if(!is.null(db_execution$peptide_differential_PCA)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_PCA.pdf"), 
+                     plot = db_execution$peptide_differential_PCA, 
+                     create.dir = T, width = 7, height = 5)
+            } 
+            setProgress(value = 0.75)
+            
+            if(length(db_execution$enrichmnent_results)>0){
+              terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",
+                                                                 str = input$terms_enrich_phos_protn), regex=","))
+              plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
+                                              category = c("down","up"), 
+                                              enrich_filter_term = terms_enrich,
+                                              save=T, 
+                                              dirOutput = db_execution$dirOutput)
+            } 
+            setProgress(value = 0.82)
+            
+            if(length(db_execution$stringdb_res)>0){
+              tmp_res <- STRINGdb_network(differential_results = db_execution$differential_results,
+                                          species=input$taxonomy_phos_protn, 
+                                          dirOutput=db_execution$dirOutput,
+                                          score_thr=input$score_thr_stringdb_phos_protn,
+                                          shiny = F)
+              
+            } 
+            setProgress(value = 0.95)
+            
+            #Get results Report
+            #Wait 10 minutes. If do not end in 10 minutes, kill the process
+            hide_res<-p$read_output()
+            p$wait(30000)
+            for (i in 1:15) {
+              p$read_output()
+              p$wait(1000*60)  
+            }
+            if(p$is_alive() | is.null(p$get_result())){
+              p$kill()
+              print("\n ERROR: An error occur during the report rendering. \n ")
+            } else{
+              report<-p$get_result()
+              p$kill()
+              message("Render report DONE.")
+            }
+            
+            # Save RData db_execution
+            db_results_PhosProTN_with_proteome = reactiveValuesToList(db_execution)
+            db_results_PhosProTN_with_proteome <- db_results_PhosProTN_with_proteome[!(unlist(lapply(db_results_PhosProTN_with_proteome, is.null)))]
+            save(db_results_PhosProTN_with_proteome, file = paste0(db_results_PhosProTN_with_proteome$dirOutput,"db_results_PhosProTN_with_proteome.RData"))
             
             #Save folder for the download
             oldwd <- getwd()
