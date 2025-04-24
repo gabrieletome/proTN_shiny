@@ -154,7 +154,7 @@ ui <- tagList(
                 id="panel_results",
                 width = 9,
                 tags$br(),
-                textOutput("messagge_read"),
+                # textOutput("messagge_read"),
                 uiOutput("protn_results_ui"),
                 fluidRow(
                   column(
@@ -288,7 +288,7 @@ ui <- tagList(
                 id="panel_results_phos",
                 width = 9,
                 tags$br(),
-                textOutput("messagge_read_phos"),
+                # textOutput("messagge_read_phos"),
                 uiOutput("protn_results_ui_phos"),
                 uiOutput("render_phospho_percentage_plot_phos"),
                 fluidRow(
@@ -424,7 +424,7 @@ ui <- tagList(
                 id="panel_results_phos_protn",
                 width = 9,
                 tags$br(),
-                textOutput("messagge_read_phos_protn"),
+                # textOutput("messagge_read_phos_protn"),
                 uiOutput("protn_results_ui_phos_protn"),
                 uiOutput("render_phospho_percentage_plot_phos_protn"),
                 uiOutput("render_abundance_plot_phos_protn"),
@@ -726,7 +726,7 @@ server <- function(input, output, session) {
               
               message(software)
               progress=0
-              msg_read_function <- c()
+              msg_read_function <- NULL
               withCallingHandlers(
                 {
                   shinyjs::html("text", "")
@@ -748,12 +748,14 @@ server <- function(input, output, session) {
                   }
                 },
                 message = function(m) {
-                  msg_read_function <- c(msg_read_function, m$message)
-                  shinyjs::html(id = "messagge_read", html = paste0("<p>",m$message,"</p>"), add = TRUE)
+                  msg_read_function <<- append(msg_read_function, conditionMessage(m))
+                  # shinyjs::html(id = "messagge_read_phos_protn", html = paste0("<p>",m$message,"</p>"), add = TRUE)
                   progress=progress+0.05
                   setProgress(value = progress)
                 }
               )
+              
+              write_lines(msg_read_function, file = paste0(db_execution$dirOutput,"log_filter_read_function.txt"))
               
               db_execution$data_loaded <- TRUE
               db_execution$imputed_data <- impute_intensity(proteome_data = db_execution$proteome_data)
@@ -1695,7 +1697,7 @@ server <- function(input, output, session) {
               
               message(software)
               progress=0
-              msg_read_function <- c()
+              msg_read_function <-NULL
               withCallingHandlers(
                 {
                   shinyjs::html("text", "")
@@ -1720,12 +1722,14 @@ server <- function(input, output, session) {
                   }
                 },
                 message = function(m) {
-                  msg_read_function <- c(msg_read_function, m$message)
-                  shinyjs::html(id = "messagge_read_phos", html = paste0("<p>",m$message,"</p>"), add = TRUE)
+                  msg_read_function <<- append(msg_read_function, conditionMessage(m))
+                  # shinyjs::html(id = "messagge_read_phos_protn", html = paste0("<p>",m$message,"</p>"), add = TRUE)
                   progress=progress+0.05
                   setProgress(value = progress)
                 }
               )
+              
+              write_lines(msg_read_function, file = paste0(db_execution$dirOutput,"log_filter_read_function.txt"))
               
               db_execution$data_loaded <- TRUE
               db_execution$imputed_data <- impute_intensity(proteome_data = db_execution$proteome_data)
@@ -2745,7 +2749,7 @@ server <- function(input, output, session) {
               
               message(software)
               progress=0
-              msg_read_function <- c()
+              msg_read_function <- NULL
               withCallingHandlers(
                 {
                   shinyjs::html("text", "")
@@ -2779,12 +2783,14 @@ server <- function(input, output, session) {
                   }
                 },
                 message = function(m) {
-                  msg_read_function <- c(msg_read_function, m$message)
-                  shinyjs::html(id = "messagge_read_phos_protn", html = paste0("<p>",m$message,"</p>"), add = TRUE)
+                  msg_read_function <<- append(msg_read_function, conditionMessage(m))
+                  # shinyjs::html(id = "messagge_read_phos_protn", html = paste0("<p>",m$message,"</p>"), add = TRUE)
                   progress=progress+0.05
                   setProgress(value = progress)
                 }
               )
+              
+              write_lines(msg_read_function, file = paste0(db_execution$dirOutput,"log_filter_read_function.txt"))
               
               db_execution$data_loaded <- TRUE
               db_execution$imputed_data <- impute_intensity(proteome_data = db_execution$proteome_data)
