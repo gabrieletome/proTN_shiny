@@ -9,10 +9,7 @@ tmp/
 results/
 .Rproj.user\
 .Rhistory
-www/README.md
-www/contacts.Rmd
 www/index.html
-www/css/materialize.min.css
 www/contacts.Rmd
 www/bootstrap.css
 www/js/materialize.min.js
@@ -23,10 +20,8 @@ outputResults/results.zip
 lib/readme.html
 .Rhistory
 .Rhistory
-www/README.md
 lib/tmp.RData
-README.html
-lib/tmp.RData
+ìlib/tmp.RData
 outputResults/results.zip
 data/MCF7.zip
 lib/tmp.RData
@@ -50,13 +45,9 @@ Data/Input_multiple.xlsx
 www/fontawesome-free-6.2.0-desktop.zip
 www/fontawesome-free-6.2.0-web.zip
 R/CORAL/www/images/
-www/images/Workflow_ProTN.pdf
-www/images/Workflow_PhosProTN.pdf
 R/protn_text.docx
 R/.~lock.protn_text.docx\#
 R/protn_text_tt.docx
-www/images/logo_report.png
-www/images/image.png
 R/tmp_old.RData
 R/enrich_plot.html
 Data/Data/*

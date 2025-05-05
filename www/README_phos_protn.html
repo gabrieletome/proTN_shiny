@@ -8,7 +8,7 @@
 # PI: Dr. Toma Tebaldi, PhD                                                    #
 ################################################################################
 -->
-<img src="images/logo_scritta.svg" width="25%" style="display:block;margin-left:auto;margin-right:auto">
+<img src="images/logo_scritta.svg" width="15%" style="display:block;margin-left:auto;margin-right:auto">
 <h4>PhosProTN is an integrative pipeline for flexible analysis and informative visualization of phosphoproteomic data from Mass
 Spectrometry. It perform a complete analysis of the raw files from
 	<a
@@ -57,22 +57,6 @@ Spectrometry. It perform a complete analysis of the raw files from
 								to identify peptides and proteins. <strong>PD</strong> for Protein
 								Discoverer, <strong>MQ</strong> for MaxQuant.
 							</p>
-						</li>
-						<li>
-							<p><strong>Design for the comparison file</strong>: Excel file containing the formulas of
-								the contrast comparison you want to analyse. <button id="preview_design_phos"
-									type="button" class="btn_example" data-toggle="modal"
-									data-target="#modal_Design_Example_phos">[Example of Design file
-									HERE...]</button> The table can have 3 columns:</p>
-							<ul>
-								<li><strong>Formule</strong> column (<code>REQUIRED</code>): The formulas need to follow
-									the syntax of <a href="https://bioinf.wehi.edu.au/limma/">Limma</a>.
-									<code>AT LEAST 1 FORMULA IS REQUIRED</code>.</li>
-								<li><strong>Name</strong> column (<code>OPTIONAL</code>): personalized name assign to
-									the comparison.</li>
-								<li><strong>Color</strong> columns (<code>OPTIONAL</code>): define a color for the
-									condition in the graphs. If not present use the default palette.</li>
-							</ul>
 						</li>
 					</ul>
 					<ul>
@@ -257,25 +241,23 @@ Spectrometry. It perform a complete analysis of the raw files from
 					</ul>
 				</div>
 				<div id="normalization-of-the-intensities" class="section level3">
-					<h3>02. Normalization and imputation of the intensities</h3>
+					<h3>02. Normalization and imputation of raw intensities</h3>
 					<p>Intensities are log2 transformed and normalized with DEqMS <span class="citation">(Zhu
-							2022)</span>. At the peptide level, the normalization is performed with the function equalMedianNormalization,
-						which normalizes
+							2022)</span>. At the peptide level, the normalization is performed with the function equalMedianNormalization, which normalizes
 						intensity distributions in samples so that they have median equal to 0.
 					</p>
-					<p>At the protein level, this operation is executed by the function medianSweeping, that applies the same median
-						normalization
+					<p>At the protein level, this operation is executed by the function medianSweeping, that applies the same median normalization
 						used for peptides, but also summarizes peptide intensities into protein relative abundances by the median sweeping
 						method.
 					</p>
 					<p>The principal method is based on the PhosR package <span class="citation">(Kim et
-							al. 2021)</span> that performs a complex and well-balanced imputation of the data based on the association
-						between replicates and
+							al. 2021)</span> that performs a complex and well-balanced imputation of the data based on the association between replicates and
 						conditions. As a backup method, ProTN uses a Gaussian round imputation, for condition with only 1 replicate.
 					</p>
-					<img src="images/figures/pca_proteins.png" width="49%" style="margin-left:auto;margin-right:auto" />
-					<img src="images/figures/mds_proteins.png" width="49%" style="margin-left:auto;margin-right:auto" />
-
+					<p>In this step, many figure can be generated regarding information about pre-process, normalization and imputation. 
+						An example from the case study is the PCA based on the protein abundances below.
+					</p>
+					<img src="images/figures/pca_proteins.png" width="55%" style="margin-left:auto;margin-right:auto;" />
 				</div>
 				<div id="statistical-differential-analysis" class="section level3">
 					<h3>03. Differential analysis</h3>
@@ -288,13 +270,25 @@ Spectrometry. It perform a complete analysis of the raw files from
 						peptides, the Limma package is used
 						<span class="citation">(Ritchie et al. 2015)</span>.
 					</p>
+					<ul>
+						<li>
+							<p><strong>Compile the comparison table</strong>: The table have 2 columns: <button id="preview_design_phos"
+								type="button" class="btn_example" data-toggle="modal"
+								data-target="#modal_Design_Example_phos">[Example of Design file
+								HERE...]</button> </p>
+							<ul>
+								<li><strong>Formule</strong> column (<code>REQUIRED</code>): The formulas need to follow
+									the syntax of <a href="https://bioinf.wehi.edu.au/limma/">Limma</a>.
+									<code>AT LEAST 1 FORMULA IS REQUIRED</code>.</li>
+								<li><strong>Name</strong> column (<code>OPTIONAL</code>): personalized name assign to
+									the comparison.</li>
+							</ul>
+						</li>
+					</ul>
 					<p>Limma and DEqMS calculate differentially expressed peptides and proteins (DEPs) for each comparison specified in the
-						design file parameter. Each peptide or protein can be selected as differential based on different parameters: the
-						log2
-						Fold Change, the P.Value, the adjusted P.Value and the log2 expression. In ProTN, a protein/peptide is significant
-						if
-						passing thresholds on these parameters, set by the user. A protein/peptide for each comparison can be Up-regulated
-						or
+					design file parameter. Each peptide or protein can be selected as differential based on different parameters: the log2
+					Fold Change, the P.Value, the adjusted P.Value and the log2 expression. In ProTN, a protein/peptide is significant if
+					passing thresholds on these parameters, set by the user. A protein/peptide for each comparison can be Up-regulated or
 						Down-regulated. It is Up-regulated if:
 					</p>
 					<ul>
@@ -308,11 +302,6 @@ Spectrometry. It perform a complete analysis of the raw files from
 								thr),
 							</p>
 						</li>
-						<li>
-							<p>the log2 expression is higher than the threshold (log2 expression
-								&gt; Signal log2 expr thr).
-							</p>
-						</li>
 					</ul>
 					<p>It is Down-regulated if:</p>
 					<ul>
@@ -324,11 +313,6 @@ Spectrometry. It perform a complete analysis of the raw files from
 						<li>
 							<p>the Adj.P.Value or P.Value is lower than the threshold (P.Value &lt; P.Value
 								thr),
-							</p>
-						</li>
-						<li>
-							<p>the log2 expression is higher than the threshold (log2 expression
-								&gt; Signal log2 expr thr).
 							</p>
 						</li>
 					</ul>
@@ -352,6 +336,9 @@ Spectrometry. It perform a complete analysis of the raw files from
 							href="#details-on-the-output-files-phos">3. Details on the output files</a>.
 						All the files are group in a <em>zip</em> file and downloaded.
 					</p>
+					<img src="images/figures/protn_report.html(screen).png" width="75%"
+						style="display:block;margin-left:auto;margin-right:auto" />
+
 				</div>
 				<h2>ADDITIONAL STEPS:</h2>
 				<div id="batch-effect-correction" class="section level3">
@@ -363,9 +350,6 @@ Spectrometry. It perform a complete analysis of the raw files from
 						<strong>Sample_Annotation</strong> file where column <strong>MS_batch</strong> is
 						required.
 					</p>
-					<img src="images/figures/protn_report.html(screen).png" width="75%"
-						style="display:block;margin-left:auto;margin-right:auto" />
-
 				</div>
 				<div id="enrichment-analysis-of-the-differentially-expressed-proteins" class="section level3">
 					<h3>E1. Enrichment analysis of the Differentially Expressed
@@ -374,26 +358,20 @@ Spectrometry. It perform a complete analysis of the raw files from
 					<div style="display: flex;">
 						<p>The biological interpretation of the Differentially Expressed
 							Proteins starts with the enrichment step. To execute this analysis,
-							ProTN uses <a href="https://maayanlab.cloud/Enrichr/">EnrichR</a> <span class="citation">(Jawaid
-								2022)</span>, a popular tool that searches on a large number of data sets to obtain information about
-							many functional categories.
-							EnrichR organises its hundreds of data sources in 8 sections: Transcription, Pathways, Ontologies,
-							Diseases/Drugs, Cell
+							ProTN uses <a href="https://maayanlab.cloud/Enrichr/">EnrichR</a> <span
+								class="citation">(Jawaid 2022)</span>, a popular tool that searches on a large number of data sets to obtain information about many functional categories.
+								EnrichR organises its hundreds of data sources in 8 sections: Transcription, Pathways, Ontologies, Diseases/Drugs, Cell
 							Types, Misc, Legacy, and Crowd.
 						</p>
 				
 						<p><a href="https://maayanlab.cloud/Enrichr/"><img src="images/enrichr_logo.png" width="200px" alt="" /></a></p>
 					</div>
-					<p>Each comparison defined in the differential analysis stage can result in 3 sets of proteins: the Up-regulated
-						(called
-						Up), the Down-regulated (called Down), and the merge of the two (called all). ProTN provides for each term
-						statistical
+					<p>Each comparison defined in the differential analysis stage can result in 3 sets of proteins: the Up-regulated (called
+					Up), the Down-regulated (called Down), and the merge of the two (called all). ProTN provides for each term statistical
 						parameters like P.Value, fdr, odds ratio, overlap size.
 					</p>
-					<p>ProTN creates an RData of the complete enrichment data frame, allowing the user an easy import in R to perform
-						further
-						analysis. ProTN also generates an Excel file, containing only the significantly enriched terms, as defined by
-						user
+					<p>ProTN creates an RData of the complete enrichment data frame, allowing the user an easy import in R to perform further
+					analysis. ProTN also generates an Excel file, containing only the significantly enriched terms, as defined by user
 						settings.
 					</p>
 					<p>A term to be significative need to have:</p>
@@ -409,10 +387,10 @@ Spectrometry. It perform a complete analysis of the raw files from
 							</p>
 						</li>
 					</ul>
-					<p>ProTN displays top significant enrichments based on specific annotation datasets or keywords selected by the
-						user.
+					<p>ProTN displays top significant enrichments based on specific annotation datasets or keywords selected by the user.
 					</p>
-					<img src="images/figures/enrichment.png" width="50%" style="display:block;margin-left:auto;margin-right:auto" />
+					<img src="images/figures/enrichment.png" width="50%"
+						style="display:block;margin-left:auto;margin-right:auto" />
 					<h4>E1.1. Enrichment analysis of the whole set of proteins discovered by the experiment</h4>
 					<p>In same cases can be usefull have the enrichment of the whole proteome discovered by the
 						experiment.
@@ -420,8 +398,8 @@ Spectrometry. It perform a complete analysis of the raw files from
 						the entire proteome is analysed with EnrichR, and saved in an RData and in an Excel file.
 						Also, as before, 4 plots can be generated, in this case adding as last dot column the
 						negative control provided by the whole proteome.</p>
-					<p>Additional details on the output can be found in section <a href="#details-on-the-output-files">4. Details on the
-							output
+					<p>Additional details on the output can be found in section <a
+							href="#details-on-the-output-files">4. Details on the output
 							files</a>.
 					</p>
 				</div>
@@ -720,6 +698,9 @@ Spectrometry. It perform a complete analysis of the raw files from
 						</ul>
 					</li>
 					<li>
+						<p><code>OPTIONAL</code>:</p>
+						<ul>
+					<li>
 						<p><code>Design for the comparison file</code>: Excel file
 							containing the formulas of the contrast comparison you want to analyse.
 							The table can have 3 columns <button id="preview_design_phos" type="button"
@@ -736,23 +717,9 @@ Spectrometry. It perform a complete analysis of the raw files from
 							<li><strong>Name</strong> column (<code>OPTIONAL</code>): personalized
 								name assign to the comparison.
 							</li>
-							<li><strong>Color</strong> columns (<code>OPTIONAL</code>): define a
-								color for the condition in the graphs. If not present use the default
-								palette.
-							</li>
 						</ul>
 					</li>
 					<li>
-						<p><code>OPTIONAL</code>:</p>
-						<ul>
-							<li>
-								<p><strong>Signal log2 expr thr</strong>: signal log2 expression
-									threshold for the differential analysis. <em>DEFAULT:</em> DEPs if
-									<code>Signal log2 expression threshold &gt; -∞</code> (No Limit,
-									represent by value “inf” in the cell)
-								</p>
-							</li>
-							<li>
 								<p><strong>Log2 FC thr</strong>: Fold Change threshold for the
 									differential analysis. <em>DEFAULT:</em> DEPs if
 									<code>log2 Fold Change threshold = 0.75</code> (Up-regulated &gt; 0.75,
@@ -894,38 +861,16 @@ Spectrometry. It perform a complete analysis of the raw files from
 				<ul>
 					<li><code>report.html</code>: complete report of the analysis with all pics and results of the
 						enrichment.</li>
-					<li><strong>Data folder</strong>
+					<li><code>db_results_proTN.RData</code>: RData object containing all the data produced during the execution ready for additional analyses in R.</li>
+					<li><code>log_filter_read_function.txt</code>: Results filter applied during preprocessing step.</li>
+					<li><strong>input_protn folder</strong>
 						<ul>
-							<li><code>protn_env.RData</code>: RData object containing the essential
-								variables and data for additional analyses in R. The variables are:
-								<ul>
-									<li><em>c_anno</em>: dataframe with the description of the samples;</li>
-									<li><em>dat_gene</em>: dataframe with the protein normalized
-										abundances;</li>
-									<li><em>dat_pep</em>: dataframe with the peptide normalized
-										abundances;</li>
-									<li><em>psm_peptide_table</em>: descriptive dataframe of the
-										peptides;</li>
-									<li><em>deps_l_df</em>: dataframe of differential expressed
-										proteins;</li>
-									<li><em>deps_pep_l_df</em>: dataframe of differential expressed
-										peptides;</li>
-									<li><em>expr_avgse_df</em>: dataframe with average, standard error and
-										covariance for each condition based on protein abundances;</li>
-									<li><em>expr_avgse_pep_df</em>: dataframe with average, standard error
-										and covariance for each condition based on peptide abundances;</li>
-									<li><em>formule_contrast</em>: design for the differential
-										analysis;</li>
-									<li>Settings: <em>colour_vec</em>: color list for the plot, <em>bf</em>:
-										family text, <em>bs</em>: base text size;</li>
-									<li>Thresholds: <em>fc_thr</em>: Fold Change threshold,
-										<em>pval_thr</em>: P.value threshold, <em>pval_enrich_thr</em>: P.value
-										threshold for Enrichment, <em>overlap_size_enrich_thr</em>: Overlap size
-										threshold for enrichment.
-									</li>
+							<li><code>Input files provided</code></li>
 								</ul>
 							</li>
-							<li><code>enrichment_DE.RData</code>: RData object containing enrichment
+					<li><strong>rdata folder</strong>
+						<ul>
+							<li><code>enrichment.RData</code>: RData object containing enrichment
 								results based on differentially expressed proteins</li>
 						</ul>
 					</li>
@@ -980,76 +925,30 @@ Spectrometry. It perform a complete analysis of the raw files from
 										abundance</li>
 								</ul>
 							</li>
-							<li><code>enrichment_DE.xlsx</code>: excel file containing a selection
+							<li><code>enrichment.xlsx</code>: excel file containing a selection
 								of enrichment results starting from differentially expressed proteins.
 								Terms are selected according to significance thresholds specified in the
 								input (Default: adj.P.Value &lt; 0.05, Overlap Size &gt;= 5)</li>
 						</ul>
 					</li>
 					<li><strong>Figures folder</strong>
-						<ul>
-							<li><code>PCA_MDS</code> directory: Directory containing
-								(Multidimensional scaling) and PCA (Principal component analysis) plots
-								of samples.
-								<ul>
-									<li><strong>mds_proteins.pdf</strong>: MDS, based on protein
-										abundances.</li>
-									<li><strong>mds_peptides.pdf</strong>: MDS of the samples by
-										peptides.</li>
-									<li><strong>pca_protein.pdf</strong>: PCA of the samples by
-										proteins.</li>
-									<li><strong>pca_peptides.pdf</strong>: PCA of the samples by
-										peptides.</li>
-									<li><strong>DE_mds_protein.pdf</strong>: MDS based on differentially
-										expressed proteins.</li>
-									<li><strong>DE_mds_peptide.pdf</strong>: MDS based on differentially
-										expressed peptides.</li>
-									<li><strong>DE_pca_protein.pdf</strong>: PCA based on differentially
-										expressed proteins.</li>
-									<li><strong>DE_pca_peptide.pdf</strong>: PCA based on differentially
-										expressed peptides.</li>
-								</ul>
-							</li>
-							<li><code>Expression</code> directory: Directory containing figures
-								related to expression analyses.
-								<ul>
-									<li><strong>selected_protein_plot.pdf</strong>: plot displaying the
-										abundances of selected proteins</li>
-									<li><strong>DE_protein_barplot.pdf</strong>: number of differentially
-										expressed proteins found in each contrast.</li>
-									<li><strong>DE_peptide_barplot.pdf</strong>: number of differentially
-										expressed peptides found in each contrast.</li>
-								</ul>
-							</li>
-							<li><code>Enrichment</code> directory: Directory containing figures from
-								functional annotation enrichment analysi
-								<ul>
-									<li><strong>enr_updown_keysources.pdf</strong>: dot plot of top enriched
-										terms based on differentially expressed proteins, divided in up- and
-										down-regulated. Terms are filtered for key source datasets selected in
-										the advanced options.</li>
-									<li><strong>enr_updown_keywords.pdf</strong>: dot plot of top enriched
+									<li><strong>PDF version of all figure selected</strong></li>
+									<li><strong>enrichment_plot.pdf</strong>: dot plot of top enriched
 										terms based on differentially expressed proteins, divided in up- and
 										down-regulated. Terms are filtered for keywords defined in the advanced
 										options.</li>
-									<li><strong>enr_DE_keysources.pdf</strong>: dot plot of top enriched
-										terms based on differentially expressed proteins. Terms are filtered for
-										key source datasets selected in the advanced options.</li>
-									<li><strong>enr_DE_keywords.pdf</strong>: dot plot of top enriched terms
-										based on differentially expressed proteins. Terms are filtered for
-										keywords defined in the advanced options.</li>
-								</ul>
 							</li>
-							<li><code>Network</code> directory: Directory with figures from network
+							<li><code>protein_vulcano</code> directory: Directory with all the vulcano plots based on the differential proteins.
+							</li>
+							<li><code>peptide_vulcano</code> directory: Directory with all the vulcano plots based on the differential peptide.
+							</li>
+							<li><code>STRINGdb</code> directory: Directory with figures from network
 								analysis of differentially expressed proteins, based on STRINGdb
 								protein-protein interactions. For each contrast, two files are
 								generated:
 								<ul>
-									<li><strong>communities_sizes.pdf</strong>: histogram representing the
-										number of protein in each network community.</li>
-									<li><strong>ppi_network.pdf</strong>: network representation in two
-										layouts: Fruchterman Reingold (<em>fr</em>) and Kamada Kawai
-										(<em>kk</em>).</li>
+									<li><strong>*_connection.txt</strong>: txt file with all edge of the network.</li>
+									<li><strong>*_network.pdf</strong>: PDF version of STRINGdb network.</li>
 								</ul>
 							</li>
 							<li>
