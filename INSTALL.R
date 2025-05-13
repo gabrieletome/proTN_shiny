@@ -66,6 +66,15 @@ if (!require("proTN", quietly = TRUE))
 if (!require("shinyWidgets", quietly = TRUE))
   install.packages("shinyWidgets", dependencies = T)
 
+# Install reticulate for kaleido of plotly
+if (!require("reticulate", quietly = TRUE)){
+  install.packages('reticulate')
+  reticulate::install_miniconda()
+  reticulate::conda_install('r-reticulate', 'python-kaleido')
+  reticulate::conda_install('r-reticulate', 'plotly', channel = 'plotly')
+  reticulate::use_miniconda('r-reticulate')
+}
+
 #Check installation package
 list.of.packages <- c("BiocManager","shiny","markdown","knitr",
                       "shinydashboard","shinydashboardPlus","shinymaterial",
