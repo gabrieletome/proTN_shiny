@@ -53,7 +53,6 @@ if (!require("limma", quietly = TRUE))
   BiocManager::install("limma")
 if (!require("preprocessCore", quietly = TRUE))
   BiocManager::install("preprocessCore")
-if (!require("sva", quietly = TRUE))
 
 if (!require("proBatch", quietly = TRUE))
   devtools::install_github("symbioticMe/proBatch", dependencies = T)
