@@ -7,7 +7,7 @@
 list.of.packages <- c("shiny","tidyverse","markdown","knitr","shinydashboard",
                       "shinydashboardPlus","shinymaterial","shinyjs","magrittr",
                       "dplyr","stringr","shinyBS","DT","bslib","readr",
-                      "plotly","rhandsontable")
+                      "plotly","rhandsontable","shinyalert","ggplot2")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) suppressMessages(suppressWarnings({install.packages(new.packages, dependencies = T)}))
 
@@ -19,8 +19,10 @@ library(knitr)
 library(shinydashboard)
 library(shinydashboardPlus)
 library(shinymaterial)
+library(shinyalert)
 library(shinyjs)
 library(magrittr)
+library(ggplot2)
 library(dplyr)
 library(stringr)
 library(stringi)
@@ -89,6 +91,7 @@ ui <- tagList(
     body=dashboardBody(
       #Load associated file, CSS, JS, logo
       useShinyjs(),
+      useShinyalert(),
       tags$meta(charset = "UTF-8"),
       tags$head(tags$link(rel="shortcut icon", href="images/logo_black.ico")),
       tags$head(tags$script(src="https://kit.fontawesome.com/5d5f342cf8.js")),
@@ -1639,11 +1642,32 @@ server <- function(input, output, session) {
   ## PHOSPROTN: show kinase_tree parameter ----
   output$kinase_tree_params_ui_phos <- renderUI({
     if(input$kinase_tree_analysis_phos){
-      tagList(
-        sliderInput("score_thr_phosr_phos", "Score thr for PhosR", 0, 1, step = 0.05, value = 0.7),
-        actionButton("execute_kinase_tree_analysis_btn_phos", "Run!"),
-        tags$br()
-      )
+      tax_sel <- if(is.null(input$taxonomy_phos)){
+        character(0)
+      } else if(input$taxonomy_phos == "Homo sapiens"){
+        "Homo sapiens"
+      } else if(input$taxonomy_phos == "Mus musculus"){
+        "Mus musculus"
+      } else{
+        NULL
+      }
+      
+      if(is.null(tax_sel)){
+        shinyalert::shinyalert("Kinase analysis", 
+                               "Kinase analysis can be performed only for Homo Sapiens (Human) or Mus Musculus (Mouse)", 
+                               type = "info")
+        updateCheckboxInput(session, "kinase_tree_analysis_phos", value = FALSE)
+      } else{
+        tagList(
+          radioButtons("taxonomy_kinase_phos", "Select species (CORAL tree will be print only for Homo sapiens)", 
+                       choiceNames = c("Homo Sapiens", "Mus Musculus"),
+                       choiceValues = c("Homo sapiens","Mus musculus"), inline = TRUE, 
+                       selected = tax_sel),
+          sliderInput("score_thr_phosr_phos", "Score thr for PhosR", 0, 1, step = 0.05, value = 0.7),
+          actionButton("execute_kinase_tree_analysis_btn_phos", "Run!"),
+          tags$br()
+        )
+      }
     }
   })
   
@@ -2233,23 +2257,32 @@ server <- function(input, output, session) {
   observeEvent(input$execute_kinase_tree_analysis_btn_phos, {
     output$render_kinase_tree_phos <- renderUI({
       isolate({
-        withProgress(message = "Kinase Tree analysis in process, please wait!", {
+        withProgress(message = "Kinase Tree analysis in process, please wait! (Can take several minutes)", {
           
           db_execution$kinase_tree_res <- kinase_tree(proteome_data = db_execution$normalized_data, 
                                                       differential_results = db_execution$differential_results, 
                                                       formule_CORAL = db_execution$formule_contrast, 
                                                       dirOutput=db_execution$dirOutput, 
-                                                      phosR_thr = input$score_thr_phosr_phos)
+                                                      phosR_thr = input$score_thr_phosr_phos, 
+                                                      species = input$taxonomy_kinase_phos)
           
-          tagList(
-            tags$h2("Kinase Tree analysis"),
-            fluidRow(
-              selectInput("kinase_tree_show", label = "Select Kinase Tree to show:", 
-                          choices = names(db_execution$kinase_tree_res), width = "15%"),
-              actionButton("kinase_tree_selected", "Select!", width = "10%")  
-            ),
-            imageOutput("render_kin_tree", height = "auto")
-          )
+          if(input$taxonomy_kinase_phos == "Homo sapiens"){
+            tagList(
+              tags$h2("Kinase Tree analysis"),
+              fluidRow(
+                selectInput("kinase_tree_show", label = "Select Kinase Tree to show:", 
+                            choices = names(db_execution$kinase_tree_res), width = "15%"),
+                actionButton("kinase_tree_selected", "Select!", width = "10%")  
+              ),
+              imageOutput("render_kin_tree", height = "auto")
+            )
+          } else{
+            tagList(
+              tags$h2("Kinase Tree analysis"),
+              tags$h4("For Mouse the graphical representation of the kinome tree is not done. The results can be downloaded."),
+              tags$hr()
+            )
+          }
         })
       })
     })
@@ -2331,6 +2364,12 @@ server <- function(input, output, session) {
                                                dirOutput=db_execution$dirOutput)
             }
             setProgress(value = 0.2)
+            
+            if(input$phospho_percentage_plot_phos & !is.null(db_execution$phospho_percentage)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/phospho_percentage.pdf"), 
+                     plot = db_execution$phospho_percentage, 
+                     create.dir = T, width = 7, height = 3)
+            } 
             
             if(input$abundance_plot_phos & !is.null(db_execution$generate_abundance)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/missing_available_abundance.pdf"), 
@@ -2534,6 +2573,8 @@ server <- function(input, output, session) {
     }
   )
   
+  ## PHOSPROTN: modal for zoom image ----
+  
   ##############################################################################
   ### PhosProTN_with_prot ----
   # Optional visibility based on the selection ----
@@ -2676,11 +2717,32 @@ server <- function(input, output, session) {
   ## PhosProTN_with_prot: show kinase_tree parameter ----
   output$kinase_tree_params_ui_phos_protn <- renderUI({
     if(input$kinase_tree_analysis_phos_protn){
-      tagList(
-        sliderInput("score_thr_phosr_phos_protn", "Score thr for PhosR", 0, 1, step = 0.05, value = 0.7),
-        actionButton("execute_kinase_tree_analysis_btn_phos_protn", "Run!"),
-        tags$br()
-      )
+      tax_sel <- if(is.null(input$taxonomy_phos_protn)){
+        character(0)
+      } else if(input$taxonomy_phos_protn == "Homo sapiens"){
+        "Homo sapiens"
+      } else if(input$taxonomy_phos_protn == "Mus musculus"){
+        "Mus musculus"
+      } else{
+        NULL
+      }
+      
+      if(is.null(tax_sel)){
+        shinyalert::shinyalert("Kinase analysis", 
+                               "Kinase analysis can be performed only for Homo Sapiens (Human) or Mus Musculus (Mouse)", 
+                               type = "info")
+        updateCheckboxInput(session, "kinase_tree_analysis_phos_protn", value = FALSE)
+      } else{
+        tagList(
+          radioButtons("taxonomy_kinase_phos_protn", "Select species (CORAL tree will be print only for Homo sapiens)", 
+                       choiceNames = c("Homo Sapiens", "Mus Musculus"),
+                       choiceValues = c("Homo sapiens","Mus musculus"), inline = TRUE, 
+                       selected = tax_sel),
+          sliderInput("score_thr_phosr_phos_protn", "Score thr for PhosR", 0, 1, step = 0.05, value = 0.7),
+          actionButton("execute_kinase_tree_analysis_btn_phos_protn", "Run!"),
+          tags$br()
+        )
+      }
     }
   })
   
@@ -3229,26 +3291,35 @@ server <- function(input, output, session) {
                                                       differential_results = db_execution$differential_results, 
                                                       formule_CORAL = db_execution$formule_contrast, 
                                                       dirOutput=db_execution$dirOutput, 
-                                                      phosR_thr = input$score_thr_phosr_phos_protn)
+                                                      phosR_thr = input$score_thr_phosr_phos_protn, 
+                                                      species = input$taxonomy_kinase_phos_protn)
           
-          tagList(
-            tags$h2("Kinase Tree analysis"),
-            fluidRow(
-              selectInput("kinase_tree_show", label = "Select Kinase Tree to show:", 
-                          choices = names(db_execution$kinase_tree_res), width = "15%"),
-              actionButton("kinase_tree_selected", "Select!", width = "10%")  
-            ),
-            imageOutput("render_kin_tree", height = "auto")
-          )
+          if(input$taxonomy_kinase_phos_protn == "Homo sapiens"){
+            tagList(
+              tags$h2("Kinase Tree analysis"),
+              fluidRow(
+                selectInput("kinase_tree_show_phos_protn", label = "Select Kinase Tree to show:", 
+                            choices = names(db_execution$kinase_tree_res), width = "15%"),
+                actionButton("kinase_tree_selected_phos_protn", "Select!", width = "10%")  
+              ),
+              imageOutput("render_kin_tree_phos_protn", height = "auto")
+            )
+          } else{
+            tagList(
+              tags$h2("Kinase Tree analysis"),
+              tags$h4("For Mouse the graphical representation of the kinome tree is not done. The results can be downloaded."),
+              tags$hr()
+            )
+          }
         })
       })
     })
   })
   
-  observeEvent(input$kinase_tree_selected, {
-    output$render_kin_tree <- renderImage({
+  observeEvent(input$kinase_tree_selected_phos_protn, {
+    output$render_kin_tree_phos_protn <- renderImage({
       isolate({
-        list(src = paste0(db_execution$dirOutput, "pics/kinaseTree/",input$kinase_tree_show,"_kinase_Tree_CORAL.svg"),
+        list(src = paste0(db_execution$dirOutput, "pics/kinaseTree/",input$kinase_tree_show_phos_protn,"_kinase_Tree_CORAL.svg"),
              alt = "Kinase Tree"
         )
       })
@@ -3322,6 +3393,13 @@ server <- function(input, output, session) {
                                                dirOutput=db_execution$dirOutput)
             }
             setProgress(value = 0.2)
+            
+            
+            if(input$phospho_percentage_plot_phos & !is.null(db_execution$phospho_percentage)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/phospho_percentage.pdf"), 
+                     plot = db_execution$phospho_percentage, 
+                     create.dir = T, width = 7, height = 3)
+            } 
             
             if(input$abundance_plot_phos_protn & !is.null(db_execution$generate_abundance)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/missing_available_abundance_proteomics.pdf"), 
