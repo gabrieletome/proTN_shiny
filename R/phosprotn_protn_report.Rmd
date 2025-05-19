@@ -244,9 +244,9 @@ risultato <- withCallingHandlers(
   }
 )
 
-cat("\nStat:\n")
-cat(paste(messaggi, collapse = ""))
-cat("\n\n")
+# cat("\nStat: \n ")
+# cat(paste(messaggi, collapse = ""))
+# cat("\n\n")
 ```
 
 ```{r read_proteomics_PD, warning=F, echo=F, eval=readPD_files, results='asis'}
