@@ -1,9 +1,9 @@
-# ProTN: an integrative pipeline for complete analysis of proteomics           # 
+# ProTN v0.1.1: an integrative pipeline for complete analysis of proteomics    # 
 # data from mass spectrometry                                                  #
 # Laboratory of RNA and Disease Data Science, University of Trento             #
 # Developer: Gabriele Tomè                                                     #
-# Issue at: https://github.com/TebaldiLab/ProTN/issues                         #
 # PI: Dr. Toma Tebaldi, PhD                                                    #
+#                                                                              #
 list.of.packages <- c("shiny","tidyverse","markdown","knitr","shinydashboard",
                       "shinydashboardPlus","shinymaterial","shinyjs","magrittr",
                       "dplyr","stringr","shinyBS","DT","bslib","readr",
@@ -136,6 +136,8 @@ ui <- tagList(
                 uiOutput("input_proteome"),
                 checkboxInput("batch_correction", "Batch Correction", FALSE),
                 uiOutput("batch_correction_ui"),
+                checkboxInput("advance_filter", "Advance Filter", FALSE),
+                uiOutput("advance_filter_ui"),
                 actionButton("report_proteome", "Load data!"),
                 tags$h3("Select what execute:"),
                 checkboxInput("abundance_plot", "% missing values", TRUE),
@@ -269,6 +271,8 @@ ui <- tagList(
                 checkboxInput("batch_correction_phos", "Batch Correction", FALSE),
                 uiOutput("batch_correction_ui_phos"),
                 sliderInput("phos_thr", "Phosphorylation threshold", 0, 100, step = 5, value = 75),
+                checkboxInput("advance_filter_phos", "Advance Filter", FALSE),
+                uiOutput("advance_filter_ui_phos"),
                 actionButton("report_proteome_phos", "Load data!"),
                 tags$h3("Select what execute:"),
                 checkboxInput("phospho_percentage_plot_phos", "% phosphorylated site", TRUE),
@@ -405,6 +409,8 @@ ui <- tagList(
                 checkboxInput("batch_correction_phos_protn", "Batch Correction", FALSE),
                 uiOutput("batch_correction_ui_phos_protn"),
                 sliderInput("phos_thr", "Phosphorylation threshold", 0, 100, step = 5, value = 75),
+                checkboxInput("advance_filter_phos_protn", "Advance Filter", FALSE),
+                uiOutput("advance_filter_ui_phos_protn"),
                 actionButton("report_proteome_phos_protn", "Load data!"),
                 tags$h3("Select what execute:"),
                 checkboxInput("phospho_percentage_plot_phos_protn", "% phosphorylated site", TRUE),
@@ -640,6 +646,15 @@ server <- function(input, output, session) {
       textInput("batch_correction_col", "Column in Annotation file with the batch:")
     } 
   })
+  ## PROTN: advance filters----
+  output$advance_filter_ui <- renderUI({ 
+    if(input$advance_filter){
+      tagList(
+        numericInput("NA_allow_condition", "N° missing value allow per condition", value = 0, min = 0, max = 5),
+        numericInput("min_peptide_protein", "Minimum peptide per protein", value = 1, min = 1)
+      )
+    } 
+  })
   
   ## PROTN: textbox for list proteins ----
   output$list_protein_ui <- renderUI({ 
@@ -759,6 +774,15 @@ server <- function(input, output, session) {
               if(software=="PD"){file.copy(from = input$prot_file_proteome$datapath, to =paste0(dir_input,'/PROT_',file_prot_proteome))} 
               file.copy(from = input$pep_file_proteome$datapath, to = paste0(dir_input,'/PEP_',file_pep_proteome)) 
               
+              # If advance filter
+              if(input$advance_filter){
+                NA_allow_condition <- input$NA_allow_condition
+                min_peptide_protein <- input$min_peptide_protein
+              } else{
+                NA_allow_condition <- 0
+                min_peptide_protein <- 1
+              }
+              
               # If to batch corrected read column
               if(input$batch_correction){
                 batch_corr <- TRUE
@@ -781,14 +805,18 @@ server <- function(input, output, session) {
                                                                   annotation_filename = "ANNOTATION_",
                                                                   proteinGroup_filename = "PROT_", 
                                                                   batch_corr_exe = batch_corr, 
-                                                                  batch_col = batch_correction_col)
+                                                                  batch_col = batch_correction_col, 
+                                                                  filt_absent_value = NA_allow_condition, 
+                                                                  min_peptide_protein = min_peptide_protein)
                   } else if(software == "MQ"){
                     db_execution$proteome_data <- read_proteomics(software = "MQ",
                                                                   folder = dir_input,
                                                                   peptide_filename = "PEP_",
                                                                   annotation_filename = "ANNOTATION_", 
                                                                   batch_corr_exe = batch_corr, 
-                                                                  batch_col = batch_correction_col)
+                                                                  batch_col = batch_correction_col, 
+                                                                  filt_absent_value = NA_allow_condition, 
+                                                                  min_peptide_protein = min_peptide_protein)
                   }
                 },
                 message = function(m) {
@@ -1597,6 +1625,15 @@ server <- function(input, output, session) {
     } 
   })
   
+  ## PHOSPROTN: advance filters----
+  output$advance_filter_ui_phos <- renderUI({ 
+    if(input$advance_filter_phos){
+      tagList(
+        numericInput("NA_allow_condition_phos", "N° missing value allow per condition", value = 0, min = 0, max = 5),
+        numericInput("min_peptide_protein_phos", "Minimum peptide per protein", value = 1, min = 1)
+      )
+    } 
+  })
   ## PHOSPROTN: textbox for list proteins ----
   output$list_protein_ui_phos <- renderUI({ 
     if(input$boxplot_protein_phos | input$heatmap_protein_phos){
@@ -1760,6 +1797,15 @@ server <- function(input, output, session) {
                 batch_correction_col <- "batch"
               }
               
+              # If advance filter
+              if(input$advance_filter){
+                NA_allow_condition <- input$NA_allow_condition_phos
+                min_peptide_protein <- input$min_peptide_protein_phos
+              } else{
+                NA_allow_condition <- 0
+                min_peptide_protein <- 1
+              }
+              
               message(software)
               progress=0
               msg_read_function <-NULL
@@ -1775,7 +1821,9 @@ server <- function(input, output, session) {
                                                                         psm_filename = "PSM_",
                                                                         batch_corr_exe = batch_corr, 
                                                                         batch_col = batch_correction_col,
-                                                                        phospho_thr = input$phos_thr/100)
+                                                                        phospho_thr = input$phos_thr/100, 
+                                                                        filt_absent_value = NA_allow_condition, 
+                                                                        min_peptide_protein = min_peptide_protein)
                   } else if(software == "MQ"){
                     db_execution_phos$proteome_data <- read_phosphoproteomics(software = "MQ",
                                                                          folder = dir_input,
@@ -1783,7 +1831,9 @@ server <- function(input, output, session) {
                                                                          annotation_filename = "ANNOTATION_", 
                                                                          batch_corr_exe = batch_corr, 
                                                                          batch_col = batch_correction_col,
-                                                                         phospho_thr = input$phos_thr/100)
+                                                                         phospho_thr = input$phos_thr/100, 
+                                                                         filt_absent_value = NA_allow_condition, 
+                                                                         min_peptide_protein = min_peptide_protein)
                   }
                 },
                 message = function(m) {
@@ -2677,6 +2727,15 @@ server <- function(input, output, session) {
     } 
   })
   
+  ## PhosProTN_with_prot: advance filters----
+  output$advance_filter_ui_phos_protn <- renderUI({ 
+    if(input$advance_filter_phos_protn){
+      tagList(
+        numericInput("NA_allow_condition_phos_protn", "N° missing value allow per condition", value = 0, min = 0, max = 5),
+        numericInput("min_peptide_protein_phos_protn", "Minimum peptide per protein", value = 1, min = 1)
+      )
+    } 
+  })
   ## PhosProTN_with_prot: textbox for list proteins ----
   output$list_protein_ui_phos_protn <- renderUI({ 
     if(input$boxplot_protein_phos_protn | input$heatmap_protein_phos_protn){
@@ -2840,6 +2899,14 @@ server <- function(input, output, session) {
               file.copy(from = input$pep_file_proteome_phos_protn$datapath, to = paste0(dir_input_proteome,'/PEP_',file_pep_proteome)) 
               
               ### ----
+              # If advance filter
+              if(input$advance_filter){
+                NA_allow_condition <- input$NA_allow_condition_phos_protn
+                min_peptide_protein <- input$min_peptide_protein_phos_protn
+              } else{
+                NA_allow_condition <- 0
+                min_peptide_protein <- 1
+              }
               
               # If to batch corrected read column
               if(input$batch_correction_phos_protn){
@@ -2870,7 +2937,9 @@ server <- function(input, output, session) {
                                                                                    psm_phospho_filename = "PSM_",
                                                                                    batch_corr_exe = batch_corr, 
                                                                                    batch_col = batch_correction_col,
-                                                                                   phospho_thr = input$phos_thr/100)
+                                                                                   phospho_thr = input$phos_thr/100, 
+                                                                                   filt_absent_value = NA_allow_condition, 
+                                                                                   min_peptide_protein = min_peptide_protein)
 
                   } else if(software == "MQ"){
                     db_execution_phos_protn$proteome_data <- read_phospho_proteome_proteomics(software = "MQ", 
@@ -2882,7 +2951,9 @@ server <- function(input, output, session) {
                                                                                    annotation_phospho_filename = "ANNOTATION_",
                                                                                    batch_corr_exe = batch_corr, 
                                                                                    batch_col = batch_correction_col,
-                                                                                   phospho_thr = input$phos_thr/100)
+                                                                                   phospho_thr = input$phos_thr/100, 
+                                                                                   filt_absent_value = NA_allow_condition, 
+                                                                                   min_peptide_protein = min_peptide_protein)
                   }
                 },
                 message = function(m) {

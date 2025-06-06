@@ -1,6 +1,9 @@
 ![image](www/images/logo_scritta_black.svg)
 
 # ProTN
+
+Version: 0.1.1
+
 ProTN is a novel R Shiny web app of an integrative pipeline that can perform all the steps of proteomics and phospho-proteomic analysis downstream of peptide quantification. ProTN works with any MS proteomic experiments managed with Proteome Discoverer and MaxQuant, two of the most used bioinformatic platforms to obtain peptide abundances from raw MS spectra. The implementation of ProTN focuses on being user-friendly, quick in doing the analysis, and comprehensive in the generation of images and tables that help the biological interpretation of results.
 
 All the required information can be found on the info page of the web app.
