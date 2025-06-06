@@ -36,13 +36,13 @@ img.image-thumb {
   height: 100%;
 }
 
-#stringdb_selected, #stringdb_selected_phos, #stringdb_selected_phos_protn{
+#stringdb_selected, #stringdb_selected_phos, #stringdb_selected_phos_protn, #stringdb_selected_interactn {
   height: fit-content;
   align-self: center;
   margin-left: 15px;
 }
 
-#panel_results, #panel_results_phos, #panel_results_phos_protn {
+#panel_results, #panel_results_phos, #panel_results_phos_protn, #panel_results_interactn {
   background: white;
   border-color: #e3ebf2;
   border-style: groove;
@@ -54,6 +54,8 @@ img.image-thumb {
     height: 800px;
     overflow-y: scroll;
     overflow-x: scroll;
+    background-color: snow;
+    border: groove;
 }
 
 hr {
@@ -474,7 +476,7 @@ footer {
   width: 60%;
 }
 
-#download_proteome_phos_protn, #download_proteome_phos, #download_proteome, #download_report_PhosProTN, #download_report_PhosProTN_CS {
+#download_proteome_phos_protn, #download_proteome_phos, #download_proteome, #download_proteome_interactn, #download_report_PhosProTN, #download_report_PhosProTN_CS {
   background-color: #9F2042;
   width: max-content;
   margin-right: 0%;
