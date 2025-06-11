@@ -1,4 +1,4 @@
-# ProTN v0.1.1: an integrative pipeline for complete analysis of proteomics    # 
+# ProTN v0.1.2: an integrative pipeline for complete analysis of proteomics    # 
 # data from mass spectrometry                                                  #
 # Laboratory of RNA and Disease Data Science, University of Trento             #
 # Developer: Gabriele Tomè                                                     #
@@ -131,9 +131,12 @@ ui <- tagList(
                   textAreaInput("description_exp", "Brief description", rows = 4),
                 ),
                 fluidRow(
-                  radioButtons("sw_analyzer", "Software Analyzer", 
-                               choiceNames = c("ProteomeDiscoverer", "MaxQuant", "TMT_PD"),
-                               choiceValues = c("PD","MQ","TMT_PD"), inline = TRUE),
+                  selectInput("sw_analyzer", "Software Analyzer:",
+                              choice = list("ProteomeDiscoverer" = "PD", 
+                                            "MaxQuant by evidence.txt" = "MQ_ev", 
+                                            "MaxQuant by peptides.txt and proteinGroups.txt" = "MQ_prot"),
+                                 selected = "PD", multiple = FALSE
+                  ),
                 ),
                 uiOutput("input_proteome"),
                 checkboxInput("batch_correction", "Batch Correction", FALSE),
@@ -772,6 +775,7 @@ server <- function(input, output, session) {
   
   ## PROTN: Visibility of the proteomics files for ProTN ----
   output$input_proteome <- renderUI({
+    message(input$sw_analyzer)
     if (input$sw_analyzer == "PD"){
       tagList(
         fluidRow(
@@ -784,13 +788,25 @@ server <- function(input, output, session) {
           fileInput("prot_file_proteome", "Select the PROT file of the PROTEOMICS..."),
         )
       )
-    } else if(input$sw_analyzer == "MQ"){
+    } else if(input$sw_analyzer == "MQ_ev"){
       tagList(
         fluidRow(
           fileInput("input_file_proteome", "Select the SAMPLE_ANNOTATION file of the PROTEOMICS..."),
         ),
         fluidRow(
           fileInput("pep_file_proteome", "Select the EVIDENCE file of the PROTEOMICS..."),
+        )
+      )
+    } else if (input$sw_analyzer == "MQ_prot"){
+      tagList(
+        fluidRow(
+          fileInput("input_file_proteome", "Select the SAMPLE_ANNOTATION file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("pep_file_proteome", "Select the Peptides.txt file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("prot_file_proteome", "Select the ProteinGroups.txt file of the PROTEOMICS..."),
         )
       )
     } else{
@@ -924,14 +940,14 @@ server <- function(input, output, session) {
               #Read parameter and execution
               software <- input$sw_analyzer
               file_input_proteome = input$input_file_proteome$name
-              file_prot_proteome = if(software=="PD"){input$prot_file_proteome$name}else{NA}
+              file_prot_proteome = if(software!="MQ_ev"){input$prot_file_proteome$name}else{NA}
               file_pep_proteome = input$pep_file_proteome$name
               
               # Move data in correct folder
               dir.create(file.path(dirOutput_Server, "input_protn"), showWarnings = FALSE)
               dir_input <- paste(dirOutput_Server, "input_protn", sep = "")
               file.copy(from = input$input_file_proteome$datapath, to = paste0(dir_input,'/ANNOTATION_',file_input_proteome)) 
-              if(software=="PD"){file.copy(from = input$prot_file_proteome$datapath, to =paste0(dir_input,'/PROT_',file_prot_proteome))} 
+              if(software!="MQ_ev"){file.copy(from = input$prot_file_proteome$datapath, to =paste0(dir_input,'/PROT_',file_prot_proteome))} 
               file.copy(from = input$pep_file_proteome$datapath, to = paste0(dir_input,'/PEP_',file_pep_proteome)) 
               
               # If advance filter
@@ -968,11 +984,22 @@ server <- function(input, output, session) {
                                                                   batch_col = batch_correction_col, 
                                                                   filt_absent_value = NA_allow_condition, 
                                                                   min_peptide_protein = min_peptide_protein)
-                  } else if(software == "MQ"){
+                  } else if(software == "MQ_ev"){
                     db_execution$proteome_data <- read_proteomics(software = "MQ",
                                                                   folder = dir_input,
                                                                   peptide_filename = "PEP_",
                                                                   annotation_filename = "ANNOTATION_", 
+                                                                  batch_corr_exe = batch_corr, 
+                                                                  batch_col = batch_correction_col, 
+                                                                  filt_absent_value = NA_allow_condition, 
+                                                                  min_peptide_protein = min_peptide_protein)
+                  } else if(software == "MQ_prot"){
+                    db_execution$proteome_data <- read_proteomics(software = "MQ",
+                                                                  folder = dir_input,
+                                                                  peptide_filename = "PEP_",
+                                                                  annotation_filename = "ANNOTATION_", 
+                                                                  proteinGroup_filename = "PROT_", 
+                                                                  use_proteinGroups_MQ = TRUE,
                                                                   batch_corr_exe = batch_corr, 
                                                                   batch_col = batch_correction_col, 
                                                                   filt_absent_value = NA_allow_condition, 
@@ -1489,7 +1516,8 @@ server <- function(input, output, session) {
               doc_title = input$title_exp,
               description = input$description_exp,
               readPD_files = if (input$sw_analyzer == "PD") {TRUE} else {FALSE},
-              readMQ_files = if (input$sw_analyzer == "MQ") {TRUE} else {FALSE},
+              readMQ_files = if (input$sw_analyzer == "MQ_ev") {TRUE} else {FALSE},
+              readMQ_prot_files = if (input$sw_analyzer == "MQ_prot") {TRUE} else {FALSE},
               db_execution = reactiveValuesToList(db_execution),
               file_input = paste(db_execution$dirOutput, "input_protn", sep = ""),
               batch_corr_exe = if(input$batch_correction){input$batch_correction_col}else{NULL},

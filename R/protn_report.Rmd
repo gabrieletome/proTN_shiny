@@ -14,6 +14,7 @@ params:
   description: NA
   readPD_files: NA
   readMQ_files: NA
+  readMQ_prot_files: NA
   db_execution: NA
   file_input: NA
   batch_corr_exe: NA
@@ -45,6 +46,7 @@ doc_title <- params$doc_title
 description <- params$description
 readPD_files <- params$readPD_files
 readMQ_files <- params$readMQ_files
+readMQ_prot_files <- params$readMQ_prot_files
 db_execution <- params$db_execution
 file_input <- params$file_input
 batch_corr_exe <- params$batch_corr_exe
@@ -147,7 +149,7 @@ cat(" \n \n")
 if(readPD_files){
   cat("**Source files:** Proteome Discoverer")
   cat(" \n")
-} else if(readMQ_files){
+} else if(readMQ_files | readMQ_prot_files){
   cat("**Source files:** MaxQuant")
   cat(" \n")
 } else if(readTMT_files){
@@ -219,7 +221,26 @@ risultato <- withCallingHandlers(
   {
     read_proteomics(software = "MQ",
                     folder = file_input,
-                    peptide_filename = "evidence")
+                    peptide_filename = "PEP")
+  },
+  message = function(m) {
+    messaggi <<- append(messaggi, conditionMessage(m))
+    invokeRestart("muffleMessage")
+  }
+)
+
+# cat("\nStat: \n ")
+# cat(paste(messaggi, collapse = ""))
+# cat("\n\n")
+```
+
+```{r read_proteomics_MQ_prot, warning=F, echo=F, eval=readMQ_prot_files, results='asis'}
+messaggi <- NULL
+risultato <- withCallingHandlers(
+  {
+    read_proteomics(software = "MQ",
+                    folder = file_input, 
+                    use_proteinGroups_MQ = TRUE)
   },
   message = function(m) {
     messaggi <<- append(messaggi, conditionMessage(m))
@@ -244,10 +265,10 @@ risultato <- withCallingHandlers(
     invokeRestart("muffleMessage")
   }
 )
-
-cat("\nStat: \n ")
-cat(paste(messaggi, collapse = ""))
-cat("\n\n")
+# 
+# cat("\nStat: \n ")
+# cat(paste(messaggi, collapse = ""))
+# cat("\n\n")
 ```
 
 ```{r preprocess_figure_1, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
