@@ -3,7 +3,7 @@
 # data from mass spectrometry                                                  #
 # Laboratory of RNA and Disease Data Science, University of Trento             #
 # Developer: Gabriele Tomè                                                     #
-# Issue at: https://github.com/TebaldiLab/ProTN/issues                         #
+# Issue at: https://github.com/TebaldiLab/ProTN_shiny/issues                   #
 # PI: Dr. Toma Tebaldi, PhD                                                    #
 ################################################################################
 #Install packages for Shiny App Launcher

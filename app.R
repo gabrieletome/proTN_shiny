@@ -125,6 +125,9 @@ ui <- tagList(
               column(
                 width = 3,
                 fluidRow(
+                  downloadButton("download_CS_proteome", "Download case study!"),
+                ),
+                fluidRow(
                   textInput("title_exp", "Title of the analysis"),
                 ),
                 fluidRow(
@@ -134,7 +137,9 @@ ui <- tagList(
                   selectInput("sw_analyzer", "Software Analyzer:",
                               choice = list("ProteomeDiscoverer" = "PD", 
                                             "MaxQuant by evidence.txt" = "MQ_ev", 
-                                            "MaxQuant by peptides.txt and proteinGroups.txt" = "MQ_prot"),
+                                            "MaxQuant by peptides.txt and proteinGroups.txt" = "MQ_prot",
+                                            "Spectronaut" = "SP",
+                                            "FragPipe" = "FP"),
                                  selected = "PD", multiple = FALSE
                   ),
                 ),
@@ -262,15 +267,20 @@ ui <- tagList(
               column(
                 width = 3,
                 fluidRow(
+                  downloadButton("download_CS_phos", "Download case study!"),
+                ),
+                fluidRow(
                   textInput("title_exp_phos", "Title of the analysis"),
                 ),
                 fluidRow(
                   textAreaInput("description_exp_phos", "Brief description", rows = 4),
                 ),
                 fluidRow(
-                  radioButtons("sw_analyzer_phos", "Software Analyzer", 
-                               choiceNames = c("ProteomeDiscoverer", "MaxQuant", "TMT_PD"),
-                               choiceValues = c("PD","MQ","TMT_PD"), inline = TRUE),
+                  selectInput("sw_analyzer_phos", "Software Analyzer:",
+                              choice = list("ProteomeDiscoverer" = "PD", 
+                                            "MaxQuant by evidence.txt" = "MQ"),
+                              selected = "PD", multiple = FALSE
+                  ),
                 ),
                 uiOutput("input_proteome_phos"),
                 checkboxInput("batch_correction_phos", "Batch Correction", FALSE),
@@ -400,15 +410,20 @@ ui <- tagList(
               column(
                 width = 3,
                 fluidRow(
+                  downloadButton("download_CS_phos_protn", "Download case study!"),
+                ),
+                fluidRow(
                   textInput("title_exp_phos_protn", "Title of the analysis"),
                 ),
                 fluidRow(
                   textAreaInput("description_exp_phos_protn", "Brief description", rows = 4),
                 ),
                 fluidRow(
-                  radioButtons("sw_analyzer_phos_protn", "Software Analyzer", 
-                               choiceNames = c("ProteomeDiscoverer", "MaxQuant", "TMT_PD"),
-                               choiceValues = c("PD","MQ","TMT_PD"), inline = TRUE),
+                  selectInput("sw_analyzer_phos_protn", "Software Analyzer:",
+                              choice = list("ProteomeDiscoverer" = "PD", 
+                                            "MaxQuant by evidence.txt" = "MQ"),
+                              selected = "PD", multiple = FALSE
+                  ),
                 ),
                 uiOutput("input_proteome_phos_protn"),
                 checkboxInput("batch_correction_phos_protn", "Batch Correction", FALSE),
@@ -530,15 +545,23 @@ ui <- tagList(
               column(
                 width = 3,
                 fluidRow(
+                  downloadButton("download_CS_interactn", "Download case study!"),
+                ),
+                fluidRow(
                   textInput("title_exp_interactn", "Title of the analysis"),
                 ),
                 fluidRow(
                   textAreaInput("description_exp_interactn", "Brief description", rows = 4),
                 ),
                 fluidRow(
-                  radioButtons("sw_analyzer_interactn", "Software Analyzer", 
-                               choiceNames = c("ProteomeDiscoverer", "MaxQuant", "TMT_PD"),
-                               choiceValues = c("PD","MQ","TMT_PD"), inline = TRUE),
+                  selectInput("sw_analyzer_interactn", "Software Analyzer:",
+                              choice = list("ProteomeDiscoverer" = "PD", 
+                                            "MaxQuant by evidence.txt" = "MQ_ev", 
+                                            "MaxQuant by peptides.txt and proteinGroups.txt" = "MQ_prot",
+                                            "Spectronaut" = "SP",
+                                            "FragPipe" = "FP"),
+                              selected = "PD", multiple = FALSE
+                  ),
                 ),
                 uiOutput("input_proteome_interactn"),
                 checkboxInput("batch_correction_interactn", "Batch Correction", FALSE),
@@ -770,6 +793,7 @@ server <- function(input, output, session) {
                                  protein_vulcano = NULL, peptide_vulcano = NULL,
                                  protein_differential_MDS = NULL, peptide_differential_MDS = NULL,
                                  protein_differential_PCA = NULL, peptide_differential_PCA = NULL)
+  ##############################################################################
   ### PROTN ----
   # Optional visibility based on the selection ----
   
@@ -807,6 +831,24 @@ server <- function(input, output, session) {
         ),
         fluidRow(
           fileInput("prot_file_proteome", "Select the ProteinGroups.txt file of the PROTEOMICS..."),
+        )
+      )
+    } else if(input$sw_analyzer == "SP"){
+      tagList(
+        fluidRow(
+          fileInput("input_file_proteome", "Select the SAMPLE_ANNOTATION file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("pep_file_proteome", "Select the Spectronaut report file of the PROTEOMICS..."),
+        )
+      )
+    } else if(input$sw_analyzer == "FP"){
+      tagList(
+        fluidRow(
+          fileInput("input_file_proteome", "Select the SAMPLE_ANNOTATION file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("pep_file_proteome", "Select the combined_modified_peptide.tsv file of the PROTEOMICS..."),
         )
       )
     } else{
@@ -940,14 +982,14 @@ server <- function(input, output, session) {
               #Read parameter and execution
               software <- input$sw_analyzer
               file_input_proteome = input$input_file_proteome$name
-              file_prot_proteome = if(software!="MQ_ev"){input$prot_file_proteome$name}else{NA}
+              file_prot_proteome = if(software%in%c("PD","MQ_prot")){input$prot_file_proteome$name}else{NA}
               file_pep_proteome = input$pep_file_proteome$name
               
               # Move data in correct folder
               dir.create(file.path(dirOutput_Server, "input_protn"), showWarnings = FALSE)
               dir_input <- paste(dirOutput_Server, "input_protn", sep = "")
               file.copy(from = input$input_file_proteome$datapath, to = paste0(dir_input,'/ANNOTATION_',file_input_proteome)) 
-              if(software!="MQ_ev"){file.copy(from = input$prot_file_proteome$datapath, to =paste0(dir_input,'/PROT_',file_prot_proteome))} 
+              if(software%in%c("PD","MQ_prot")){file.copy(from = input$prot_file_proteome$datapath, to =paste0(dir_input,'/PROT_',file_prot_proteome))} 
               file.copy(from = input$pep_file_proteome$datapath, to = paste0(dir_input,'/PEP_',file_pep_proteome)) 
               
               # If advance filter
@@ -1000,6 +1042,24 @@ server <- function(input, output, session) {
                                                                   annotation_filename = "ANNOTATION_", 
                                                                   proteinGroup_filename = "PROT_", 
                                                                   use_proteinGroups_MQ = TRUE,
+                                                                  batch_corr_exe = batch_corr, 
+                                                                  batch_col = batch_correction_col, 
+                                                                  filt_absent_value = NA_allow_condition, 
+                                                                  min_peptide_protein = min_peptide_protein)
+                  } else if(software == "SP"){
+                    db_execution$proteome_data <- read_proteomics(software = "SP",
+                                                                  folder = dir_input,
+                                                                  peptide_filename = "PEP_",
+                                                                  annotation_filename = "ANNOTATION_", 
+                                                                  batch_corr_exe = batch_corr, 
+                                                                  batch_col = batch_correction_col, 
+                                                                  filt_absent_value = NA_allow_condition, 
+                                                                  min_peptide_protein = min_peptide_protein)
+                  } else if(software == "FP"){
+                    db_execution$proteome_data <- read_proteomics(software = "FP",
+                                                                  folder = dir_input,
+                                                                  peptide_filename = "PEP_",
+                                                                  annotation_filename = "ANNOTATION_", 
                                                                   batch_corr_exe = batch_corr, 
                                                                   batch_col = batch_correction_col, 
                                                                   filt_absent_value = NA_allow_condition, 
@@ -3928,13 +3988,43 @@ server <- function(input, output, session) {
           fileInput("prot_file_proteome_interactn", "Select the PROT file of the PROTEOMICS..."),
         )
       )
-    } else if(input$sw_analyzer_interactn == "MQ"){
+    } else if(input$sw_analyzer_interactn == "MQ_ev"){
       tagList(
         fluidRow(
           fileInput("input_file_proteome_interactn", "Select the SAMPLE_ANNOTATION file of the PROTEOMICS..."),
         ),
         fluidRow(
           fileInput("pep_file_proteome_interactn", "Select the EVIDENCE file of the PROTEOMICS..."),
+        )
+      )
+    } else if (input$sw_analyzer_interactn == "MQ_prot"){
+      tagList(
+        fluidRow(
+          fileInput("input_file_proteome_interactn", "Select the SAMPLE_ANNOTATION file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("pep_file_proteome_interactn", "Select the Peptides.txt file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("prot_file_proteome_interactn", "Select the ProteinGroups.txt file of the PROTEOMICS..."),
+        )
+      )
+    } else if(input$sw_analyzer_interactn == "SP"){
+      tagList(
+        fluidRow(
+          fileInput("input_file_proteome_interactn", "Select the SAMPLE_ANNOTATION file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("pep_file_proteome_interactn", "Select the Spectronaut report file of the PROTEOMICS..."),
+        )
+      )
+    } else if(input$sw_analyzer_interactn == "FP"){
+      tagList(
+        fluidRow(
+          fileInput("input_file_proteome_interactn", "Select the SAMPLE_ANNOTATION file of the PROTEOMICS..."),
+        ),
+        fluidRow(
+          fileInput("pep_file_proteome_interactn", "Select the combined_modified_peptide.tsv file of the PROTEOMICS..."),
         )
       )
     } else{
@@ -4068,14 +4158,14 @@ server <- function(input, output, session) {
               #Read parameter and execution
               software <- input$sw_analyzer_interactn
               file_input_proteome = input$input_file_proteome_interactn$name
-              file_prot_proteome = if(software=="PD"){input$prot_file_proteome_interactn$name}else{NA}
+              file_prot_proteome = if(software%in%c("PD","MQ_prot")){input$prot_file_proteome_interactn$name}else{NA}
               file_pep_proteome = input$pep_file_proteome_interactn$name
               
               # Move data in correct folder
               dir.create(file.path(dirOutput_Server, "input_protn"), showWarnings = FALSE)
               dir_input <- paste(dirOutput_Server, "input_protn", sep = "")
               file.copy(from = input$input_file_proteome_interactn$datapath, to = paste0(dir_input,'/ANNOTATION_',file_input_proteome)) 
-              if(software=="PD"){file.copy(from = input$prot_file_proteome_interactn$datapath, to =paste0(dir_input,'/PROT_',file_prot_proteome))} 
+              if(software%in%c("PD","MQ_prot")){file.copy(from = input$prot_file_proteome_interactn$datapath, to =paste0(dir_input,'/PROT_',file_prot_proteome))} 
               file.copy(from = input$pep_file_proteome_interactn$datapath, to = paste0(dir_input,'/PEP_',file_pep_proteome)) 
               
               # If advance filter
@@ -4112,8 +4202,37 @@ server <- function(input, output, session) {
                                                                   batch_col = batch_correction_col, 
                                                                   filt_absent_value = NA_allow_condition, 
                                                                   min_peptide_protein = min_peptide_protein)
-                  } else if(software == "MQ"){
+                  } else if(software == "MQ_ev"){
                     db_execution_interactn$proteome_data <- read_proteomics(software = "MQ",
+                                                                  folder = dir_input,
+                                                                  peptide_filename = "PEP_",
+                                                                  annotation_filename = "ANNOTATION_", 
+                                                                  batch_corr_exe = batch_corr, 
+                                                                  batch_col = batch_correction_col, 
+                                                                  filt_absent_value = NA_allow_condition, 
+                                                                  min_peptide_protein = min_peptide_protein)
+                  } else if(software == "MQ_prot"){
+                    db_execution_interactn$proteome_data <- read_proteomics(software = "MQ",
+                                                                  folder = dir_input,
+                                                                  peptide_filename = "PEP_",
+                                                                  annotation_filename = "ANNOTATION_", 
+                                                                  proteinGroup_filename = "PROT_", 
+                                                                  use_proteinGroups_MQ = TRUE,
+                                                                  batch_corr_exe = batch_corr, 
+                                                                  batch_col = batch_correction_col, 
+                                                                  filt_absent_value = NA_allow_condition, 
+                                                                  min_peptide_protein = min_peptide_protein)
+                  } else if(software == "SP"){
+                    db_execution_interactn$proteome_data <- read_proteomics(software = "SP",
+                                                                  folder = dir_input,
+                                                                  peptide_filename = "PEP_",
+                                                                  annotation_filename = "ANNOTATION_", 
+                                                                  batch_corr_exe = batch_corr, 
+                                                                  batch_col = batch_correction_col, 
+                                                                  filt_absent_value = NA_allow_condition, 
+                                                                  min_peptide_protein = min_peptide_protein)
+                  } else if(software == "FP"){
+                    db_execution_interactn$proteome_data <- read_proteomics(software = "FP",
                                                                   folder = dir_input,
                                                                   peptide_filename = "PEP_",
                                                                   annotation_filename = "ANNOTATION_", 
@@ -4889,6 +5008,192 @@ server <- function(input, output, session) {
   )
   
   ##############################################################################
+  # Download case study Proteome ----
+  output$download_CS_proteome <- downloadHandler(
+    filename = "case_study_proteomics.zip",
+    content = function(file) {
+      tryCatch(
+        {
+          withProgress(message = "Prepraring files to download, please wait!", {
+            #Zip the dir resutls
+            message(session$token)
+            setProgress(value = 0.01)
+            
+            dirOutput_2 <- tempdir()
+            currentTime <- gsub(".*?([0-9]+).*?", "\\1", Sys.time())
+            dirOutput_1 <- paste("/", currentTime, "/", sep = "")
+            dir.create(file.path(dirOutput_2, dirOutput_1), showWarnings = FALSE)
+            dirOutput_Server <- paste(dirOutput_2, dirOutput_1, sep = "")
+            message(dirOutput_Server)
+            setProgress(value = 0.1)
+            
+            extract_example(path_proteome = dirOutput_Server)
+            setProgress(value = 0.5)
+            #Save folder for the download
+            oldwd <- getwd()
+            message(dirOutput_Server)
+            setwd(dirOutput_Server)
+            files2zip <- list.files("./", recursive = TRUE)
+            setProgress(value = 0.9)
+            zip(zipfile = file, files = files2zip, extra = "-r")
+            setwd(oldwd)
+            
+          })
+        },
+        error = function(e) {
+          #Create error report and reactivate the click in the page
+          showNotification(paste0("ERROR: ", e), type = "error", duration = 30)
+          html_text<-str_replace(read_file("R/error.html"), 
+                                 pattern = "The page you’re looking for doesn’t exist.</p>", 
+                                 replacement = paste0("Description:", e, "</p>"))
+          write_file(html_text, file = paste0(tempdir(), "/error.html"))
+          zip(zipfile = file, files = paste0(tempdir(), "/error.html"), extra = "-j")
+        }
+      )
+    }
+  )
+  
+  # Download case study Phospho ----
+  output$download_CS_phos <- downloadHandler(
+    filename = "case_study_phospho.zip",
+    content = function(file) {
+      tryCatch(
+        {
+          withProgress(message = "Prepraring files to download, please wait!", {
+            #Zip the dir resutls
+            message(session$token)
+            setProgress(value = 0.01)
+            
+            dirOutput_2 <- tempdir()
+            currentTime <- gsub(".*?([0-9]+).*?", "\\1", Sys.time())
+            dirOutput_1 <- paste("/", currentTime, "/", sep = "")
+            dir.create(file.path(dirOutput_2, dirOutput_1), showWarnings = FALSE)
+            dirOutput_Server <- paste(dirOutput_2, dirOutput_1, sep = "")
+            message(dirOutput_Server)
+            setProgress(value = 0.1)
+            
+            extract_example(path_phospho = dirOutput_Server)
+            setProgress(value = 0.5)
+            #Save folder for the download
+            oldwd <- getwd()
+            message(dirOutput_Server)
+            setwd(dirOutput_Server)
+            files2zip <- list.files("./", recursive = TRUE)
+            setProgress(value = 0.9)
+            zip(zipfile = file, files = files2zip, extra = "-r")
+            setwd(oldwd)
+            
+          })
+        },
+        error = function(e) {
+          #Create error report and reactivate the click in the page
+          showNotification(paste0("ERROR: ", e), type = "error", duration = 30)
+          html_text<-str_replace(read_file("R/error.html"), 
+                                 pattern = "The page you’re looking for doesn’t exist.</p>", 
+                                 replacement = paste0("Description:", e, "</p>"))
+          write_file(html_text, file = paste0(tempdir(), "/error.html"))
+          zip(zipfile = file, files = paste0(tempdir(), "/error.html"), extra = "-j")
+        }
+      )
+    }
+  )
+  
+  # Download case study Phospho proteome ----
+  output$download_CS_phos_protn <- downloadHandler(
+    filename = "case_study.zip",
+    content = function(file) {
+      tryCatch(
+        {
+          withProgress(message = "Prepraring files to download, please wait!", {
+            #Zip the dir resutls
+            message(session$token)
+            setProgress(value = 0.01)
+            
+            dirOutput_2 <- tempdir()
+            currentTime <- gsub(".*?([0-9]+).*?", "\\1", Sys.time())
+            dirOutput_1 <- paste("/", currentTime, "/", sep = "")
+            dir.create(file.path(dirOutput_2, dirOutput_1), showWarnings = FALSE)
+            dirOutput_Server <- paste(dirOutput_2, dirOutput_1, sep = "")
+            dir.create(file.path(dirOutput_Server, "/proteome/"), showWarnings = FALSE)
+            dirOutput_Server_protn <- paste(dirOutput_Server, "/proteome/", sep = "")
+            dir.create(file.path(dirOutput_Server, "/phospho/"), showWarnings = FALSE)
+            dirOutput_Server_phos <- paste(dirOutput_Server, "/phospho/", sep = "")
+            message(dirOutput_Server)
+            setProgress(value = 0.1)
+            
+            extract_example(path_proteome = dirOutput_Server_protn, path_phospho = dirOutput_Server_phos)
+            setProgress(value = 0.5)
+            #Save folder for the download
+            oldwd <- getwd()
+            message(dirOutput_Server)
+            setwd(dirOutput_Server)
+            files2zip <- list.files("./", recursive = TRUE)
+            setProgress(value = 0.9)
+            zip(zipfile = file, files = files2zip, extra = "-r")
+            setwd(oldwd)
+            
+          })
+        },
+        error = function(e) {
+          #Create error report and reactivate the click in the page
+          showNotification(paste0("ERROR: ", e), type = "error", duration = 30)
+          html_text<-str_replace(read_file("R/error.html"), 
+                                 pattern = "The page you’re looking for doesn’t exist.</p>", 
+                                 replacement = paste0("Description:", e, "</p>"))
+          write_file(html_text, file = paste0(tempdir(), "/error.html"))
+          zip(zipfile = file, files = paste0(tempdir(), "/error.html"), extra = "-j")
+        }
+      )
+    }
+  )
+  
+  # Download case study Proteome ----
+  output$download_CS_interactn <- downloadHandler(
+    filename = "case_study_interactn.zip",
+    content = function(file) {
+      tryCatch(
+        {
+          withProgress(message = "Prepraring files to download, please wait!", {
+            #Zip the dir resutls
+            message(session$token)
+            setProgress(value = 0.01)
+            
+            dirOutput_2 <- tempdir()
+            currentTime <- gsub(".*?([0-9]+).*?", "\\1", Sys.time())
+            dirOutput_1 <- paste("/", currentTime, "/", sep = "")
+            dir.create(file.path(dirOutput_2, dirOutput_1), showWarnings = FALSE)
+            dirOutput_Server <- paste(dirOutput_2, dirOutput_1, sep = "")
+            message(dirOutput_Server)
+            setProgress(value = 0.1)
+            
+            extract_example(path_interactn = dirOutput_Server)
+            setProgress(value = 0.5)
+            #Save folder for the download
+            oldwd <- getwd()
+            message(dirOutput_Server)
+            setwd(dirOutput_Server)
+            files2zip <- list.files("./", recursive = TRUE)
+            setProgress(value = 0.9)
+            zip(zipfile = file, files = files2zip, extra = "-r")
+            setwd(oldwd)
+            
+          })
+        },
+        error = function(e) {
+          #Create error report and reactivate the click in the page
+          showNotification(paste0("ERROR: ", e), type = "error", duration = 30)
+          html_text<-str_replace(read_file("R/error.html"), 
+                                 pattern = "The page you’re looking for doesn’t exist.</p>", 
+                                 replacement = paste0("Description:", e, "</p>"))
+          write_file(html_text, file = paste0(tempdir(), "/error.html"))
+          zip(zipfile = file, files = paste0(tempdir(), "/error.html"), extra = "-j")
+        }
+      )
+    }
+  )
+  
+  
+  
   # ----
   # -- DELETE TEMP FILES WHEN SESSION ENDS -- #
   # session$onSessionEnded(function() {
