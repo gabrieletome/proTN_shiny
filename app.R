@@ -1,4 +1,4 @@
-# ProTN v0.1.2: an integrative pipeline for complete analysis of proteomics    # 
+# ProTN v0.1.3: an integrative pipeline for complete analysis of proteomics    # 
 # data from mass spectrometry                                                  #
 # Laboratory of RNA and Disease Data Science, University of Trento             #
 # Developer: Gabriele Tomè                                                     #
@@ -1022,6 +1022,7 @@ server <- function(input, output, session) {
                                                                   peptide_filename = "PEP_",
                                                                   annotation_filename = "ANNOTATION_",
                                                                   proteinGroup_filename = "PROT_", 
+                                                                  sample_col = "File Name",
                                                                   batch_corr_exe = batch_corr, 
                                                                   batch_col = batch_correction_col, 
                                                                   filt_absent_value = NA_allow_condition, 
@@ -2067,6 +2068,7 @@ server <- function(input, output, session) {
                                                                         annotation_filename = "ANNOTATION_",
                                                                         proteinGroup_filename = "PROT_", 
                                                                         psm_filename = "PSM_",
+                                                                        sample_col = "File Name",
                                                                         batch_corr_exe = batch_corr, 
                                                                         batch_col = batch_correction_col,
                                                                         phospho_thr = input$phos_thr/100, 
@@ -3182,7 +3184,9 @@ server <- function(input, output, session) {
                                                                                    psm_proteome_filename = "PSM_",
                                                                                    annotation_phospho_filename = "ANNOTATION_",
                                                                                    proteinGroup_phospho_filename = "PROT_", 
-                                                                                   psm_phospho_filename = "PSM_",
+                                                                                   psm_phospho_filename = "PSM_", 
+                                                                                   sample_proteome_col = "File Name", 
+                                                                                   sample_phospho_col = "File Name",
                                                                                    batch_corr_exe = batch_corr, 
                                                                                    batch_col = batch_correction_col,
                                                                                    phospho_thr = input$phos_thr/100, 
@@ -4198,6 +4202,7 @@ server <- function(input, output, session) {
                                                                   peptide_filename = "PEP_",
                                                                   annotation_filename = "ANNOTATION_",
                                                                   proteinGroup_filename = "PROT_", 
+                                                                  sample_col = "File Name",
                                                                   batch_corr_exe = batch_corr, 
                                                                   batch_col = batch_correction_col, 
                                                                   filt_absent_value = NA_allow_condition, 

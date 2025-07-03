@@ -258,7 +258,8 @@ messaggi <- NULL
 risultato <- withCallingHandlers(
   {
     read_proteomics(software = "PD",
-                    folder = file_input)
+                    folder = file_input, 
+                    sample_col = "File Name")
   },
   message = function(m) {
     messaggi <<- append(messaggi, conditionMessage(m))

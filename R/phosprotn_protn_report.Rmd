@@ -256,7 +256,8 @@ risultato <- withCallingHandlers(
     read_phospho_proteome_proteomics(software = "PD",
                                      folder_phospho = file_input_phospho,
                                      folder_proteome = file_input_proteome,
-                                     phospho_thr = 0.7)
+                                     phospho_thr = 0.7, 
+                                     sample_proteome_col = "File Name", sample_phospho_col = "File Name")
   },
   message = function(m) {
     messaggi <<- append(messaggi, conditionMessage(m))
