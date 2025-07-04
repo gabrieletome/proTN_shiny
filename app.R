@@ -1,4 +1,4 @@
-# ProTN v0.1.3: an integrative pipeline for complete analysis of proteomics    # 
+# ProTN v0.1.4: an integrative pipeline for complete analysis of proteomics    # 
 # data from mass spectrometry                                                  #
 # Laboratory of RNA and Disease Data Science, University of Trento             #
 # Developer: Gabriele Tomè                                                     #
@@ -1076,7 +1076,6 @@ server <- function(input, output, session) {
               )
               
               write_lines(msg_read_function, file = paste0(db_execution$dirOutput,"log_filter_read_function.txt"))
-              
               db_execution$data_loaded <- TRUE
               db_execution$imputed_data <- impute_intensity(proteome_data = db_execution$proteome_data)
               db_execution$normalized_data <- normalization_ProTN(proteome_data = db_execution$imputed_data)
@@ -1286,6 +1285,8 @@ server <- function(input, output, session) {
                                                                      pval_fdr = input$pval_fdr,
                                                                      pval_thr=as.double(input$pval_thr),
                                                                      signal_thr=0)
+          db_execution$formule_contrast <- db_execution$formule_contrast[unique(union(db_execution$differential_results$protein_results_long$comp, 
+                                                                                      db_execution$differential_results$protein_results_long$comp))]
         })
 
         tags$h2("Differential Analysis")
@@ -2319,6 +2320,8 @@ server <- function(input, output, session) {
                                                                      pval_fdr = input$pval_fdr_phos,
                                                                      pval_thr=as.double(input$pval_thr_phos),
                                                                      signal_thr=0)
+          db_execution_phos$formule_contrast <- db_execution_phos$formule_contrast[unique(union(db_execution_phos$differential_results$protein_results_long$comp, 
+                                                                                                db_execution_phos$differential_results$protein_results_long$comp))]
         })
         
         tags$h2("Differential Analysis")
@@ -3463,6 +3466,8 @@ server <- function(input, output, session) {
                                                                      pval_fdr = input$pval_fdr_phos_protn,
                                                                      pval_thr=as.double(input$pval_thr_phos_protn),
                                                                      signal_thr=0)
+          db_execution_phos_protn$formule_contrast <- db_execution_phos_protn$formule_contrast[unique(union(db_execution_phos_protn$differential_results$protein_results_long$comp, 
+                                                                                                            db_execution_phos_protn$differential_results$protein_results_long$comp))]
         })
         
         tags$h2("Differential Analysis")
@@ -4467,6 +4472,9 @@ server <- function(input, output, session) {
                                                                      pval_thr=as.double(input$pval_thr_interactn),
                                                                      signal_thr=0, 
                                                                      interactomics = TRUE)
+          db_execution_interactn$formule_contrast <- db_execution_interactn$formule_contrast[unique(union(db_execution_interactn$differential_results$protein_results_long$comp, 
+                                                                                                          db_execution_interactn$differential_results$protein_results_long$comp))]
+          
         })
         
         tags$h2("Differential Analysis")
@@ -4530,6 +4538,7 @@ server <- function(input, output, session) {
         }
         db_execution_interactn$protein_vulcano = generate_volcano_plots_protein
         # Generate tabPanels in a for loop
+
         tabs <- list()
         for (i in seq_along(generate_volcano_plots_protein)) {
           plot_id <- paste0(names(generate_volcano_plots_protein)[i], "_prot_interactn")
@@ -4794,6 +4803,23 @@ server <- function(input, output, session) {
               error = getOption("callr.error", "error")
             )
             
+            # Render in background the report
+            # p_2 = callr::r_bg(
+            #   func = function(db_execution_interactn, params, dirOutput, env) {
+            #     rmarkdown::render("R/interactn_report.Rmd",
+            #                       output_file = "interactn_report.pdf", 
+            #                       output_format = "pdf_document",
+            #                       output_dir = dirOutput,
+            #                       params = params,
+            #                       envir = env
+            #     )
+            #   },
+            #   args = list(db_execution_interactn, params, db_execution_interactn$dirOutput, new.env(parent = globalenv())),
+            #   stdout = "|",
+            #   stderr = "|",
+            #   error = getOption("callr.error", "error")
+            # )
+            
             
             
             # Prepare file for the download
@@ -4983,6 +5009,22 @@ server <- function(input, output, session) {
               p$kill()
               message("Render report DONE.")
             }
+            
+            #Wait 10 minutes. If do not end in 10 minutes, kill the process
+            # hide_res<-p_2$read_output()
+            # p_2$wait(30000)
+            # for (i in 1:15) {
+            #   p_2$read_output()
+            #   p_2$wait(1000*60)  
+            # }
+            # if(p_2$is_alive() | is.null(p_2$get_result())){
+            #   p_2$kill()
+            #   print("\n ERROR: An error occur during the report rendering. \n ")
+            # } else{
+            #   report<-p_2$get_result()
+            #   p_2$kill()
+            #   message("Render report DONE.")
+            # }
             
             # Save RData db_execution_interactn
             db_results_interacTN = reactiveValuesToList(db_execution_interactn)
