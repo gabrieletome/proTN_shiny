@@ -73,6 +73,7 @@ if (!require("reticulate", quietly = TRUE)){
   reticulate::conda_install('r-reticulate', 'plotly', channel = 'plotly')
   reticulate::use_miniconda('r-reticulate')
 }
+reticulate::use_miniconda('r-reticulate')
 
 #Check installation package
 list.of.packages <- c("BiocManager","shiny","markdown","knitr",
