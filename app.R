@@ -1718,8 +1718,8 @@ server <- function(input, output, session) {
             if(!is.null(db_execution$protein_vulcano)){
               dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution$protein_vulcano)){
-                plotly::save_image(db_execution$protein_vulcano[[comp]], 
-                                        file = paste0(str_replace_all(db_execution$dirOutput, pattern="\\\\", replacement="/"),"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
+                # plotly::save_image(db_execution$protein_vulcano[[comp]], 
+                #                         file = paste0(str_replace_all(db_execution$dirOutput, pattern="\\\\", replacement="/"),"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution$protein_vulcano[[comp]], 
                                    file = paste0(db_execution$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.html"))
               }
@@ -1729,8 +1729,8 @@ server <- function(input, output, session) {
             if(!is.null(db_execution$peptide_vulcano)){
               dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "peptide_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution$peptide_vulcano)){
-                plotly::save_image(db_execution$peptide_vulcano[[comp]], 
-                             file = paste0(str_replace_all(db_execution$dirOutput, pattern="\\\\", replacement="/"),"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
+                # plotly::save_image(db_execution$peptide_vulcano[[comp]], 
+                #              file = paste0(str_replace_all(db_execution$dirOutput, pattern="\\\\", replacement="/"),"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution$peptide_vulcano[[comp]], 
                                    file = paste0(db_execution$dirOutput,"pics/peptide_vulcano/",comp,"_protein_vulcano.html"))
               }
@@ -2804,8 +2804,8 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_phos$protein_vulcano)){
               dir.create(file.path(paste0(db_execution_phos$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution_phos$protein_vulcano)){
-                plotly::save_image(db_execution_phos$protein_vulcano[[comp]], 
-                                   file = paste0(str_replace_all(db_execution_phos$dirOutput, pattern="\\\\", replacement="/"),"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
+                # plotly::save_image(db_execution_phos$protein_vulcano[[comp]], 
+                #                    file = paste0(str_replace_all(db_execution_phos$dirOutput, pattern="\\\\", replacement="/"),"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution_phos$protein_vulcano[[comp]], 
                                         file = paste0(db_execution_phos$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.html"))
               }
@@ -2815,8 +2815,8 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_phos$peptide_vulcano)){
               dir.create(file.path(paste0(db_execution_phos$dirOutput,"pics/"), "peptide_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution_phos$peptide_vulcano)){
-                plotly::save_image(db_execution_phos$peptide_vulcano[[comp]], 
-                                   file = paste0(str_replace_all(db_execution_phos$dirOutput, pattern="\\\\", replacement="/"),"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
+                # plotly::save_image(db_execution_phos$peptide_vulcano[[comp]], 
+                #                    file = paste0(str_replace_all(db_execution_phos$dirOutput, pattern="\\\\", replacement="/"),"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution_phos$peptide_vulcano[[comp]], 
                                         file = paste0(db_execution_phos$dirOutput,"pics/peptide_vulcano/",comp,"_protein_vulcano.html"))
               }
@@ -3865,8 +3865,8 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_phos_protn$protein_vulcano)){
               dir.create(file.path(paste0(db_execution_phos_protn$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution_phos_protn$protein_vulcano)){
-                plotly::save_image(db_execution_phos_protn$protein_vulcano[[comp]], 
-                                   file = paste0(str_replace_all(db_execution_phos_protn$dirOutput, pattern="\\\\", replacement="/"),"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
+                # plotly::save_image(db_execution_phos_protn$protein_vulcano[[comp]], 
+                #                    file = paste0(str_replace_all(db_execution_phos_protn$dirOutput, pattern="\\\\", replacement="/"),"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution_phos_protn$protein_vulcano[[comp]], 
                                         file = paste0(db_execution_phos_protn$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.html"))
               }
@@ -3876,8 +3876,8 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_phos_protn$peptide_vulcano)){
               dir.create(file.path(paste0(db_execution_phos_protn$dirOutput,"pics/"), "peptide_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution_phos_protn$peptide_vulcano)){
-                plotly::save_image(db_execution_phos_protn$peptide_vulcano[[comp]], 
-                                   file = paste0(str_replace_all(db_execution_phos_protn$dirOutput, pattern="\\\\", replacement="/"),"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
+                # plotly::save_image(db_execution_phos_protn$peptide_vulcano[[comp]], 
+                #                    file = paste0(str_replace_all(db_execution_phos_protn$dirOutput, pattern="\\\\", replacement="/"),"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution_phos_protn$peptide_vulcano[[comp]], 
                                         file = paste0(db_execution_phos_protn$dirOutput,"pics/peptide_vulcano/",comp,"_protein_vulcano.html"))
               }
@@ -4925,8 +4925,8 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_interactn$protein_vulcano)){
               dir.create(file.path(paste0(db_execution_interactn$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution_interactn$protein_vulcano)){
-                plotly::save_image(db_execution_interactn$protein_vulcano[[comp]], 
-                                   file = paste0(str_replace_all(db_execution_interactn$dirOutput, pattern="\\\\", replacement="/"),"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
+                # plotly::save_image(db_execution_interactn$protein_vulcano[[comp]], 
+                #                    file = paste0(str_replace_all(db_execution_interactn$dirOutput, pattern="\\\\", replacement="/"),"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution_interactn$protein_vulcano[[comp]], 
                                         file = paste0(db_execution_interactn$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.html"))
               }
@@ -4936,8 +4936,8 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_interactn$peptide_vulcano)){
               dir.create(file.path(paste0(db_execution_interactn$dirOutput,"pics/"), "peptide_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution_interactn$peptide_vulcano)){
-                plotly::save_image(db_execution_interactn$peptide_vulcano[[comp]], 
-                                   file = paste0(str_replace_all(db_execution_interactn$dirOutput, pattern="\\\\", replacement="/"),"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
+                # plotly::save_image(db_execution_interactn$peptide_vulcano[[comp]], 
+                #                    file = paste0(str_replace_all(db_execution_interactn$dirOutput, pattern="\\\\", replacement="/"),"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution_interactn$peptide_vulcano[[comp]], 
                                         file = paste0(db_execution_interactn$dirOutput,"pics/peptide_vulcano/",comp,"_protein_vulcano.html"))
               }

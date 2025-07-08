@@ -66,14 +66,18 @@ if (!require("shinyWidgets", quietly = TRUE))
   install.packages("shinyWidgets", dependencies = T)
 
 # Install reticulate for kaleido of plotly
-if (!require("reticulate", quietly = TRUE)){
-  install.packages('reticulate')
-  reticulate::install_miniconda()
-  reticulate::conda_install('r-reticulate', 'python-kaleido')
-  reticulate::conda_install('r-reticulate', 'plotly', channel = 'plotly')
-  reticulate::use_miniconda('r-reticulate')
-}
-reticulate::use_miniconda('r-reticulate')
+# if (!require("reticulate", quietly = TRUE)){
+#   install.packages('reticulate')
+#   reticulate::install_miniconda()
+#   reticulate::conda_install('r-reticulate', 'python-kaleido')
+#   reticulate::conda_install('r-reticulate', 'plotly', channel = 'plotly')
+#   reticulate::use_miniconda('r-reticulate')
+# }
+# library(reticulate)
+# if("r-reticulate" %in% reticulate::conda_list()$name){
+#   message("Linking conda for Reticulate")
+#   reticulate::use_miniconda('r-reticulate', required = T)
+# }
 
 #Check installation package
 list.of.packages <- c("BiocManager","shiny","markdown","knitr",
