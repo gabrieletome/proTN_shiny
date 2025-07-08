@@ -1286,7 +1286,7 @@ server <- function(input, output, session) {
                                                                      pval_thr=as.double(input$pval_thr),
                                                                      signal_thr=0)
           db_execution$formule_contrast <- db_execution$formule_contrast[unique(union(db_execution$differential_results$protein_results_long$comp, 
-                                                                                      db_execution$differential_results$protein_results_long$comp))]
+                                                                                      db_execution$differential_results$peptide_results_long$comp))]
         })
 
         tags$h2("Differential Analysis")
@@ -2321,7 +2321,7 @@ server <- function(input, output, session) {
                                                                      pval_thr=as.double(input$pval_thr_phos),
                                                                      signal_thr=0)
           db_execution_phos$formule_contrast <- db_execution_phos$formule_contrast[unique(union(db_execution_phos$differential_results$protein_results_long$comp, 
-                                                                                                db_execution_phos$differential_results$protein_results_long$comp))]
+                                                                                                db_execution_phos$differential_results$peptide_results_long$comp))]
         })
         
         tags$h2("Differential Analysis")
@@ -2937,7 +2937,7 @@ server <- function(input, output, session) {
           fileInput("prot_file_phospho_phos_protn", "Select the PROT file of the PHOSPHO-PROTEOMICS..."),
         ),
         fluidRow(
-          fileInput("psm_file_phospho_phos_protn", "Select the PROT file of the PHOSPHO-PROTEOMICS..."),
+          fileInput("psm_file_phospho_phos_protn", "Select the PSM file of the PHOSPHO-PROTEOMICS..."),
         ),
         tags$br(),
         fluidRow(
@@ -3184,7 +3184,6 @@ server <- function(input, output, session) {
                                                                                    peptide_phospho_filename = "PEP_", 
                                                                                    annotation_proteome_filename = "ANNOTATION_",
                                                                                    proteinGroup_proteome_filename = "PROT_", 
-                                                                                   psm_proteome_filename = "PSM_",
                                                                                    annotation_phospho_filename = "ANNOTATION_",
                                                                                    proteinGroup_phospho_filename = "PROT_", 
                                                                                    psm_phospho_filename = "PSM_", 
@@ -3466,8 +3465,9 @@ server <- function(input, output, session) {
                                                                      pval_fdr = input$pval_fdr_phos_protn,
                                                                      pval_thr=as.double(input$pval_thr_phos_protn),
                                                                      signal_thr=0)
-          db_execution_phos_protn$formule_contrast <- db_execution_phos_protn$formule_contrast[unique(union(db_execution_phos_protn$differential_results$protein_results_long$comp, 
-                                                                                                            db_execution_phos_protn$differential_results$protein_results_long$comp))]
+          ll<-reactiveValuesToList(db_execution_phos_protn)
+          save(ll, file = "tmp.RData")
+          db_execution_phos_protn$formule_contrast <- db_execution_phos_protn$formule_contrast[names(db_execution_phos_protn$formule_contrast) %in% unique((db_execution_phos_protn$differential_results$peptide_results_long$comp))]
         })
         
         tags$h2("Differential Analysis")
@@ -3497,10 +3497,12 @@ server <- function(input, output, session) {
     
     output$render_peptide_vulcano_phos_protn <- renderUI({
       if(input$peptide_vulcano_phos_protn){
+        
         generate_volcano_plots_peptide <- list()
         for(comp in names(db_execution_phos_protn$formule_contrast)){
+          message(comp)
           generate_volcano_plots_peptide<-c(generate_volcano_plots_peptide,
-                                            generate_volcano_plots(db_execution_phos_protn$differential_results,
+                                            generate_volcano_plots(db_execution_phos_protn$differential_results, 
                                                                    data_type="peptide",
                                                                    comparison=comp,
                                                                    fc_thr=as.double(input$FC_thr_phos_protn),
@@ -3509,9 +3511,10 @@ server <- function(input, output, session) {
         }
         db_execution_phos_protn$peptide_vulcano = generate_volcano_plots_peptide
         # Generate tabPanels in a for loop
-        tabs_pep_vulcano <- list()
+        tabs_pep_vulcano_phos_protn <- list()
         for (i in seq_along(generate_volcano_plots_peptide)) {
           plot_id <- paste0(names(generate_volcano_plots_peptide)[i], "_pep_phos_protn")
+          message(plot_id)
           # Create an output slot for each plot
           local({
             my_i <- i
@@ -3519,7 +3522,7 @@ server <- function(input, output, session) {
             output[[my_plot_id]] <- renderPlotly(generate_volcano_plots_peptide[[names(generate_volcano_plots_peptide)[my_i]]])
           })
           
-          tabs_pep_vulcano[[i]] <- tabPanel(
+          tabs_pep_vulcano_phos_protn[[i]] <- tabPanel(
             title = paste(names(generate_volcano_plots_peptide)[i]),
             plotlyOutput(plot_id)
           )
@@ -3528,7 +3531,7 @@ server <- function(input, output, session) {
         # Use do.call to unpack the tab list into tabsetPanel
         tagList(
           tags$h3("Vulcano Plot differential phospho-peptides"),
-          do.call(tabsetPanel, c(list(id = "dynamic_tabs_vulcano_peptide_phos_protn"), tabs_pep_vulcano))
+          do.call(tabsetPanel, c(list(id = "dynamic_tabs_vulcano_peptide_phos_protn"), tabs_pep_vulcano_phos_protn))
         )
       } else{
         db_execution_phos_protn$peptide_vulcano = NULL
@@ -4473,7 +4476,7 @@ server <- function(input, output, session) {
                                                                      signal_thr=0, 
                                                                      interactomics = TRUE)
           db_execution_interactn$formule_contrast <- db_execution_interactn$formule_contrast[unique(union(db_execution_interactn$differential_results$protein_results_long$comp, 
-                                                                                                          db_execution_interactn$differential_results$protein_results_long$comp))]
+                                                                                                          db_execution_interactn$differential_results$peptide_results_long$comp))]
           
         })
         

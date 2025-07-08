@@ -255,7 +255,14 @@ risultato <- withCallingHandlers(
   {
     read_phospho_proteome_proteomics(software = "PD",
                                      folder_phospho = file_input_phospho,
-                                     folder_proteome = file_input_proteome,
+                                     folder_proteome = file_input_proteome, 
+                                     peptide_proteome_filename = "PEP_", 
+                                     peptide_phospho_filename = "PEP_", 
+                                     annotation_proteome_filename = "ANNOTATION_",
+                                     proteinGroup_proteome_filename = "PROT_", 
+                                     annotation_phospho_filename = "ANNOTATION_",
+                                     proteinGroup_phospho_filename = "PROT_", 
+                                     psm_phospho_filename = "PSM_", 
                                      phospho_thr = 0.7, 
                                      sample_proteome_col = "File Name", sample_phospho_col = "File Name")
   },
