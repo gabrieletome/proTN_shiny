@@ -1613,6 +1613,18 @@ server <- function(input, output, session) {
               error = getOption("callr.error", "error")
             )
             
+            # Saving RData in background
+            db_results = reactiveValuesToList(db_execution)
+            db_results <- db_results[!(unlist(lapply(db_results, is.null)))]
+            p_rdata = callr::r_bg(
+              func = function(db_results, dirOutput) {
+                save(db_results, file = paste0(dirOutput,"db_results.RData"))
+              },
+              args = list(db_results, db_results$dirOutput),
+              stdout = "|",
+              stderr = "|",
+              error = getOption("callr.error", "error")
+            )
             
             
             # Prepare file for the download
@@ -1803,11 +1815,28 @@ server <- function(input, output, session) {
               message("Render report DONE.")
             }
             
-            # Save RData db_execution
-            db_results_proTN = reactiveValuesToList(db_execution)
-            db_results_proTN <- db_results_proTN[!(unlist(lapply(db_results_proTN, is.null)))]
-            save(db_results_proTN, file = paste0(db_results_proTN$dirOutput,"db_results_proTN.RData"))
+            #Wait 10 minutes. If do not end in 10 minutes, kill the process
+            hide_res<-p_rdata$read_output()
+            p_rdata$wait(30000)
+            for (i in 1:15) {
+              p_rdata$read_output()
+              p_rdata$wait(1000*60)
+            }
+            if(p_rdata$is_alive() | is.null(p_rdata$get_result())){
+              p_rdata$kill()
+              print("\n ERROR: An error occur during the RData saving. \n ")
+            } else{
+              report<-p_rdata$get_result()
+              p_rdata$kill()
+              message("RData saved.")
+            }
             
+            # Save RData db_execution
+            # setProgress(value = 0.95, message = "Saving RData...")
+            # db_results_proTN = reactiveValuesToList(db_execution)
+            # db_results_proTN <- db_results_proTN[!(unlist(lapply(db_results_proTN, is.null)))]
+            # save(db_results_proTN, file = paste0(db_results_proTN$dirOutput,"db_results_proTN.RData"))
+            # 
             #Save folder for the download
             oldwd <- getwd()
             message(db_execution$dirOutput)
@@ -2693,6 +2722,18 @@ server <- function(input, output, session) {
               error = getOption("callr.error", "error")
             )
             
+            # Saving RData in background
+            db_results_phos = reactiveValuesToList(db_execution_phos)
+            db_results_phos <- db_results_phos[!(unlist(lapply(db_results_phos, is.null)))]
+            p_rdata = callr::r_bg(
+              func = function(db_results_phos, dirOutput) {
+                save(db_results_phos, file = paste0(dirOutput,"db_results_PhosProTN.RData"))
+              },
+              args = list(db_results_phos, db_results_phos$dirOutput),
+              stdout = "|",
+              stderr = "|",
+              error = getOption("callr.error", "error")
+            )
             
             
             # Prepare file for the download
@@ -2889,10 +2930,27 @@ server <- function(input, output, session) {
               message("Render report DONE.")
             }
             
+            #Wait 10 minutes. If do not end in 10 minutes, kill the process
+            hide_res<-p_rdata$read_output()
+            p_rdata$wait(30000)
+            for (i in 1:15) {
+              p_rdata$read_output()
+              p_rdata$wait(1000*60)
+            }
+            if(p_rdata$is_alive() | is.null(p_rdata$get_result())){
+              p_rdata$kill()
+              print("\n ERROR: An error occur during the RData saving. \n ")
+            } else{
+              report<-p_rdata$get_result()
+              p_rdata$kill()
+              message("RData saved.")
+            }
+            
             # Save RData db_execution_phos
-            db_results_PhosProTN = reactiveValuesToList(db_execution_phos)
-            db_results_PhosProTN <- db_results_PhosProTN[!(unlist(lapply(db_results_PhosProTN, is.null)))]
-            save(db_results_PhosProTN, file = paste0(db_results_PhosProTN$dirOutput,"db_results_PhosProTN.RData"))
+            # setProgress(value = 0.95, message = "Saving RData...")
+            # db_results_PhosProTN = reactiveValuesToList(db_execution_phos)
+            # db_results_PhosProTN <- db_results_PhosProTN[!(unlist(lapply(db_results_PhosProTN, is.null)))]
+            # save(db_results_PhosProTN, file = paste0(db_results_PhosProTN$dirOutput,"db_results_PhosProTN.RData"))
             
             #Save folder for the download
             oldwd <- getwd()
@@ -3750,6 +3808,18 @@ server <- function(input, output, session) {
               error = getOption("callr.error", "error")
             )
             
+            # Saving RData in background
+            db_results_PhosProTN_with_proteome = reactiveValuesToList(db_execution_phos_protn)
+            db_results_PhosProTN_with_proteome <- db_results_PhosProTN_with_proteome[!(unlist(lapply(db_results_PhosProTN_with_proteome, is.null)))]
+            p_rdata = callr::r_bg(
+              func = function(db_results_PhosProTN_with_proteome, dirOutput) {
+                save(db_results_PhosProTN_with_proteome, file = paste0(dirOutput,"db_results_PhosProTN_with_proteome.RData"))
+              },
+              args = list(db_results_PhosProTN_with_proteome, db_results_PhosProTN_with_proteome$dirOutput),
+              stdout = "|",
+              stderr = "|",
+              error = getOption("callr.error", "error")
+            )
             
             
             # Prepare file for the download
@@ -3953,10 +4023,27 @@ server <- function(input, output, session) {
               message("Render report DONE.")
             }
             
+            #Wait 10 minutes. If do not end in 10 minutes, kill the process
+            hide_res<-p_rdata$read_output()
+            p_rdata$wait(30000)
+            for (i in 1:15) {
+              p_rdata$read_output()
+              p_rdata$wait(1000*60)
+            }
+            if(p_rdata$is_alive() | is.null(p_rdata$get_result())){
+              p_rdata$kill()
+              print("\n ERROR: An error occur during the RData saving. \n ")
+            } else{
+              report<-p_rdata$get_result()
+              p_rdata$kill()
+              message("RData saved.")
+            }
+            
             # Save RData db_execution_phos_protn
-            db_results_PhosProTN_with_proteome = reactiveValuesToList(db_execution_phos_protn)
-            db_results_PhosProTN_with_proteome <- db_results_PhosProTN_with_proteome[!(unlist(lapply(db_results_PhosProTN_with_proteome, is.null)))]
-            save(db_results_PhosProTN_with_proteome, file = paste0(db_results_PhosProTN_with_proteome$dirOutput,"db_results_PhosProTN_with_proteome.RData"))
+            # setProgress(value = 0.95, message = "Saving RData...")
+            # db_results_PhosProTN_with_proteome = reactiveValuesToList(db_execution_phos_protn)
+            # db_results_PhosProTN_with_proteome <- db_results_PhosProTN_with_proteome[!(unlist(lapply(db_results_PhosProTN_with_proteome, is.null)))]
+            # save(db_results_PhosProTN_with_proteome, file = paste0(db_results_PhosProTN_with_proteome$dirOutput,"db_results_PhosProTN_with_proteome.RData"))
             
             #Save folder for the download
             oldwd <- getwd()
@@ -4806,6 +4893,22 @@ server <- function(input, output, session) {
               error = getOption("callr.error", "error")
             )
             
+            
+            
+            # Saving RData in background
+            setProgress(value = 0.95, message = "Saving RData...")
+            db_results_interacTN = reactiveValuesToList(db_execution_interactn)
+            db_results_interacTN <- db_results_interacTN[!(unlist(lapply(db_results_interacTN, is.null)))]
+            p_rdata = callr::r_bg(
+              func = function(db_results_interacTN, dirOutput) {
+                save(db_results_interacTN, file = paste0(dirOutput,"db_results_InteracTN.RData"))
+              },
+              args = list(db_results_interacTN, db_results_interacTN$dirOutput),
+              stdout = "|",
+              stderr = "|",
+              error = getOption("callr.error", "error")
+            )
+            
             # Render in background the report
             # p_2 = callr::r_bg(
             #   func = function(db_execution_interactn, params, dirOutput, env) {
@@ -5014,25 +5117,22 @@ server <- function(input, output, session) {
             }
             
             #Wait 10 minutes. If do not end in 10 minutes, kill the process
-            # hide_res<-p_2$read_output()
-            # p_2$wait(30000)
-            # for (i in 1:15) {
-            #   p_2$read_output()
-            #   p_2$wait(1000*60)  
-            # }
-            # if(p_2$is_alive() | is.null(p_2$get_result())){
-            #   p_2$kill()
-            #   print("\n ERROR: An error occur during the report rendering. \n ")
-            # } else{
-            #   report<-p_2$get_result()
-            #   p_2$kill()
-            #   message("Render report DONE.")
-            # }
-            
+            hide_res<-p_rdata$read_output()
+            p_rdata$wait(30000)
+            for (i in 1:15) {
+              p_rdata$read_output()
+              p_rdata$wait(1000*60)
+            }
+            if(p_rdata$is_alive() | is.null(p_rdata$get_result())){
+              p_rdata$kill()
+              print("\n ERROR: An error occur during the RData saving. \n ")
+            } else{
+              report<-p_rdata$get_result()
+              p_rdata$kill()
+              message("RData saved.")
+            }
+
             # Save RData db_execution_interactn
-            db_results_interacTN = reactiveValuesToList(db_execution_interactn)
-            db_results_interacTN <- db_results_interacTN[!(unlist(lapply(db_results_interacTN, is.null)))]
-            save(db_results_interacTN, file = paste0(db_results_interacTN$dirOutput,"db_results_InteracTN.RData"))
             
             #Save folder for the download
             oldwd <- getwd()
