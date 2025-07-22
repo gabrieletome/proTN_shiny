@@ -2,22 +2,15 @@
 author: "Gabriele Tomè, Toma Tebaldi"
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output:
-  rmdformats::readthedown:
-    css: custom_theme_report.css
-    df_print: paged
-    self_contained: true
-    thumbnails: true
-    lightbox: true
-    gallery: true
+  pdf_document: default
 params:
-  doc_title: "PhosProTN with proteome report"
+  doc_title: "ProTN report"
   description: NA
   readPD_files: NA
   readMQ_files: NA
-  impute_algorithm: "phosr"
+  readMQ_prot_files: NA
   db_execution: NA
-  file_input_phospho: NA
-  file_input_proteome: NA
+  file_input: NA
   batch_corr_exe: NA
   prot_boxplot: NA
   fc_thr: "0.75"
@@ -47,10 +40,9 @@ doc_title <- params$doc_title
 description <- params$description
 readPD_files <- params$readPD_files
 readMQ_files <- params$readMQ_files
-impute_algorithm <- params$impute_algorithm
+readMQ_prot_files <- params$readMQ_prot_files
 db_execution <- params$db_execution
-file_input_phospho <- params$file_input_phospho
-file_input_proteome <- params$file_input_proteome
+file_input <- params$file_input
 batch_corr_exe <- params$batch_corr_exe
 list_proteins <- stri_split(stri_replace_all(regex = " ",
                                              replacement = "",
@@ -130,12 +122,12 @@ resize_plot <- function(resizePlot, resizeHeight) {
 
 
 ---
-title: `r if(doc_title==""){"PhosProTN with proteome report"}else{doc_title}`
+title: `r if(doc_title==""){"ProTN report"}else{doc_title}`
 ---
 
 `r description`
 
-The following report summarizes the results obtained by the proTN integrative pipeline for phospho-proteomics with proteome background analysis. Full results can be found in the output folder.
+The following report summarizes the results obtained by the proTN integrative pipeline for proteomics analysis. Full results can be found in the output folder.
 
 ```{r print_readme, warning=FALSE, echo=F, message=FALSE}
 
@@ -148,7 +140,16 @@ text_readme<- c("Description of the output files")
 ```{r print_settings, warning=FALSE, echo=F, message=FALSE, results='asis'}
 cat(" \n \n")
 #Print summary of filter and contrast design
-cat(paste0("- Imputation algorithm: ",impute_algorithm," "))
+if(readPD_files){
+  cat("**Source files:** Proteome Discoverer")
+  cat(" \n")
+} else if(readMQ_files | readMQ_prot_files){
+  cat("**Source files:** MaxQuant")
+  cat(" \n")
+} else if(readTMT_files){
+  cat("**Source files:** TMT with Protein Discoverer")
+  cat(" \n")
+}
 cat(" \n \n")
 if(!is.null(batch_corr_exe)){
   cat("**Pipeline** \n ")
@@ -190,23 +191,11 @@ The sample table below annotates the samples of the study as in the **Sample_Ann
 - **Sample**: sample name used in the results,
 - **Condition**: condition of the sample used in study design and differential analyses
 
-#### Phospho-proteomics sample
-
-```{r print_sample_phos, warning=FALSE, echo=F, message=FALSE, results='asis'}
+```{r print_sample, warning=FALSE, echo=F, message=FALSE, results='asis'}
 cat(" \n")
-kable(db_execution$proteome_data$c_anno_phospho,
+kable(db_execution$proteome_data$c_anno,
       row.names = F,
-      col.names = str_to_title(colnames(db_execution$proteome_data$c_anno_phospho)))
-cat(" \n")
-```
-
-#### Proteomics sample
-
-```{r print_sample_prot, warning=FALSE, echo=F, message=FALSE, results='asis'}
-cat(" \n")
-kable(db_execution$proteome_data$c_anno_proteome,
-      row.names = F,
-      col.names = str_to_title(colnames(db_execution$proteome_data$c_anno_proteome)))
+      col.names = str_to_title(colnames(db_execution$proteome_data$c_anno)))
 cat(" \n")
 ```
 
@@ -220,92 +209,20 @@ Initial filtering removes the following peptides:
 
 After filtering, raw abundances are log2 transformed
 
-```{r read_proteomics_MQ, warning=F, echo=F, eval=F, results='asis'}
-messaggi <- NULL
-risultato <- withCallingHandlers(
-  {
-    read_phospho_proteome_proteomics(software = "MQ",
-                                     folder_phospho = file_input_phospho,
-                                     folder_proteome = file_input_proteome,
-                                     peptide_phospho_filename = "evidence", 
-                                     peptide_proteome_filename = "evidence",
-                                     phospho_thr = 0.7)
-  },
-  message = function(m) {
-    messaggi <<- append(messaggi, conditionMessage(m))
-    invokeRestart("muffleMessage")
-  }
-)
-
-# cat("\nStat: \n ")
-# cat(paste(messaggi, collapse = ""))
-# cat("\n\n")
-```
-
-```{r read_proteomics_PD, warning=F, echo=F, eval=F, results='asis'}
-messaggi <- NULL
-risultato <- withCallingHandlers(
-  {
-    read_phospho_proteome_proteomics(software = "PD",
-                                     folder_phospho = file_input_phospho,
-                                     folder_proteome = file_input_proteome, 
-                                     peptide_proteome_filename = "PEP_", 
-                                     peptide_phospho_filename = "PEP_", 
-                                     annotation_proteome_filename = "ANNOTATION_",
-                                     proteinGroup_proteome_filename = "PROT_", 
-                                     annotation_phospho_filename = "ANNOTATION_",
-                                     proteinGroup_phospho_filename = "PROT_", 
-                                     psm_phospho_filename = "PSM_", 
-                                     phospho_thr = 0.7, 
-                                     sample_proteome_col = "File Name", sample_phospho_col = "File Name")
-  },
-  message = function(m) {
-    messaggi <<- append(messaggi, conditionMessage(m))
-    invokeRestart("muffleMessage")
-  }
-)
-
-# cat("\nStat: \n ")
-# cat(paste(messaggi, collapse = ""))
-# cat("\n\n")
-```
-
-```{r phospho_percentage, fig.height=4, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$phospho_percentage)}
-cat("#### Percentage of phosphosite residue \n ")
-cat("The following graph represent the percentage of the phosphosites located on Serine (S), Throenines (T) and Tyrosines (Y). \n ")
-cat("\n \n")
-# Avalaible abundance. The red percentage will be imputed.
-db_execution$phospho_percentage
-```
-
-```{r preprocess_figure_1_phos, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
-cat("#### Distributions of log2 raw abundances - Phospho-proteomics \n ")
+```{r preprocess_figure_1, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
+cat("#### Distributions of log2 raw abundances \n ")
 cat("Violin plot showing sample distributions of log2 raw abundances of peptides. \n ")
 cat("\n \n")
 # Avalaible abundance. The red percentage will be imputed.
-db_execution$generate_abundance$phospho_plot
+db_execution$generate_abundance
 ```
 
-```{r preprocess_figure_1_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
-cat("#### Distributions of log2 raw abundances - Proteomics \n ")
-cat("Violin plot showing sample distributions of log2 raw abundances of peptides. \n ")
+```{r preprocess_figure_2, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
+cat("#### Percentage of quantified peptides per sample \n")
+cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
 cat("\n \n")
-# Avalaible abundance. The red percentage will be imputed.
-db_execution$generate_abundance$proteome_plot
-```
-
-```{r preprocess_figure_2_phos, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
-cat("#### Percentage of quantified peptides per sample - Phospho-proteomics \n")
-cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
 # Number peptide per each protein
-db_execution$generate_peptide_distribution$phospho_plot
-```
-
-```{r preprocess_figure_2_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
-cat("#### Percentage of quantified peptides per sample - Proteomics \n")
-cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
-# Number peptide per each protein
-db_execution$generate_peptide_distribution$proteome_plot
+db_execution$generate_peptide_distribution
 ```
 
 #### Imputation, normalization, peptide-to-protein summarization 
@@ -323,6 +240,7 @@ db_execution$generate_peptide_distribution$proteome_plot
 ```{r normalized_plot_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_abundance_distribution)}
 cat("#### Distribution of protein normalized abundance \n")
 cat("Violin plot showing sample distributions of log2 normalized and imputed abundances. \n ")
+cat("\n \n")
 #Abundance per Protein
 db_execution$protein_abundance_distribution
 ```
@@ -330,6 +248,7 @@ db_execution$protein_abundance_distribution
 ```{r normalized_plot_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_abundance_distirbution)}
 cat("#### Distribution of peptide normalized abundance \n")
 cat("Violin plot showing sample distributions of log2 normalized and imputed abundances. \n ")
+cat("\n \n")
 #Abundance per Peptide
 db_execution$peptide_abundance_distirbution
 ```
@@ -337,6 +256,7 @@ db_execution$peptide_abundance_distirbution
 ```{r mds_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_MDS)}
 cat("#### MDS based on protein normalized data \n ")
 cat("Multidimensional scaling (MDS) takes a set of dissimilarities and returns a set of points such that the distances between the points are approximately equal to the dissimilarities. Classical multidimensional scaling is also known as principal coordinates analysis. \n \n ")
+cat("\n \n")
 #Abundance per Protein
 db_execution$protein_MDS
 ```
@@ -344,6 +264,7 @@ db_execution$protein_MDS
 ```{r mds_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_MDS)}
 cat("#### MDS based on peptide normalized data \n")
 cat("Multidimensional scaling (MDS) takes a set of dissimilarities and returns a set of points such that the distances between the points are approximately equal to the dissimilarities. Classical multidimensional scaling is also known as principal coordinates analysis. \n  \n ")
+cat("\n \n")
 #Abundance per Peptide
 db_execution$peptide_MDS
 ```
@@ -351,6 +272,7 @@ db_execution$peptide_MDS
 ```{r pca_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_PCA)}
 cat("#### PCA based on protein normalized data \n")
 cat("Principal component analysis (PCA) is performed on normalized Protein and Peptide abundances. \n \n ")
+cat("\n \n")
 #Abundance per Protein
 db_execution$protein_PCA
 ```
@@ -358,6 +280,7 @@ db_execution$protein_PCA
 ```{r pca_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_PCA)}
 cat("#### PCA based on peptide normalized data \n")
 cat("Principal component analysis (PCA) is performed on normalized Protein and Peptide abundances. \n \n ")
+cat("\n \n")
 #Abundance per Peptide
 db_execution$peptide_PCA
 ```
@@ -390,7 +313,7 @@ if(length(list_proteins[[1]])>0){
 
 ```{r differential_analysis, echo=FALSE, results='asis', eval=length(db_execution$differential_results)>0}
 cat("## Differentially analysis \n")
-cat("Differentially phosphorylated peptides are identified using the Limma Bioconductor package. In each comparison, phospho-peptide changes are scaled for differences in the corresponding protein levels. PhosProTN also perform phosphorylation enrichment analysis for each condition  \n ")
+# cat("Differentially expressed peptides are identified using the Limma Bioconductor package. \n ")
 eval_single_Cond <- length(db_execution$differential_results)>0
 ```
 
@@ -408,9 +331,7 @@ cat(" \n")
 
 ```{r print_settings_design, warning=FALSE, echo=F, message=FALSE, results='asis', eval=length(db_execution$differential_results)>0}
 cat("### Differential expression contrasts \n \n")
-cat("The following table contains the names and the formulas of the contrasts considered for differential phosphorylation analysis.
-
-The conditions from the phospho-proteomics are represented by an **_phospho** at the end of the condition, the **_proteome** represent the conditions from the proteomics. Also, the comparison provided in input by the user are adapted for the differential phosphorylation analysis. \n \n")
+cat("The following table contains the names and the formulas of the contrasts considered for differential expression analysis. \n \n")
 cat("**Contrast design formula are:** ")
 cat(" \n")
 kable(data.frame("Name"=names(db_execution$formule_contrast), 
@@ -419,25 +340,33 @@ kable(data.frame("Name"=names(db_execution$formule_contrast),
 cat(" \n")
 ```
 
-```{r differentiated_protein, fig.height=3, fig.width=7, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_differential_barplot))}
+```{r differentiated_protein, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_differential_barplot))}
 cat("#### Number of differentially expressed proteins for each comparison \n")
+cat("\n \n")
 db_execution$protein_differential_barplot
 ```
 
-```{r differentiated_peptide, fig.height=3, fig.width=7, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_differential_barplot))}
+```{r differentiated_peptide, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_differential_barplot))}
 cat("#### Number of differentially expressed peptide for each comparison \n")
+cat("\n \n")
 db_execution$peptide_differential_barplot
 ```
 
 ```{r volcano_protein, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_vulcano))}
-cat("#### Volcano plots of Proteins {.tabset} \n")
+cat("#### Volcano plots of Proteins \n")
 cat("Differentially expressed proteins are displayes according to the thresholds set in the input. \n ")
 cat("\n - \"+\" up-regulated protein \n ")
 cat("\n - \"-\" down-regulated protein \n ")
 cat("\n - \"=\" invariant protein \n \n ")
 cat("Top enriched proteins are labeled. \n")
 cat(" \n \n")
-in_tabs(db_execution$protein_vulcano, labels = names(db_execution$protein_vulcano), level = 4L)
+# in_tabs(db_execution$protein_vulcano, labels = names(db_execution$protein_vulcano), level = 4L)
+for(comp in names(db_execution$protein_vulcano)){
+  cat(paste0("##### ",comp," \n \n"))
+  htmlwidgets::saveWidget(widget = db_execution$protein_vulcano[[comp]], file = paste0("prot_",comp,".html"))
+  webshot2::webshot(url = paste0("prot_",comp,".html"), file = paste0("prot_",comp,".png"), delay = 1, zoom = 4)
+  cat(" \n \n")  
+}
 cat(" \n \n")
 ```
 
@@ -453,16 +382,35 @@ in_tabs(db_execution$peptide_vulcano, labels = names(db_execution$peptide_vulcan
 cat(" \n \n")
 ```
 
+
+```{r mds_differential_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_differential_MDS)}
+cat("#### MDS based on differentially expressed proteins \n")
+cat("Multidimensional scaling (MDS) are performed on normalized abundances of differentially expressed Proteins. \n")
+cat("\n \n")
+#Abundance per Protein
+db_execution$protein_differential_MDS
+```
+
 ```{r mds_differential_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_differential_MDS)}
 cat("#### MDS based on differentially expressed peptides \n")
 cat("Multidimensional scaling (MDS) are performed on normalized abundances of differentially expressed Peptides. \n")
+cat("\n \n")
 #Abundance per Peptide
 db_execution$peptide_differential_MDS
+```
+
+```{r pca_differential_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_differential_PCA)}
+cat("#### PCA based on differentially expressed proteins \n")
+cat("Principal component analysis (PCA) are performed on normalized abundances of differentially expressed Proteins. \n")
+cat("\n \n")
+#Abundance per Protein
+db_execution$protein_differential_PCA
 ```
 
 ```{r pca_differential_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_differential_PCA)}
 cat("#### PCA based on differentially expressed peptides \n")
 cat("Principal component analysis (PCA) are performed on normalized abundances of differentially expressed  Peptides. \n")
+cat("\n \n")
 #Abundance per Peptide
 db_execution$peptide_differential_PCA
 ```
@@ -501,6 +449,7 @@ cat("Significant enrichments are displayed as filled dots, non-significant as em
 cat("The dot plots shows the top significant terms considering selected annotation databases. \n ")
 cat("**Up-regulated and down-regulated proteins (UP,DOWN)** \n ")
 cat(" \n \n")
+
 for(db in names(plots_down)){
   cat(paste0("##### ",db," \n"))
   print(resize_plot(resizePlot = plots_down[[db]], 
@@ -511,19 +460,9 @@ for(db in names(plots_down)){
 cat(" \n \n")
 ```
 
-```{r string_network, echo=F, message=F, warning=F, eval=length(db_execution$stringdb_res)>0, results='asis'}
+```{r string network, echo=F, message=F, warning=F, eval=length(db_execution$stringdb_res)>0, results='asis'}
 cat("## Protein-protein interaction network analysis of differentially expressed proteins \n")
 cat(paste0("Protein-protein interactions (PPIs) are crucial for understanding cell physiopathology. PPI analysis of differentially expressed proteins is based on the [STRING](https://string-db.org/) database.  Communities within the network are identified with the Clauset-Newman-Moore (CNM) algorithm. \n \n"))
 # cat("For a better visualization of the network, only the top 500 differential proteins are considered for each contrast.")
 cat("The results can be found in the pics directory.")
-```
-
-```{r kinase_tree, echo=F, message=F, warning=F, eval=length(db_execution$kinase_tree_res)>0, results='asis'}
-cat("## Kinase Trees \n")
-cat(paste0("In this step, PhosProTN identifies alterations in the activity of kinases, based on the differentially phosphorylated sites observed in each contrast. The identification of the altered kinases is perfomed by [PhosR](https://github.com/PYangLab/PhosR) package (Kim et al. 2021), which provide a score of kinase activities based on the comparison formula provided. The activities of the kinases are saved in txt files inside the KinaseTree folder \n \n In addition, graphical kinase trees are generated using an adapted version of the webtool [CORAL](http://phanstiel-lab.med.unc.edu/CORAL/) (Metz K.S. et al. 2018). \n \n "))
-cat((paste0("DISCLAIMER CORAL: The kinome tree plots generated by CORAL make use the data generated by",
-            "Manning et al., Science, 2002, ","http://science.sciencemag.org/content/298/5600/1912.long",
-            " and are based on a figure generated by ",
-            "Cell Signaling Technology ", "https://www.cellsignal.com/contents/science/protein-kinases-introduction/kinases")))
-cat("\n \n Results inside folder: *pics/KinaseTree*")
 ```

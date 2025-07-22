@@ -64,6 +64,8 @@ if (!require("proTN", quietly = TRUE))
 #Install additional packages for PhosProTN
 if (!require("shinyWidgets", quietly = TRUE))
   install.packages("shinyWidgets", dependencies = T)
+if (!require("webshot2", quietly = TRUE))
+  install.packages("webshot2", dependencies = T)
 
 # Install reticulate for kaleido of plotly
 # if (!require("reticulate", quietly = TRUE)){

@@ -501,3 +501,47 @@ div.modal-footer button.btn {
 .dataTables_scrollBody table {
     transform:rotateX(180deg);
 }
+
+#fullscreen-container, 
+#fullscreen-container-phos, 
+#fullscreen-container-phos-protn, 
+#fullscreen-container-interactn {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: white;
+    z-index: 9999;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    display: flex;
+}
+#fullscreen-container.show, 
+#fullscreen-container-phos.show, 
+#fullscreen-container-phos-protn.show, 
+#fullscreen-container-interactn.show {
+    visibility: visible;
+    opacity: 1;
+}
+#fullscreen_plot, 
+#fullscreen_plot_phos, 
+#fullscreen_plot_phos-protn, 
+#fullscreen_plot_interactn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -15% 0 0 -40%;
+}
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 40px;
+    font-size: 30px;
+    cursor: pointer;
+    z-index: 10000;
+}
