@@ -1169,11 +1169,11 @@ server <- function(input, output, session) {
     }
   })
   
-  generate_protein_diff_barplot <- reactive({
+  generate_protein_diff_barplot <- reactive(function(size_text){
     req(input$protein_diff_barplot)
     if(input$protein_diff_barplot){
       ploft_diff_number <- generate_differential_barplots(db_execution$differential_results,
-                                                          data_type="protein")$plot
+                                                          data_type="protein", size_text=size_text)$plot
       db_execution$protein_differential_barplot = ploft_diff_number
       ploft_diff_number
     } else{
@@ -1181,11 +1181,11 @@ server <- function(input, output, session) {
     }
   })
   
-  generate_peptide_diff_barplot <- reactive({
+  generate_peptide_diff_barplot <- reactive(function(size_text){
     req(input$peptide_diff_barplot)
     if(input$peptide_diff_barplot){
       ploft_diff_number_pep <- generate_differential_barplots(db_execution$differential_results,
-                                                              data_type="peptide")$plot
+                                                              data_type="peptide", size_text=size_text)$plot
       db_execution$peptide_differential_barplot = ploft_diff_number_pep
       ploft_diff_number_pep
     } else{
@@ -1596,7 +1596,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_protein_diff_barplot <- renderPlot({
-      generate_protein_diff_barplot()
+      generate_protein_diff_barplot()(6)
     })
     
     output$render_peptide_diff_barplot <- renderUI({
@@ -1612,7 +1612,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_peptide_diff_barplot <- renderPlot({
-      generate_peptide_diff_barplot()
+      generate_peptide_diff_barplot()(6)
     })
     
     output$render_protein_vulcano <- renderUI({
@@ -2250,22 +2250,22 @@ server <- function(input, output, session) {
   output$fullscreen_plot <- renderPlot({
     req(selected_plot())
     switch(selected_plot(),
-           "abundance_plot" = generate_abundance() + ggtitle("Percentage missing values respect detected abundance"),
-           "peptide_distribution_plot" = generate_peptide_distribution() + ggtitle("N° peptides per proteins"),
-           "protein_violin_plot" = generate_protein_violin() + ggtitle("Distribution peptide abundance"),
-           "peptide_violin_plot" = generate_peptide_violin() + ggtitle("Distribution peptide abundance"),
-           "mds_protein" = generate_mds_protein() + ggtitle("MDS based on protein"),
-           "mds_peptide" = generate_mds_peptide() + ggtitle("MDS based on peptides"),
-           "pca_protein" = generate_pca_protein() + ggtitle("PCA based on protein"),
-           "pca_peptide" = generate_pca_peptide() + ggtitle("PCA based on peptides"),
-           "protein_boxplot" = generate_protein_boxplot() + ggtitle("Boxplot selected proteins"),
-           "protein_heatmap" = generate_protein_heatmap() + ggtitle("Heatmap selected proteins"),
-           "protein_diff_barplot" = generate_protein_diff_barplot() + ggtitle("N° differential proteins"),
-           "peptide_diff_barplot" = generate_peptide_diff_barplot() + ggtitle("N° differential peptides"),
-           "mds_protein_diff" = generate_mds_protein_diff() + ggtitle("MDS based on differential protein"),
-           "mds_peptide_diff" = generate_mds_peptide_diff() + ggtitle("MDS based on differential peptides"),
-           "pca_protein_diff" = generate_pca_protein_diff() + ggtitle("PCA based on differential protein"),
-           "pca_peptide_diff" = generate_pca_peptide_diff() + ggtitle("PCA based on differential peptides"),
+           "abundance_plot" = generate_abundance() + ggtitle("Percentage missing values respect detected abundance")+theme(text=element_text(size=25)),
+           "peptide_distribution_plot" = generate_peptide_distribution() + ggtitle("N° peptides per proteins")+theme(text=element_text(size=25)),
+           "protein_violin_plot" = generate_protein_violin() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
+           "peptide_violin_plot" = generate_peptide_violin() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
+           "mds_protein" = generate_mds_protein() + ggtitle("MDS based on protein")+theme(text=element_text(size=25)),
+           "mds_peptide" = generate_mds_peptide() + ggtitle("MDS based on peptides")+theme(text=element_text(size=25)),
+           "pca_protein" = generate_pca_protein() + ggtitle("PCA based on protein")+theme(text=element_text(size=25)),
+           "pca_peptide" = generate_pca_peptide() + ggtitle("PCA based on peptides")+theme(text=element_text(size=25)),
+           "protein_boxplot" = generate_protein_boxplot() + ggtitle("Boxplot selected proteins")+theme(text=element_text(size=25)),
+           "protein_heatmap" = generate_protein_heatmap() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
+           "protein_diff_barplot" = generate_protein_diff_barplot()(10) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
+           "peptide_diff_barplot" = generate_peptide_diff_barplot()(10) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
+           "mds_protein_diff" = generate_mds_protein_diff() + ggtitle("MDS based on differential protein")+theme(text=element_text(size=25)),
+           "mds_peptide_diff" = generate_mds_peptide_diff() + ggtitle("MDS based on differential peptides")+theme(text=element_text(size=25)),
+           "pca_protein_diff" = generate_pca_protein_diff() + ggtitle("PCA based on differential protein")+theme(text=element_text(size=25)),
+           "pca_peptide_diff" = generate_pca_peptide_diff() + ggtitle("PCA based on differential peptides")+theme(text=element_text(size=25)),
            # default fallback:
            NULL
     )
@@ -2446,11 +2446,12 @@ server <- function(input, output, session) {
   })
   
   ## PHOSPROTN: function genereting plot ----
-  generate_phospho_percentage_plot_phos <- reactive({
+  generate_phospho_percentage_plot_phos <- reactive(function(size_text) {
     req(input$phospho_percentage_plot_phos)
     if(input$phospho_percentage_plot_phos){
       generate_abundance_fig <- create_phosphosite_plot(proteome_data = db_execution_phos$proteome_data, 
-                                                        software = input$sw_analyzer_phos)$plot
+                                                        software = input$sw_analyzer_phos, 
+                                                        size_text = size_text)$plot
       db_execution_phos$phospho_percentage = generate_abundance_fig
       generate_abundance_fig
     } else{
@@ -2631,11 +2632,11 @@ server <- function(input, output, session) {
     }
   })
   
-  generate_protein_diff_barplot_phos <- reactive({
+  generate_protein_diff_barplot_phos <- reactive(function(size_text){
     req(input$protein_diff_barplot_phos)
     if(input$protein_diff_barplot_phos){
       ploft_diff_number <- generate_differential_barplots(db_execution_phos$differential_results,
-                                                          data_type="protein")$plot
+                                                          data_type="protein", size_text=size_text)$plot
       db_execution_phos$protein_differential_barplot = ploft_diff_number
       ploft_diff_number
     } else{
@@ -2643,11 +2644,11 @@ server <- function(input, output, session) {
     }
   })
   
-  generate_peptide_diff_barplot_phos <- reactive({
+  generate_peptide_diff_barplot_phos <- reactive(function(size_text){
     req(input$peptide_diff_barplot_phos)
     if(input$peptide_diff_barplot_phos){
       ploft_diff_number_pep <- generate_differential_barplots(db_execution_phos$differential_results,
-                                                              data_type="peptide")$plot
+                                                              data_type="peptide", size_text=size_text)$plot
       db_execution_phos$peptide_differential_barplot = ploft_diff_number_pep
       ploft_diff_number_pep
     } else{
@@ -2704,7 +2705,7 @@ server <- function(input, output, session) {
               }
               
               # If advance filter
-              if(input$advance_filter){
+              if(input$advance_filter_phos){
                 NA_allow_condition <- input$NA_allow_condition_phos
                 min_peptide_protein <- input$min_peptide_protein_phos
                 impute_algorithm <- input$impute_algorithm_phos
@@ -2816,7 +2817,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_phospho_percentage_plot_phos <- renderPlot({
-      generate_phospho_percentage_plot_phos()
+      generate_phospho_percentage_plot_phos()(6)
     })
     
     output$render_abundance_plot_phos <- renderUI({
@@ -3047,7 +3048,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_protein_diff_barplot_phos <- renderPlot({
-      generate_protein_diff_barplot_phos()
+      generate_protein_diff_barplot_phos()(6)
     })
     
     output$render_peptide_diff_barplot_phos <- renderUI({
@@ -3063,7 +3064,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_peptide_diff_barplot_phos <- renderPlot({
-      generate_peptide_diff_barplot_phos()
+      generate_peptide_diff_barplot_phos()(6)
     })
     
     output$render_protein_vulcano_phos <- renderUI({
@@ -3722,23 +3723,23 @@ server <- function(input, output, session) {
   output$fullscreen_plot_phos <- renderPlot({
     req(selected_plot_phos())
     switch(selected_plot_phos(),
-           "phospho_percentage_plot_phos" = generate_phospho_percentage_plot_phos() + ggtitle("Percentage of phosphosite residue"),
-           "abundance_plot_phos" = generate_abundance_phos() + ggtitle("Percentage missing values respect detected abundance"),
-           "peptide_distribution_plot_phos" = generate_peptide_distribution_phos() + ggtitle("N° peptides per proteins"),
-           "protein_violin_plot_phos" = generate_protein_violin_phos() + ggtitle("Distribution peptide abundance"),
-           "peptide_violin_plot_phos" = generate_peptide_violin_phos() + ggtitle("Distribution peptide abundance"),
-           "mds_protein_phos" = generate_mds_protein_phos() + ggtitle("MDS based on protein"),
-           "mds_peptide_phos" = generate_mds_peptide_phos() + ggtitle("MDS based on peptides"),
-           "pca_protein_phos" = generate_pca_protein_phos() + ggtitle("PCA based on protein"),
-           "pca_peptide_phos" = generate_pca_peptide_phos() + ggtitle("PCA based on peptides"),
-           "protein_boxplot_phos" = generate_protein_boxplot_phos() + ggtitle("Boxplot selected proteins"),
-           "protein_heatmap_phos" = generate_protein_heatmap_phos() + ggtitle("Heatmap selected proteins"),
-           "protein_diff_barplot_phos" = generate_protein_diff_barplot_phos() + ggtitle("N° differential proteins"),
-           "peptide_diff_barplot_phos" = generate_peptide_diff_barplot_phos() + ggtitle("N° differential peptides"),
-           "mds_protein_diff_phos" = generate_mds_protein_diff_phos() + ggtitle("MDS based on differential protein"),
-           "mds_peptide_diff_phos" = generate_mds_peptide_diff_phos() + ggtitle("MDS based on differential peptides"),
-           "pca_protein_diff_phos" = generate_pca_protein_diff_phos() + ggtitle("PCA based on differential protein"),
-           "pca_peptide_diff_phos" = generate_pca_peptide_diff_phos() + ggtitle("PCA based on differential peptides"),
+           "phospho_percentage_plot_phos" = generate_phospho_percentage_plot_phos()(size_text=8) + ggtitle("Percentage of phosphosite residue")+theme(text=element_text(size=25), axis.text.y = element_text(size = 25)),
+           "abundance_plot_phos" = generate_abundance_phos() + ggtitle("Percentage missing values respect detected abundance")+theme(text=element_text(size=25)),
+           "peptide_distribution_plot_phos" = generate_peptide_distribution_phos() + ggtitle("N° peptides per proteins")+theme(text=element_text(size=25)),
+           "protein_violin_plot_phos" = generate_protein_violin_phos() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
+           "peptide_violin_plot_phos" = generate_peptide_violin_phos() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
+           "mds_protein_phos" = generate_mds_protein_phos() + ggtitle("MDS based on protein")+theme(text=element_text(size=25)),
+           "mds_peptide_phos" = generate_mds_peptide_phos() + ggtitle("MDS based on peptides")+theme(text=element_text(size=25)),
+           "pca_protein_phos" = generate_pca_protein_phos() + ggtitle("PCA based on protein")+theme(text=element_text(size=25)),
+           "pca_peptide_phos" = generate_pca_peptide_phos() + ggtitle("PCA based on peptides")+theme(text=element_text(size=25)),
+           "protein_boxplot_phos" = generate_protein_boxplot_phos() + ggtitle("Boxplot selected proteins")+theme(text=element_text(size=25)),
+           "protein_heatmap_phos" = generate_protein_heatmap_phos() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
+           "protein_diff_barplot_phos" = generate_protein_diff_barplot_phos()(10) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
+           "peptide_diff_barplot_phos" = generate_peptide_diff_barplot_phos()(10) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
+           "mds_protein_diff_phos" = generate_mds_protein_diff_phos() + ggtitle("MDS based on differential protein")+theme(text=element_text(size=25)),
+           "mds_peptide_diff_phos" = generate_mds_peptide_diff_phos() + ggtitle("MDS based on differential peptides")+theme(text=element_text(size=25)),
+           "pca_protein_diff_phos" = generate_pca_protein_diff_phos() + ggtitle("PCA based on differential protein")+theme(text=element_text(size=25)),
+           "pca_peptide_diff_phos" = generate_pca_peptide_diff_phos() + ggtitle("PCA based on differential peptides")+theme(text=element_text(size=25)),
            # default fallback:
            NULL
     )
@@ -3930,6 +3931,199 @@ server <- function(input, output, session) {
     }
   })
   
+  ## PhosProTN_with_prot: function genereting plot ----
+  generate_phospho_percentage_plot_phos_protn <- reactive(function(size_text) {
+    req(input$phospho_percentage_plot_phos_protn)
+    if(input$phospho_percentage_plot_phos_protn){
+      generate_abundance_fig <- create_phosphosite_plot(proteome_data = db_execution_phos_protn$proteome_data, 
+                                                        software = input$sw_analyzer_phos_protn, 
+                                                        size_text = size_text)$plot
+      db_execution_phos_protn$phospho_percentage = generate_abundance_fig
+      generate_abundance_fig
+    } else{
+      db_execution_phos_protn$phospho_percentage = NULL
+    }
+  })
+  
+  generate_abundance_phos_protn_prot <- reactive({
+    req(input$abundance_plot_phos_protn)
+    if(input$abundance_plot_phos_protn){
+      generate_abundance_fig <- generate_abundance_plot(proteome_data = db_execution_phos_protn$proteome_data)
+      db_execution_phos_protn$generate_abundance = generate_abundance_fig
+      generate_abundance_fig$proteome_plot
+    } else{
+      db_execution_phos_protn$generate_abundance = NULL
+    }
+  })
+  generate_abundance_phos_protn_phos <- reactive({
+    req(input$abundance_plot_phos_protn)
+    if(input$abundance_plot_phos_protn){
+      generate_abundance_fig <- generate_abundance_plot(proteome_data = db_execution_phos_protn$proteome_data)
+      db_execution_phos_protn$generate_abundance = generate_abundance_fig
+      generate_abundance_fig$phospho_plot
+    } else{
+      db_execution_phos_protn$generate_abundance = NULL
+    }
+  })
+  
+  generate_peptide_distribution_phos_protn_prot <- reactive({
+    req(input$peptide_distribution_phos_protn)
+    if(input$peptide_distribution_phos_protn){
+      peptide_distribution_fig <- generate_peptide_distribution_plot(proteome_data = db_execution_phos_protn$proteome_data)
+      db_execution_phos_protn$generate_peptide_distribution = peptide_distribution_fig
+      peptide_distribution_fig$proteome_plot
+    } else{
+      db_execution_phos_protn$generate_peptide_distribution = NULL
+    }
+  })
+  generate_peptide_distribution_phos_protn_phos <- reactive({
+    req(input$peptide_distribution_phos_protn)
+    if(input$peptide_distribution_phos_protn){
+      peptide_distribution_fig <- generate_peptide_distribution_plot(proteome_data = db_execution_phos_protn$proteome_data)
+      db_execution_phos_protn$generate_peptide_distribution = peptide_distribution_fig
+      peptide_distribution_fig$phospho_plot
+    } else{
+      db_execution_phos_protn$generate_peptide_distribution = NULL
+    }
+  })
+  
+  generate_protein_violin_phos_protn <- reactive({
+    req(input$protein_violin_phos_protn)
+    if(input$protein_violin_phos_protn){
+      protein_abundance_distribution_fig <- plot_abundance_distribution(proteome_data = db_execution_phos_protn$normalized_data,
+                                                                        type = "protein")$plot
+      db_execution_phos_protn$protein_abundance_distribution = protein_abundance_distribution_fig
+      protein_abundance_distribution_fig
+    } else{
+      db_execution_phos_protn$protein_abundance_distribution = NULL
+    }
+  })
+  
+  generate_peptide_violin_phos_protn <- reactive({
+    req(input$peptide_violin_phos_protn)
+    if(input$peptide_violin_phos_protn){
+      peptide_abundance_distirbution_fig <- plot_abundance_distribution(proteome_data = db_execution_phos_protn$normalized_data,
+                                                                        type = "peptide")$plot
+      db_execution_phos_protn$peptide_abundance_distirbution = peptide_abundance_distirbution_fig
+      peptide_abundance_distirbution_fig
+    } else{
+      db_execution_phos_protn$peptide_abundance_distirbution = NULL
+    }
+  })
+  
+  generate_mds_protein_phos_protn <- reactive({
+    req(input$mds_protein_phos_protn)
+    if(input$mds_protein_phos_protn){
+      mds_protein_fig <- mds_plot(proteome_data = db_execution_phos_protn$normalized_data,
+                                  type = "protein")$plot
+      db_execution_phos_protn$protein_MDS = mds_protein_fig
+      mds_protein_fig
+    } else{
+      db_execution_phos_protn$protein_MDS = NULL
+    }
+  })
+  
+  generate_mds_peptide_phos_protn <- reactive({
+    req(input$mds_peptide_phos_protn)
+    if(input$mds_peptide_phos_protn){
+      mds_peptide_fig <- mds_plot(proteome_data = db_execution_phos_protn$normalized_data,
+                                  type = "peptide")$plot
+      db_execution_phos_protn$peptide_MDS = mds_peptide_fig
+      mds_peptide_fig
+    } else{
+      db_execution_phos_protn$peptide_MDS = NULL
+    }
+  })
+  
+  generate_pca_protein_phos_protn <- reactive({
+    req(input$pca_protein_phos_protn)
+    if(input$pca_protein_phos_protn){
+      pca_protein_fig <- pca_plot(proteome_data = db_execution_phos_protn$normalized_data,
+                                  type = "protein")$plot
+      db_execution_phos_protn$protein_PCA = pca_protein_fig
+      pca_protein_fig
+    } else{
+      db_execution_phos_protn$protein_PCA = NULL
+    }
+  })
+  
+  generate_pca_peptide_phos_protn <- reactive({
+    req(input$pca_peptide_phos_protn)
+    if(input$pca_peptide_phos_protn){
+      pca_peptide_fig <- pca_plot(proteome_data = db_execution_phos_protn$normalized_data,
+                                  type = "peptide")$plot
+      db_execution_phos_protn$peptide_PCA = pca_peptide_fig
+      pca_peptide_fig
+    } else{
+      db_execution_phos_protn$peptide_PCA = NULL
+    }
+  })
+  
+  generate_protein_boxplot_phos_protn <- reactive({
+    req(input$boxplot_protein_phos_protn)
+    if(input$boxplot_protein_phos_protn){
+      req(input$list_proteins_phos_protn)
+      list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_phos_protn), regex=",")
+      boxplot_protein_fig <- plot_selected_proteins(proteome_data = db_execution_phos_protn$normalized_data,
+                                                    list_protein = unlist(list_proteins))$plot
+      db_execution_phos_protn$protein_boxplot = boxplot_protein_fig
+      boxplot_protein_fig
+    } else{
+      db_execution_phos_protn$protein_boxplot = NULL
+    }
+  })
+  
+  generate_protein_heatmap_phos_protn <- reactive({
+    req(input$heatmap_protein_phos_protn)
+    if(input$heatmap_protein_phos_protn){
+      req(input$list_proteins_phos_protn)
+      list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_phos_protn), regex=",")
+      heatmap_protein_fig <- heatmap_selected_proteins(proteome_data = db_execution_phos_protn$normalized_data, list_protein = unlist(list_proteins))$plot
+      db_execution_phos_protn$protein_heatmap = heatmap_protein_fig
+      heatmap_protein_fig
+    } else{
+      db_execution_phos_protn$protein_heatmap = NULL
+    }
+  })
+  
+  generate_mds_peptide_diff_phos_protn <- reactive({
+    req(input$mds_diff_peptide_phos_protn)
+    if(input$mds_diff_peptide_phos_protn){
+      mds_peptide_diff_fig <- mds_differential_analysis_plot(differential_analysis = db_execution_phos_protn$differential_results,
+                                                             proteome_data = db_execution_phos_protn$normalized_data,
+                                                             type = "peptide")$plot
+      db_execution_phos_protn$peptide_differential_MDS = mds_peptide_diff_fig
+      mds_peptide_diff_fig
+    } else{
+      db_execution_phos_protn$peptide_differential_MDS = NULL
+    }
+  })
+  
+  generate_pca_peptide_diff_phos_protn <- reactive({
+    req(input$pca_diff_peptide_phos_protn)
+    if(input$pca_diff_peptide_phos_protn){
+      pca_peptide_diff_fig <- pca_differential_analysis_plot(differential_analysis = db_execution_phos_protn$differential_results,
+                                                             proteome_data = db_execution_phos_protn$normalized_data,
+                                                             type = "peptide")$plot
+      db_execution_phos_protn$peptide_differential_PCA = pca_peptide_diff_fig
+      pca_peptide_diff_fig
+    } else{
+      db_execution_phos_protn$peptide_differential_PCA = NULL
+    }
+  })
+  
+  generate_peptide_diff_barplot_phos_protn <- reactive(function(size_text){
+    req(input$peptide_diff_barplot_phos_protn)
+    if(input$peptide_diff_barplot_phos_protn){
+      ploft_diff_number_pep <- generate_differential_barplots(db_execution_phos_protn$differential_results,
+                                                              data_type="peptide", size_text = size_text)$plot
+      db_execution_phos_protn$peptide_differential_barplot = ploft_diff_number_pep
+      ploft_diff_number_pep
+    } else{
+      db_execution_phos_protn$peptide_differential_barplot = NULL
+    }
+  })
+  
   # PhosProTN_with_prot: Execution pipeline ----
   observeEvent(input$report_proteome_phos_protn, {
     
@@ -3984,7 +4178,7 @@ server <- function(input, output, session) {
               
               ### ----
               # If advance filter
-              if(input$advance_filter){
+              if(input$advance_filter_phos_protn){
                 NA_allow_condition <- input$NA_allow_condition_phos_protn
                 min_peptide_protein <- input$min_peptide_protein_phos_protn
                 impute_algorithm <- input$impute_algorithm_phos_protn
@@ -3999,6 +4193,8 @@ server <- function(input, output, session) {
                   sample_column <- "Sample"
                 }
               }
+              message(input$impute_algorithm_phos_protn)
+              message(impute_algorithm)
               
               # If to batch corrected read column
               if(input$batch_correction_phos_protn){
@@ -4102,184 +4298,217 @@ server <- function(input, output, session) {
       
     })
     
-    output$render_phospho_percentage_plot_phos_protn <- renderUI({ 
-      if(input$phospho_percentage_plot_phos_protn){
-        phospho_percentage <- create_phosphosite_plot(proteome_data = db_execution_phos_protn$proteome_data, 
-                                                      software = input$sw_analyzer_phos_protn)
-        db_execution_phos_protn$phospho_percentage = phospho_percentage$plot
+    output$render_phospho_percentage_plot_phos_protn <- renderUI({
+      if (input$phospho_percentage_plot_phos_protn) {
         tagList(
           tags$h3("Percentage of phosphosite residue"),
-          renderPlot(phospho_percentage$plot, height = 250)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('phospho_percentage_plot_phos_protn')",
+            plotOutput("small_phospho_percentage_plot_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$phospho_percentage = NULL
-      } 
+      }
+    })
+    output$small_phospho_percentage_plot_phos_protn <- renderPlot({
+      generate_phospho_percentage_plot_phos_protn()(6)
     })
     
-    output$render_abundance_plot_phos_protn <- renderUI({ 
-      if(input$abundance_plot_phos_protn){
-        generate_abundance <- generate_abundance_plot(proteome_data = db_execution_phos_protn$proteome_data, 
-                                                      phospho_with_proteome = TRUE)
-        db_execution_phos_protn$generate_abundance = generate_abundance
+    output$render_abundance_plot_phos_protn <- renderUI({
+      if (input$abundance_plot_phos_protn) {
         tagList(
           fluidRow(
             column(
               width = 6,
               tags$h3("Percentage missing values respect detected abundance - Proteomics"),
-              renderPlot(generate_abundance$proteome_plot)
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_phos_protn('abundance_plot_phos_protn_prot')",
+                plotOutput("small_abundance_plot_phos_protn_prot")
+              )
             ),
             column(
               width = 6,
               tags$h3("Percentage missing values respect detected abundance - Phospho-proteomics"),
-              renderPlot(generate_abundance$phospho_plot)
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_phos_protn('abundance_plot_phos_protn_phos')",
+                plotOutput("small_abundance_plot_phos_protn_phos")
+              )
             )
           )
         )
-      } else{
-        db_execution_phos_protn$generate_abundance = NULL
-      } 
+      }
+    })
+    output$small_abundance_plot_phos_protn_prot <- renderPlot({
+      generate_abundance_phos_protn_prot()
+    })
+    output$small_abundance_plot_phos_protn_phos <- renderPlot({
+      generate_abundance_phos_protn_phos()
     })
     
-    output$render_peptide_distribution_phos_protn <- renderUI({ 
-      if(input$peptide_distribution_phos_protn){
-        generate_peptide_distribution <- generate_peptide_distribution_plot(proteome_data = db_execution_phos_protn$proteome_data, 
-                                                                            phospho_with_proteome = TRUE)
-        db_execution_phos_protn$generate_peptide_distribution = generate_peptide_distribution
+    output$render_peptide_distribution_phos_protn <- renderUI({
+      if (input$peptide_distribution_phos_protn) {
         tagList(
+          
           fluidRow(
             column(
               width = 6,
               tags$h3("N° peptides per proteins - Proteomics"),
-              renderPlot(generate_peptide_distribution$proteome_plot)
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_phos_protn('peptide_distribution_plot_phos_protn_prot')",
+                plotOutput("small_peptide_distribution_phos_protn_prot")
+              )
             ),
             column(
               width = 6,
               tags$h3("N° peptides per proteins - Phospho-proteomics"),
-              renderPlot(generate_peptide_distribution$phospho_plot)
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_phos_protn('peptide_distribution_plot_phos_protn_phos')",
+                plotOutput("small_peptide_distribution_phos_protn_phos")
+              )
             )
           )
         )
-      } else{
-        db_execution_phos_protn$generate_peptide_distribution = NULL
-      } 
+      }
+    })
+    output$small_peptide_distribution_phos_protn_prot <- renderPlot({
+      generate_peptide_distribution_phos_protn_prot()
+    })
+    output$small_peptide_distribution_phos_protn_phos <- renderPlot({
+      generate_peptide_distribution_phos_protn_phos()
     })
     
-    output$render_protein_violin_phos_protn <- renderUI({ 
-      if(input$protein_violin_phos_protn){
-        generate_protein_violin <- plot_abundance_distribution(proteome_data = db_execution_phos_protn$normalized_data,
-                                                               type = "protein")
-        db_execution_phos_protn$protein_abundance_distribution = generate_protein_violin$plot
+    output$render_protein_violin_phos_protn <- renderUI({
+      if (input$protein_violin_phos_protn) {
         tagList(
           tags$h3("Distribution protein abundance"),
-          renderPlot(generate_protein_violin$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('protein_violin_plot_phos_protn')",
+            plotOutput("small_protein_violin_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$protein_abundance_distribution = NULL
-      } 
+      }
+    })
+    output$small_protein_violin_phos_protn <- renderPlot({
+      generate_protein_violin_phos_protn()
     })
     
-    output$render_peptide_violin_phos_protn <- renderUI({ 
-      if(input$peptide_violin_phos_protn){
-        generate_peptide_violin <- plot_abundance_distribution(proteome_data = db_execution_phos_protn$normalized_data,
-                                                               type = "peptide")
-        db_execution_phos_protn$peptide_abundance_distirbution = generate_peptide_violin$plot
+    output$render_peptide_violin_phos_protn <- renderUI({
+      if (input$peptide_violin_phos_protn) {
         tagList(
           tags$h3("Distribution peptide abundance"),
-          renderPlot(generate_peptide_violin$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('peptide_violin_plot_phos_protn')",
+            plotOutput("small_peptide_violin_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$peptide_abundance_distirbution = NULL
-      } 
+      }
+    })
+    output$small_peptide_violin_phos_protn <- renderPlot({
+      generate_peptide_violin_phos_protn()
     })
     
-    output$render_mds_protein_phos_protn <- renderUI({ 
-      if(input$mds_protein_phos_protn){
-        res_plot <- mds_plot(proteome_data = db_execution_phos_protn$normalized_data,
-                             type = "protein")
-        db_execution_phos_protn$protein_MDS = res_plot$plot
+    output$render_mds_protein_phos_protn <- renderUI({
+      if (input$mds_protein_phos_protn) {
         tagList(
           tags$h3("MDS based on proteins"),
-          renderPlot(res_plot$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('mds_protein_phos_protn')",
+            plotOutput("small_mds_protein_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$protein_MDS = NULL
-      } 
+      }
+    })
+    output$small_mds_protein_phos_protn <- renderPlot({
+      generate_mds_protein_phos_protn()
     })
     
-    output$render_mds_peptide_phos_protn <- renderUI({ 
-      if(input$mds_peptide_phos_protn){
-        res_plot <- mds_plot(proteome_data = db_execution_phos_protn$normalized_data,
-                             type = "peptide")
-        db_execution_phos_protn$peptide_MDS = res_plot$plot
+    output$render_mds_peptide_phos_protn <- renderUI({
+      if (input$mds_peptide_phos_protn) {
         tagList(
           tags$h3("MDS based on peptides"),
-          renderPlot(res_plot$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('mds_peptide_phos_protn')",
+            plotOutput("small_mds_peptide_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$peptide_MDS = NULL
-      } 
+      }
+    })
+    output$small_mds_peptide_phos_protn <- renderPlot({
+      generate_mds_peptide_phos_protn()
     })
     
-    output$render_pca_protein_phos_protn <- renderUI({ 
-      if(input$pca_protein_phos_protn){
-        res_plot <- pca_plot(proteome_data = db_execution_phos_protn$normalized_data,
-                             type = "protein")
-        db_execution_phos_protn$protein_PCA = res_plot$plot
+    output$render_pca_protein_phos_protn <- renderUI({
+      if (input$pca_protein_phos_protn) {
         tagList(
           tags$h3("PCA based on proteins"),
-          renderPlot(res_plot$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('pca_protein_phos_protn')",
+            plotOutput("small_pca_protein_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$protein_PCA = NULL
-      } 
+      }
+    })
+    output$small_pca_protein_phos_protn <- renderPlot({
+      generate_pca_protein_phos_protn()
     })
     
-    output$render_pca_peptide_phos_protn <- renderUI({ 
-      if(input$pca_peptide_phos_protn){
-        res_plot <- pca_plot(proteome_data = db_execution_phos_protn$normalized_data,
-                             type = "peptide")
-        db_execution_phos_protn$peptide_PCA = res_plot$plot
+    output$render_pca_peptide_phos_protn <- renderUI({
+      if (input$pca_peptide_phos_protn) {
         tagList(
           tags$h3("PCA based on peptides"),
-          renderPlot(res_plot$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('pca_peptide_phos_protn')",
+            plotOutput("small_pca_peptide_phos_protn")
+          )
         )
-      }  else{
-        db_execution_phos_protn$peptide_PCA = NULL
       }
+    })
+    output$small_pca_peptide_phos_protn <- renderPlot({
+      generate_pca_peptide_phos_protn()
     })
     
     output$render_protein_boxplot_phos_protn <- renderUI({
-      if(input$boxplot_protein_phos_protn){
+      if (input$boxplot_protein_phos_protn) {
         req(input$list_proteins_phos_protn)
-        list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_phos_protn), regex=",")
-        prot_boxplot <- plot_selected_proteins(proteome_data = db_execution_phos_protn$normalized_data,
-                                               list_protein = unlist(list_proteins))
-        db_execution_phos_protn$protein_boxplot = prot_boxplot$plot
-        
         tagList(
           tags$h3("Boxplot selected proteins"),
-          renderPlot(prot_boxplot$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('protein_boxplot_phos_protn')",
+            plotOutput("small_protein_boxplot_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$protein_boxplot = NULL
       }
+    })
+    output$small_protein_boxplot_phos_protn <- renderPlot({
+      generate_protein_boxplot_phos_protn()
     })
     
     output$render_protein_heatmap_phos_protn <- renderUI({
-      if(input$heatmap_protein_phos_protn){
+      if (input$heatmap_protein_phos_protn) {
         req(input$list_proteins_phos_protn)
-        list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_phos_protn), regex=",")
-        prot_boxplot <- heatmap_selected_proteins(proteome_data = db_execution_phos_protn$normalized_data,
-                                                  list_protein = unlist(list_proteins))
-        db_execution_phos_protn$protein_heatmap = prot_boxplot$plot
-        
         tagList(
           tags$h3("Heatmap selected proteins"),
-          renderPlot(prot_boxplot$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('protein_heatmap_phos_protn')",
+            plotOutput("small_protein_heatmap_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$protein_heatmap = NULL
       }
+    })
+    output$small_protein_heatmap_phos_protn <- renderPlot({
+      generate_protein_heatmap_phos_protn()
     })
   })
   
@@ -4314,7 +4543,6 @@ server <- function(input, output, session) {
                                                                      pval_thr=as.double(input$pval_thr_phos_protn),
                                                                      signal_thr=0)
           ll<-reactiveValuesToList(db_execution_phos_protn)
-          save(ll, file = "tmp.RData")
           db_execution_phos_protn$formule_contrast <- db_execution_phos_protn$formule_contrast[names(db_execution_phos_protn$formule_contrast) %in% unique((db_execution_phos_protn$differential_results$peptide_results_long$comp))]
         })
         
@@ -4330,17 +4558,19 @@ server <- function(input, output, session) {
     })
     
     output$render_peptide_diff_barplot_phos_protn <- renderUI({
-      if(input$peptide_diff_barplot_phos_protn){
-        ploft_diff_number_pep <- generate_differential_barplots(db_execution_phos_protn$differential_results,
-                                                                data_type="peptide")
-        db_execution_phos_protn$peptide_differential_barplot = ploft_diff_number_pep$plot
+      if (input$peptide_diff_barplot_phos_protn) {
         tagList(
           tags$h3("N° differential phospho-peptides"),
-          renderPlot(ploft_diff_number_pep$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('peptide_diff_barplot_phos_protn')",
+            plotOutput("small_peptide_diff_barplot_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$peptide_differential_barplot = NULL
       }
+    })
+    output$small_peptide_diff_barplot_phos_protn <- renderPlot({
+      generate_peptide_diff_barplot_phos_protn()(8)
     })
     
     output$render_peptide_vulcano_phos_protn <- renderUI({
@@ -4387,33 +4617,35 @@ server <- function(input, output, session) {
     })
     
     output$render_mds_peptide_diff_phos_protn <- renderUI({
-      if(input$mds_diff_peptide_phos_protn){
-        ploft_diff_number_pep <- mds_differential_analysis_plot(differential_analysis = db_execution_phos_protn$differential_results,
-                                                                proteome_data = db_execution_phos_protn$normalized_data,
-                                                                type = "peptide")
-        db_execution_phos_protn$peptide_differential_MDS = ploft_diff_number_pep$plot
+      if (input$mds_diff_peptide_phos_protn) {
         tagList(
           tags$h3("MDS based on differential phospho-peptides"),
-          renderPlot(ploft_diff_number_pep$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('mds_peptide_diff_phos_protn')",
+            plotOutput("small_mds_peptide_diff_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$peptide_differential_MDS = NULL
       }
+    })
+    output$small_mds_peptide_diff_phos_protn <- renderPlot({
+      generate_mds_peptide_diff_phos_protn()
     })
     
     output$render_pca_peptide_diff_phos_protn <- renderUI({
-      if(input$pca_diff_peptide_phos_protn){
-        ploft_diff_number_pep <- pca_differential_analysis_plot(differential_analysis = db_execution_phos_protn$differential_results,
-                                                                proteome_data = db_execution_phos_protn$normalized_data,
-                                                                type = "peptide")
-        db_execution_phos_protn$peptide_differential_PCA = ploft_diff_number_pep$plot
+      if (input$pca_diff_peptide_phos_protn) {
         tagList(
           tags$h3("PCA based on differential phospho-peptides"),
-          renderPlot(ploft_diff_number_pep$plot)
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('pca_peptide_diff_phos_protn')",
+            plotOutput("small_pca_peptide_diff_phos_protn")
+          )
         )
-      } else{
-        db_execution_phos_protn$peptide_differential_PCA = NULL
       }
+    })
+    output$small_pca_peptide_diff_phos_protn <- renderPlot({
+      generate_pca_peptide_diff_phos_protn()
     })
     
   })
@@ -4934,23 +5166,22 @@ server <- function(input, output, session) {
   output$fullscreen_plot_phos_protn <- renderPlot({
     req(selected_plot_phos_protn())
     switch(selected_plot_phos_protn(),
-           "phospho_percentage_plot_phos_protn" = generate_phospho_percentage_plot_phos_protn() + ggtitle("Percentage of phosphosite residue"),
-           "abundance_plot_phos_protn" = generate_abundance_phos_protn() + ggtitle("Percentage missing values respect detected abundance"),
-           "peptide_distribution_plot_phos_protn" = generate_peptide_distribution_phos_protn() + ggtitle("N° peptides per proteins"),
-           "protein_violin_plot_phos_protn" = generate_protein_violin_phos_protn() + ggtitle("Distribution peptide abundance"),
-           "peptide_violin_plot_phos_protn" = generate_peptide_violin_phos_protn() + ggtitle("Distribution peptide abundance"),
-           "mds_protein_phos_protn" = generate_mds_protein_phos_protn() + ggtitle("MDS based on protein"),
-           "mds_peptide_phos_protn" = generate_mds_peptide_phos_protn() + ggtitle("MDS based on peptides"),
-           "pca_protein_phos_protn" = generate_pca_protein_phos_protn() + ggtitle("PCA based on protein"),
-           "pca_peptide_phos_protn" = generate_pca_peptide_phos_protn() + ggtitle("PCA based on peptides"),
-           "protein_boxplot_phos_protn" = generate_protein_boxplot_phos_protn() + ggtitle("Boxplot selected proteins"),
-           "protein_heatmap_phos_protn" = generate_protein_heatmap_phos_protn() + ggtitle("Heatmap selected proteins"),
-           "protein_diff_barplot_phos_protn" = generate_protein_diff_barplot_phos_protn() + ggtitle("N° differential proteins"),
-           "peptide_diff_barplot_phos_protn" = generate_peptide_diff_barplot_phos_protn() + ggtitle("N° differential peptides"),
-           "mds_protein_diff_phos_protn" = generate_mds_protein_diff_phos_protn() + ggtitle("MDS based on differential protein"),
-           "mds_peptide_diff_phos_protn" = generate_mds_peptide_diff_phos_protn() + ggtitle("MDS based on differential peptides"),
-           "pca_protein_diff_phos_protn" = generate_pca_protein_diff_phos_protn() + ggtitle("PCA based on differential protein"),
-           "pca_peptide_diff_phos_protn" = generate_pca_peptide_diff_phos_protn() + ggtitle("PCA based on differential peptides"),
+           "phospho_percentage_plot_phos_protn" = generate_phospho_percentage_plot_phos_protn()(size_text=8) + ggtitle("Percentage of phosphosite residue")+theme(text=element_text(size=25), axis.text.y = element_text(size = 25)),
+           "abundance_plot_phos_protn_prot" = generate_abundance_phos_protn_prot() + ggtitle("Percentage missing values respect detected abundance - Proteomics")+theme(text=element_text(size=25)),
+           "abundance_plot_phos_protn_phos" = generate_abundance_phos_protn_phos() + ggtitle("Percentage missing values respect detected abundance - Phospho-proteomics")+theme(text=element_text(size=25)),
+           "peptide_distribution_plot_phos_protn_prot" = generate_peptide_distribution_phos_protn_prot() + ggtitle("N° peptides per proteins - Proteomics")+theme(text=element_text(size=25)),
+           "peptide_distribution_plot_phos_protn_phos" = generate_peptide_distribution_phos_protn_phos() + ggtitle("N° peptides per proteins - Phospho-proteomics")+theme(text=element_text(size=25)),
+           "protein_violin_plot_phos_protn" = generate_protein_violin_phos_protn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
+           "peptide_violin_plot_phos_protn" = generate_peptide_violin_phos_protn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
+           "mds_protein_phos_protn" = generate_mds_protein_phos_protn() + ggtitle("MDS based on protein")+theme(text=element_text(size=25)),
+           "mds_peptide_phos_protn" = generate_mds_peptide_phos_protn() + ggtitle("MDS based on peptides")+theme(text=element_text(size=25)),
+           "pca_protein_phos_protn" = generate_pca_protein_phos_protn() + ggtitle("PCA based on protein")+theme(text=element_text(size=25)),
+           "pca_peptide_phos_protn" = generate_pca_peptide_phos_protn() + ggtitle("PCA based on peptides")+theme(text=element_text(size=25)),
+           "protein_boxplot_phos_protn" = generate_protein_boxplot_phos_protn() + ggtitle("Boxplot selected proteins")+theme(text=element_text(size=25)),
+           "protein_heatmap_phos_protn" = generate_protein_heatmap_phos_protn() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
+           "peptide_diff_barplot_phos_protn" = generate_peptide_diff_barplot_phos_protn()(10) + ggtitle("N° differential phospho-peptides")+theme(text=element_text(size=25)),
+           "mds_peptide_diff_phos_protn" = generate_mds_peptide_diff_phos_protn() + ggtitle("MDS based on differential phospho-peptides")+theme(text=element_text(size=25)),
+           "pca_peptide_diff_phos_protn" = generate_pca_peptide_diff_phos_protn() + ggtitle("PCA based on differential phospho-peptides")+theme(text=element_text(size=25)),
            # default fallback:
            NULL
     )
@@ -5298,11 +5529,11 @@ server <- function(input, output, session) {
     }
   })
   
-  generate_protein_diff_barplot_interactn <- reactive({
+  generate_protein_diff_barplot_interactn <- reactive(function(size_text){
     req(input$protein_diff_barplot_interactn)
     if(input$protein_diff_barplot_interactn){
       ploft_diff_number <- generate_differential_barplots(db_execution_interactn$differential_results,
-                                                          data_type="protein")$plot
+                                                          data_type="protein", size_text=size_text)$plot
       db_execution_interactn$protein_differential_barplot = ploft_diff_number
       ploft_diff_number
     } else{
@@ -5310,11 +5541,11 @@ server <- function(input, output, session) {
     }
   })
   
-  generate_peptide_diff_barplot_interactn <- reactive({
+  generate_peptide_diff_barplot_interactn <- reactive(function(size_text){
     req(input$peptide_diff_barplot_interactn)
     if(input$peptide_diff_barplot_interactn){
       ploft_diff_number_pep <- generate_differential_barplots(db_execution_interactn$differential_results,
-                                                              data_type="peptide")$plot
+                                                              data_type="peptide", size_text=size_text)$plot
       db_execution_interactn$peptide_differential_barplot = ploft_diff_number_pep
       ploft_diff_number_pep
     } else{
@@ -5727,7 +5958,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_protein_diff_barplot_interactn <- renderPlot({
-      generate_protein_diff_barplot_interactn()
+      generate_protein_diff_barplot_interactn()(6)
     })
     
     output$render_peptide_diff_barplot_interactn <- renderUI({
@@ -5743,7 +5974,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_peptide_diff_barplot_interactn <- renderPlot({
-      generate_peptide_diff_barplot_interactn()
+      generate_peptide_diff_barplot_interactn()(6)
     })
     
     output$render_protein_vulcano_interactn <- renderUI({
@@ -6348,22 +6579,22 @@ server <- function(input, output, session) {
   output$fullscreen_plot_interactn <- renderPlot({
     req(selected_plot_interactn())
     switch(selected_plot_interactn(),
-           "abundance_plot_interactn" = generate_abundance_interactn() + ggtitle("Percentage missing values respect detected abundance"),
-           "peptide_distribution_plot_interactn" = generate_peptide_distribution_interactn() + ggtitle("N° peptides per proteins"),
-           "protein_violin_plot_interactn" = generate_protein_violin_interactn() + ggtitle("Distribution peptide abundance"),
-           "peptide_violin_plot_interactn" = generate_peptide_violin_interactn() + ggtitle("Distribution peptide abundance"),
-           "mds_protein_interactn" = generate_mds_protein_interactn() + ggtitle("MDS based on protein"),
-           "mds_peptide_interactn" = generate_mds_peptide_interactn() + ggtitle("MDS based on peptides"),
-           "pca_protein_interactn" = generate_pca_protein_interactn() + ggtitle("PCA based on protein"),
-           "pca_peptide_interactn" = generate_pca_peptide_interactn() + ggtitle("PCA based on peptides"),
-           "protein_boxplot_interactn" = generate_protein_boxplot_interactn() + ggtitle("Boxplot selected proteins"),
-           "protein_heatmap_interactn" = generate_protein_heatmap_interactn() + ggtitle("Heatmap selected proteins"),
-           "protein_diff_barplot_interactn" = generate_protein_diff_barplot_interactn() + ggtitle("N° differential proteins"),
-           "peptide_diff_barplot_interactn" = generate_peptide_diff_barplot_interactn() + ggtitle("N° differential peptides"),
-           "mds_protein_diff_interactn" = generate_mds_protein_diff_interactn() + ggtitle("MDS based on differential protein"),
-           "mds_peptide_diff_interactn" = generate_mds_peptide_diff_interactn() + ggtitle("MDS based on differential peptides"),
-           "pca_protein_diff_interactn" = generate_pca_protein_diff_interactn() + ggtitle("PCA based on differential protein"),
-           "pca_peptide_diff_interactn" = generate_pca_peptide_diff_interactn() + ggtitle("PCA based on differential peptides"),
+           "abundance_plot_interactn" = generate_abundance_interactn() + ggtitle("Percentage missing values respect detected abundance")+theme(text=element_text(size=25)),
+           "peptide_distribution_plot_interactn" = generate_peptide_distribution_interactn() + ggtitle("N° peptides per proteins")+theme(text=element_text(size=25)),
+           "protein_violin_plot_interactn" = generate_protein_violin_interactn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
+           "peptide_violin_plot_interactn" = generate_peptide_violin_interactn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
+           "mds_protein_interactn" = generate_mds_protein_interactn() + ggtitle("MDS based on protein")+theme(text=element_text(size=25)),
+           "mds_peptide_interactn" = generate_mds_peptide_interactn() + ggtitle("MDS based on peptides")+theme(text=element_text(size=25)),
+           "pca_protein_interactn" = generate_pca_protein_interactn() + ggtitle("PCA based on protein")+theme(text=element_text(size=25)),
+           "pca_peptide_interactn" = generate_pca_peptide_interactn() + ggtitle("PCA based on peptides")+theme(text=element_text(size=25)),
+           "protein_boxplot_interactn" = generate_protein_boxplot_interactn() + ggtitle("Boxplot selected proteins")+theme(text=element_text(size=25)),
+           "protein_heatmap_interactn" = generate_protein_heatmap_interactn() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
+           "protein_diff_barplot_interactn" = generate_protein_diff_barplot_interactn()(10) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
+           "peptide_diff_barplot_interactn" = generate_peptide_diff_barplot_interactn()(10) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
+           "mds_protein_diff_interactn" = generate_mds_protein_diff_interactn() + ggtitle("MDS based on differential protein")+theme(text=element_text(size=25)),
+           "mds_peptide_diff_interactn" = generate_mds_peptide_diff_interactn() + ggtitle("MDS based on differential peptides")+theme(text=element_text(size=25)),
+           "pca_protein_diff_interactn" = generate_pca_protein_diff_interactn() + ggtitle("PCA based on differential protein")+theme(text=element_text(size=25)),
+           "pca_peptide_diff_interactn" = generate_pca_peptide_diff_interactn() + ggtitle("PCA based on differential peptides")+theme(text=element_text(size=25)),
            # default fallback:
            NULL
     )

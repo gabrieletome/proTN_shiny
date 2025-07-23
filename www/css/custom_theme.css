@@ -510,7 +510,7 @@ div.modal-footer button.btn {
     top: 0; left: 0;
     width: 100vw;
     height: 100vh;
-    background: white;
+    background: #000000bf;
     z-index: 9999;
     visibility: hidden;
     opacity: 0;
@@ -530,7 +530,7 @@ div.modal-footer button.btn {
 }
 #fullscreen_plot, 
 #fullscreen_plot_phos, 
-#fullscreen_plot_phos-protn, 
+#fullscreen_plot_phos_protn, 
 #fullscreen_plot_interactn {
     position: absolute;
     top: 50%;
@@ -541,7 +541,8 @@ div.modal-footer button.btn {
     position: absolute;
     top: 10px;
     right: 40px;
-    font-size: 30px;
+    font-size: 70px;
+    color: white;
     cursor: pointer;
     z-index: 10000;
 }
