@@ -15,6 +15,7 @@ params:
   readPD_files: NA
   readMQ_files: NA
   readMQ_prot_files: NA
+  impute_algorithm: "phosr"
   db_execution: NA
   file_input: NA
   batch_corr_exe: NA
@@ -47,6 +48,7 @@ description <- params$description
 readPD_files <- params$readPD_files
 readMQ_files <- params$readMQ_files
 readMQ_prot_files <- params$readMQ_prot_files
+impute_algorithm <- params$impute_algorithm
 db_execution <- params$db_execution
 file_input <- params$file_input
 batch_corr_exe <- params$batch_corr_exe
@@ -146,16 +148,7 @@ text_readme<- c("Description of the output files")
 ```{r print_settings, warning=FALSE, echo=F, message=FALSE, results='asis'}
 cat(" \n \n")
 #Print summary of filter and contrast design
-if(readPD_files){
-  cat("**Source files:** Proteome Discoverer")
-  cat(" \n")
-} else if(readMQ_files | readMQ_prot_files){
-  cat("**Source files:** MaxQuant")
-  cat(" \n")
-} else if(readTMT_files){
-  cat("**Source files:** TMT with Protein Discoverer")
-  cat(" \n")
-}
+cat(paste0("- Imputation algorithm: ",impute_algorithm," "))
 cat(" \n \n")
 if(!is.null(batch_corr_exe)){
   cat("**Pipeline** \n ")
