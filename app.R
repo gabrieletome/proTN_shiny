@@ -1,4 +1,4 @@
-# ProTN v0.1.4: an integrative pipeline for complete analysis of proteomics    # 
+# ProTN v0.2.1: an integrative pipeline for complete analysis of proteomics    # 
 # data from mass spectrometry                                                  #
 # Laboratory of RNA and Disease Data Science, University of Trento             #
 # Developer: Gabriele Tomè                                                     #
@@ -43,10 +43,6 @@ if (!dir.exists(file.path(tmpdir, "ProTN_shiny"))){
 Sys.setenv(TMPDIR=file.path(tmpdir, "ProTN_shiny"))
 unlink(tempdir(), recursive = T)
 tempdir(check = T)
-#Javascript code to disable click when is running the app
-# jsCode <- "shinyjs.pageDisable = function(params){
-#               $('body').css('pointer-events', params);
-#             };"
 
 jsCode_STRINGdb <- "
     shinyjs.loadStringData = function(params) {
@@ -105,8 +101,7 @@ ui <- tagList(
       includeScript("www/js/materialize.js"),
       includeScript("www/js/full_screen_plot.js"),
       extendShinyjs(text = jsCode_STRINGdb, functions = c("loadStringData")),
-      # extendShinyjs(text = jsCode, functions = c("pageDisable")),
-      
+
       #Busy panel when app is running
       conditionalPanel(
         condition = "$(\'html\').hasClass(\'shiny-busy\')",
@@ -303,11 +298,8 @@ ui <- tagList(
                 checkboxInput("phospho_percentage_plot_phos", "% phosphorylated site", TRUE),
                 checkboxInput("abundance_plot_phos", "% missing values", TRUE),
                 checkboxInput("peptide_distribution_phos", "N° peptides per protein", TRUE),
-                # checkboxInput("protein_violin_phos", "Distribution abundance proteins", FALSE),
                 checkboxInput("peptide_violin_phos", "Distribution abundance peptides", FALSE),
-                # checkboxInput("mds_protein_phos", "MDS based on protein", FALSE),
                 checkboxInput("mds_peptide_phos", "MDS based on peptide", FALSE),
-                # checkboxInput("pca_protein_phos", "PCA based on protein", FALSE),
                 checkboxInput("pca_peptide_phos", "PCA based on peptide", TRUE),
                 checkboxInput("boxplot_protein_phos", "Boxplot selected proteins", FALSE),
                 checkboxInput("heatmap_protein_phos", "Heatmap selected proteins", FALSE),
@@ -334,30 +326,18 @@ ui <- tagList(
                   )
                 ),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   # uiOutput("render_protein_violin_phos")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_peptide_violin_phos")
                   )
                 ),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   # uiOutput("render_mds_protein_phos")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_mds_peptide_phos")
                   )
                 ),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   uiOutput("render_pca_protein_phos")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_pca_peptide_phos")
@@ -366,35 +346,21 @@ ui <- tagList(
                 uiOutput("render_protein_boxplot_phos"),
                 uiOutput("render_protein_heatmap_phos"),
                 uiOutput("render_differential_analysis_phos"),
-                # uiOutput("render_protein_diff_table_phos"),
                 uiOutput("render_peptide_diff_table_phos"),
-                # uiOutput("render_protein_diff_barplot_phos"),
                 uiOutput("render_peptide_diff_barplot_phos"),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                    # uiOutput("render_protein_vulcano_phos")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_peptide_vulcano_phos")
                   )
                 ),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   uiOutput("render_mds_protein_diff_phos")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_mds_peptide_diff_phos")
                   )
                 ),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   uiOutput("render_pca_protein_diff_phos")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_pca_peptide_diff_phos")
@@ -477,30 +443,18 @@ ui <- tagList(
                 uiOutput("render_abundance_plot_phos_protn"),
                 uiOutput("render_peptide_distribution_phos_protn"),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   uiOutput("render_protein_violin_phos_protn")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_peptide_violin_phos_protn")
                   )
                 ),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   uiOutput("render_mds_protein_phos_protn")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_mds_peptide_phos_protn")
                   )
                 ),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   uiOutput("render_pca_protein_phos_protn")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_pca_peptide_phos_protn")
@@ -509,35 +463,21 @@ ui <- tagList(
                 uiOutput("render_protein_boxplot_phos_protn"),
                 uiOutput("render_protein_heatmap_phos_protn"),
                 uiOutput("render_differential_analysis_phos_protn"),
-                # uiOutput("render_protein_diff_table_phos_protn"),
                 uiOutput("render_peptide_diff_table_phos_protn"),
-                # uiOutput("render_protein_diff_barplot_phos_protn"),
                 uiOutput("render_peptide_diff_barplot_phos_protn"),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   uiOutput("render_protein_vulcano_phos_protn")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_peptide_vulcano_phos_protn")
                   )
                 ),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   uiOutput("render_mds_protein_diff_phos_protn")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_mds_peptide_diff_phos_protn")
                   )
                 ),
                 fluidRow(
-                  # column(
-                  #   width = 6,
-                  #   uiOutput("render_pca_protein_diff_phos_protn")
-                  # ),
                   column(
                     width = 10,
                     uiOutput("render_pca_peptide_diff_phos_protn")
@@ -928,7 +868,6 @@ server <- function(input, output, session) {
         tags$label("Write in each line a different comparison"),
         tags$label("(right click to add row)"),
         rHandsontableOutput('render_formule_contrast_table'),
-        # textAreaInput("formule_contrast", "Write in each line a different comparison", rows = 4),
         textInput("FC_thr", "Fold change threshold for significance:",value = 0.5),
         radioButtons("pval_fdr", "Select which p.value use:", 
                      choiceNames = c("Adj.P.Val", "P.Val"),
@@ -963,7 +902,6 @@ server <- function(input, output, session) {
   output$enrichment_params_ui <- renderUI({ 
     if(input$enrichment_analysis){
       tagList(
-        # radioButtons("enrichR_universe", "Execute enrichment of the whole Universe", c("TRUE", "FALSE"), inline = TRUE, selected = FALSE),
         selectizeInput("DB_enrichment", "DB to analyse:",
                        choices = lapply(split(read_tsv("data/dbs_enrichR.txt", col_names = FALSE)$X1,
                                               read_tsv("data/dbs_enrichR.txt", col_names = FALSE)[,2]), as.list),
@@ -1319,7 +1257,6 @@ server <- function(input, output, session) {
                 },
                 message = function(m) {
                   msg_read_function <<- append(msg_read_function, conditionMessage(m))
-                  # shinyjs::html(id = "messagge_read_phos_protn", html = paste0("<p>",m$message,"</p>"), add = TRUE)
                   progress=progress+0.05
                   setProgress(value = progress)
                 }
@@ -1347,8 +1284,6 @@ server <- function(input, output, session) {
                 fluidRow(
                   downloadButton("download_proteome", "Download results (ZIP file)", width = "240px")
                 ),
-                # html(html = paste0("<p>",msg_read_function,"</p><br>"), id = "messagge_read"),
-                # shinyjs::html(id = "messagge_read", html = paste0("<p>",m$message,"</p>"), add = TRUE),
                 DT::DTOutput("c_anno")
               )
             })
@@ -1596,7 +1531,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_protein_diff_barplot <- renderPlot({
-      generate_protein_diff_barplot()(6)
+      generate_protein_diff_barplot()(3)
     })
     
     output$render_peptide_diff_barplot <- renderUI({
@@ -1612,7 +1547,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_peptide_diff_barplot <- renderPlot({
-      generate_peptide_diff_barplot()(6)
+      generate_peptide_diff_barplot()(3)
     })
     
     output$render_protein_vulcano <- renderUI({
@@ -1649,7 +1584,6 @@ server <- function(input, output, session) {
         tagList(
           tags$h3("Vulcano Plot differential proteins"),
           do.call(tabsetPanel, c(list(id = "dynamic_tabs_vulcano_protein"), tabs))
-          # renderPlotly(generate_volcano_plots_protein[[names(db_execution$formule_contrast)[[1]]]])
         )
         
       }else{
@@ -1767,7 +1701,6 @@ server <- function(input, output, session) {
   observeEvent(input$execute_enrichment_analysis_btn, {
     output$render_enrichement_analysis <- renderUI({
       isolate({
-        # TODO: gallery of plots
         db_execution$enrichmnent_results <- perform_enrichment_analysis(differential_results = db_execution$differential_results,
                                                           enrichR_custom_DB = T,
                                                           enrich_filter_DBs=input$DB_enrichment,    
@@ -1851,7 +1784,7 @@ server <- function(input, output, session) {
     content = function(file) {
       tryCatch(
         {
-          withProgress(message = "Prepraring files to download, please wait!", {
+          withProgress(message = "Preparing files to download, please wait!", {
             #Zip the dir resutls
             message(session$token)
             message(db_execution$dirOutput)
@@ -2047,7 +1980,7 @@ server <- function(input, output, session) {
             if(!is.null(db_execution$protein_differential_barplot)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_differential_barplot.pdf"), 
                      plot = db_execution$protein_differential_barplot, 
-                     create.dir = T, width = 8, height = 4)
+                     create.dir = T,width = 17, height = 6)
             } else if("protein_differential_barplot.pdf" %in% list.files(paste0(db_execution$dirOutput,"pics"))){
               message("Removing old rendered plot")
               system(paste0("rm ",db_execution$dirOutput,"pics/protein_differential_barplot.pdf"))
@@ -2057,7 +1990,7 @@ server <- function(input, output, session) {
             if(!is.null(db_execution$peptide_differential_barplot)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_differential_barplot.pdf"), 
                      plot = db_execution$peptide_differential_barplot, 
-                     create.dir = T, width = 8, height = 4)
+                     create.dir = T, width = 17, height = 6)
             } else if("peptide_differential_barplot.pdf" %in% list.files(paste0(db_execution$dirOutput,"pics"))){
               message("Removing old rendered plot")
               system(paste0("rm ",db_execution$dirOutput,"pics/peptide_differential_barplot.pdf"))
@@ -2260,8 +2193,8 @@ server <- function(input, output, session) {
            "pca_peptide" = generate_pca_peptide() + ggtitle("PCA based on peptides")+theme(text=element_text(size=25)),
            "protein_boxplot" = generate_protein_boxplot() + ggtitle("Boxplot selected proteins")+theme(text=element_text(size=25)),
            "protein_heatmap" = generate_protein_heatmap() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
-           "protein_diff_barplot" = generate_protein_diff_barplot()(10) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
-           "peptide_diff_barplot" = generate_peptide_diff_barplot()(10) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
+           "protein_diff_barplot" = generate_protein_diff_barplot()(8) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
+           "peptide_diff_barplot" = generate_peptide_diff_barplot()(8) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
            "mds_protein_diff" = generate_mds_protein_diff() + ggtitle("MDS based on differential protein")+theme(text=element_text(size=25)),
            "mds_peptide_diff" = generate_mds_peptide_diff() + ggtitle("MDS based on differential peptides")+theme(text=element_text(size=25)),
            "pca_protein_diff" = generate_pca_protein_diff() + ggtitle("PCA based on differential protein")+theme(text=element_text(size=25)),
@@ -2681,7 +2614,7 @@ server <- function(input, output, session) {
               #Save folder for the download
               readr::write_csv(data.frame("session"=session$token,
                                           "outdir"=dirOutput_Server),
-                               file = paste0(tempdir(),"/outdir_log_ProTN.log"), append = T)
+                               file = paste0(tempdir(),"/outdir_log_PhosProTN.log"), append = T)
               
               
               #Read parameter and execution
@@ -3068,7 +3001,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_peptide_diff_barplot_phos <- renderPlot({
-      generate_peptide_diff_barplot_phos()(4,zoom=F)
+      generate_peptide_diff_barplot_phos()(3,zoom=F)
     })
     
     # output$render_protein_vulcano_phos <- renderUI({
@@ -3353,7 +3286,7 @@ server <- function(input, output, session) {
     content = function(file) {
       tryCatch(
         {
-          withProgress(message = "Prepraring files to download, please wait!", {
+          withProgress(message = "Preparing files to download, please wait!", {
             #Zip the dir resutls
             message(session$token)
             message(db_execution_phos$dirOutput)
@@ -3551,7 +3484,7 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_phos$peptide_differential_barplot)){
               ggsave(filename = paste0(db_execution_phos$dirOutput,"pics/peptide_differential_barplot.pdf"), 
                      plot = db_execution_phos$peptide_differential_barplot, 
-                     create.dir = T, width = 8, height = 4)
+                     create.dir = T, width = 17, height = 6)
             } else if("peptide_differential_barplot.pdf" %in% list.files(paste0(db_execution_phos$dirOutput,"pics"))){
               message("Removing old rendered plot")
               system(paste0("rm ",db_execution_phos$dirOutput,"pics/peptide_differential_barplot.pdf"))
@@ -3739,7 +3672,7 @@ server <- function(input, output, session) {
            "protein_boxplot_phos" = generate_protein_boxplot_phos() + ggtitle("Boxplot selected proteins")+theme(text=element_text(size=25)),
            "protein_heatmap_phos" = generate_protein_heatmap_phos() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
            # "protein_diff_barplot_phos" = generate_protein_diff_barplot_phos()(10) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
-           "peptide_diff_barplot_phos" = generate_peptide_diff_barplot_phos()(10,zoom=T) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
+           "peptide_diff_barplot_phos" = generate_peptide_diff_barplot_phos()(8,zoom=T) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
            # "mds_protein_diff_phos" = generate_mds_protein_diff_phos() + ggtitle("MDS based on differential protein")+theme(text=element_text(size=25)),
            "mds_peptide_diff_phos" = generate_mds_peptide_diff_phos() + ggtitle("MDS based on differential peptides")+theme(text=element_text(size=25)),
            # "pca_protein_diff_phos" = generate_pca_protein_diff_phos() + ggtitle("PCA based on differential protein")+theme(text=element_text(size=25)),
@@ -4578,7 +4511,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_peptide_diff_barplot_phos_protn <- renderPlot({
-      generate_peptide_diff_barplot_phos_protn()(4, zoom=F)
+      generate_peptide_diff_barplot_phos_protn()(3, zoom=F)
     })
     
     output$render_peptide_vulcano_phos_protn <- renderUI({
@@ -4792,7 +4725,7 @@ server <- function(input, output, session) {
     content = function(file) {
       tryCatch(
         {
-          withProgress(message = "Prepraring files to download, please wait!", {
+          withProgress(message = "Preparing files to download, please wait!", {
             #Zip the dir resutls
             message(session$token)
             message(db_execution_phos_protn$dirOutput)
@@ -4988,7 +4921,7 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_phos_protn$protein_differential_barplot)){
               ggsave(filename = paste0(db_execution_phos_protn$dirOutput,"pics/protein_differential_barplot.pdf"), 
                      plot = db_execution_phos_protn$protein_differential_barplot, 
-                     create.dir = T, width = 8, height = 4)
+                     create.dir = T,width = 17, height = 6)
             } else if("protein_differential_barplot.pdf" %in% list.files(paste0(db_execution_phos_protn$dirOutput,"pics"))){
               message("Removing old rendered plot")
               system(paste0("rm ",db_execution_phos_protn$dirOutput,"pics/protein_differential_barplot.pdf"))
@@ -4998,7 +4931,7 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_phos_protn$peptide_differential_barplot)){
               ggsave(filename = paste0(db_execution_phos_protn$dirOutput,"pics/peptide_differential_barplot.pdf"), 
                      plot = db_execution_phos_protn$peptide_differential_barplot, 
-                     create.dir = T, width = 8, height = 4)
+                     create.dir = T, width = 17, height = 6)
             } else if("peptide_differential_barplot.pdf" %in% list.files(paste0(db_execution_phos_protn$dirOutput,"pics"))){
               message("Removing old rendered plot")
               system(paste0("rm ",db_execution_phos_protn$dirOutput,"pics/peptide_differential_barplot.pdf"))
@@ -5187,7 +5120,7 @@ server <- function(input, output, session) {
            "pca_peptide_phos_protn" = generate_pca_peptide_phos_protn() + ggtitle("PCA based on peptides")+theme(text=element_text(size=25)),
            "protein_boxplot_phos_protn" = generate_protein_boxplot_phos_protn() + ggtitle("Boxplot selected proteins")+theme(text=element_text(size=25)),
            "protein_heatmap_phos_protn" = generate_protein_heatmap_phos_protn() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
-           "peptide_diff_barplot_phos_protn" = generate_peptide_diff_barplot_phos_protn()(10, zoom=T) + ggtitle("N° differential phospho-peptides")+theme(text=element_text(size=25)),
+           "peptide_diff_barplot_phos_protn" = generate_peptide_diff_barplot_phos_protn()(8, zoom=T) + ggtitle("N° differential phospho-peptides")+theme(text=element_text(size=25)),
            "mds_peptide_diff_phos_protn" = generate_mds_peptide_diff_phos_protn() + ggtitle("MDS based on differential phospho-peptides")+theme(text=element_text(size=25)),
            "pca_peptide_diff_phos_protn" = generate_pca_peptide_diff_phos_protn() + ggtitle("PCA based on differential phospho-peptides")+theme(text=element_text(size=25)),
            # default fallback:
@@ -5966,7 +5899,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_protein_diff_barplot_interactn <- renderPlot({
-      generate_protein_diff_barplot_interactn()(6)
+      generate_protein_diff_barplot_interactn()(4)
     })
     
     output$render_peptide_diff_barplot_interactn <- renderUI({
@@ -5982,7 +5915,7 @@ server <- function(input, output, session) {
       }
     })
     output$small_peptide_diff_barplot_interactn <- renderPlot({
-      generate_peptide_diff_barplot_interactn()(6)
+      generate_peptide_diff_barplot_interactn()(4)
     })
     
     output$render_protein_vulcano_interactn <- renderUI({
@@ -6224,7 +6157,7 @@ server <- function(input, output, session) {
     content = function(file) {
       tryCatch(
         {
-          withProgress(message = "Prepraring files to download, please wait!", {
+          withProgress(message = "Preparing files to download, please wait!", {
             #Zip the dir resutls
             message(session$token)
             message(db_execution_interactn$dirOutput)
@@ -6405,7 +6338,7 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_interactn$protein_differential_barplot)){
               ggsave(filename = paste0(db_execution_interactn$dirOutput,"pics/protein_differential_barplot.pdf"), 
                      plot = db_execution_interactn$protein_differential_barplot, 
-                     create.dir = T, width = 8, height = 4)
+                     create.dir = T, width = 17, height = 6)
             } else if("protein_differential_barplot.pdf" %in% list.files(paste0(db_execution_interactn$dirOutput,"pics"))){
               message("Removing old rendered plot")
               system(paste0("rm ",db_execution_interactn$dirOutput,"pics/protein_differential_barplot.pdf"))
@@ -6415,7 +6348,7 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_interactn$peptide_differential_barplot)){
               ggsave(filename = paste0(db_execution_interactn$dirOutput,"pics/peptide_differential_barplot.pdf"), 
                      plot = db_execution_interactn$peptide_differential_barplot, 
-                     create.dir = T, width = 8, height = 4)
+                     create.dir = T, width = 17, height = 6)
             } else if("peptide_differential_barplot.pdf" %in% list.files(paste0(db_execution_interactn$dirOutput,"pics"))){
               message("Removing old rendered plot")
               system(paste0("rm ",db_execution_interactn$dirOutput,"pics/peptide_differential_barplot.pdf"))
@@ -6597,8 +6530,8 @@ server <- function(input, output, session) {
            "pca_peptide_interactn" = generate_pca_peptide_interactn() + ggtitle("PCA based on peptides")+theme(text=element_text(size=25)),
            "protein_boxplot_interactn" = generate_protein_boxplot_interactn() + ggtitle("Boxplot selected proteins")+theme(text=element_text(size=25)),
            "protein_heatmap_interactn" = generate_protein_heatmap_interactn() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
-           "protein_diff_barplot_interactn" = generate_protein_diff_barplot_interactn()(10) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
-           "peptide_diff_barplot_interactn" = generate_peptide_diff_barplot_interactn()(10) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
+           "protein_diff_barplot_interactn" = generate_protein_diff_barplot_interactn()(8) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
+           "peptide_diff_barplot_interactn" = generate_peptide_diff_barplot_interactn()(8) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
            "mds_protein_diff_interactn" = generate_mds_protein_diff_interactn() + ggtitle("MDS based on differential protein")+theme(text=element_text(size=25)),
            "mds_peptide_diff_interactn" = generate_mds_peptide_diff_interactn() + ggtitle("MDS based on differential peptides")+theme(text=element_text(size=25)),
            "pca_protein_diff_interactn" = generate_pca_protein_diff_interactn() + ggtitle("PCA based on differential protein")+theme(text=element_text(size=25)),
@@ -6615,7 +6548,7 @@ server <- function(input, output, session) {
     content = function(file) {
       tryCatch(
         {
-          withProgress(message = "Prepraring files to download, please wait!", {
+          withProgress(message = "Preparing files to download, please wait!", {
             #Zip the dir resutls
             message(session$token)
             setProgress(value = 0.01)
@@ -6660,7 +6593,7 @@ server <- function(input, output, session) {
     content = function(file) {
       tryCatch(
         {
-          withProgress(message = "Prepraring files to download, please wait!", {
+          withProgress(message = "Preparing files to download, please wait!", {
             #Zip the dir resutls
             message(session$token)
             setProgress(value = 0.01)
@@ -6705,7 +6638,7 @@ server <- function(input, output, session) {
     content = function(file) {
       tryCatch(
         {
-          withProgress(message = "Prepraring files to download, please wait!", {
+          withProgress(message = "Preparing files to download, please wait!", {
             #Zip the dir resutls
             message(session$token)
             setProgress(value = 0.01)
@@ -6754,7 +6687,7 @@ server <- function(input, output, session) {
     content = function(file) {
       tryCatch(
         {
-          withProgress(message = "Prepraring files to download, please wait!", {
+          withProgress(message = "Preparing files to download, please wait!", {
             #Zip the dir resutls
             message(session$token)
             setProgress(value = 0.01)
@@ -6795,11 +6728,34 @@ server <- function(input, output, session) {
   
   
   
-  # ----
-  # -- DELETE TEMP FILES WHEN SESSION ENDS -- #
-  # session$onSessionEnded(function() {
-  #   if (dir.exists(tempdir())){unlink(list.files(tempdir(), full.names = T), recursive = T)}
-  # })
+  ##############################################################################
+  # -- DELETE TEMP FILES WHEN SESSION ENDS ----
+  session$onSessionEnded(function() {
+    message(session$token)
+    if (file.exists(paste0(tempdir(),"/outdir_log_ProTN.log"))){
+      log_clean <- fread(paste0(tempdir(),"/outdir_log_ProTN.log"), header = FALSE)
+      dir_to_remove <- log_clean[V1==session$token, V2]
+      unlink(dir_to_remove, recursive = T)
+    }
+    
+    if (file.exists(paste0(tempdir(),"/outdir_log_PhosProTN.log"))){
+      log_clean <- fread(paste0(tempdir(),"/outdir_log_PhosProTN.log"), header = FALSE)
+      dir_to_remove <- log_clean[V1==session$token, V2]
+      unlink(dir_to_remove, recursive = T)
+    }
+    
+    if (file.exists(paste0(tempdir(),"/outdir_log_PhosProTN_proteome.log"))){
+      log_clean <- fread(paste0(tempdir(),"/outdir_log_PhosProTN_proteome.log"), header = FALSE)
+      dir_to_remove <- log_clean[V1==session$token, V2]
+      unlink(dir_to_remove, recursive = T)
+    }
+    
+    if (file.exists(paste0(tempdir(),"/outdir_log_InteracTN.log"))){
+      log_clean <- fread(paste0(tempdir(),"/outdir_log_InteracTN.log"), header = FALSE)
+      dir_to_remove <- log_clean[V1==session$token, V2]
+      unlink(dir_to_remove, recursive = T)
+    }
+  })
 }
 
 # Run the application
