@@ -2,7 +2,7 @@
 
 # ProTN
 
-Version: 0.2.1
+Version: 0.2.3
 
 ProTN is now a Shiny app that provides an integrated pipeline for the complete downstream analysis of proteomics, phospho-proteomics, and interactomics data following peptide quantification. The app features four distinct workflows—proTN, phosproTN, phosproTN with proteome background, and interacTN—each accessible through a separate tab in the application menu.
 
@@ -181,7 +181,19 @@ The intensities are log2 transformed and normalized with DEqMS (Zhu 2022). Two m
 
 At the protein level, this operation is executed by the function medianSweeping. It applies the same median normalization used for peptides, but also it summarizes the peptide intensities into protein relative abundance by the median sweeping method.
 
-After the normalization the intensities from Mass Spectrometer need to be imputed. The principal method is based on the PhosR package (Kim et al. 2021) that performs a complex and well-balanced imputation of the data based on the conditions of the samples. As a backup method in case of problems with PhosR imputations, ProTN uses a Gaussian round imputation.
+Imputation: 
+- PhosR: Imputation is performed on peptide and protein abundances with the Bioconductor package PhosR. Round imputation is performed in absence of replicates. ProTN uses two functions of PhosR for the imputation: Imputes the missing values for a peptide across replicates within a single condition and Tail-based imputation approach as implemented in Perseus.
+- Gaussian Estimation: Imputation is performed on peptide and protein abundances using Gaussian estimation, where missing values are sampled from a normal distribution defined by the mean and standard deviation of observed intensities. This preserves data variance and reduces bias from missingness within conditions.
+- missForest: Imputation is performed on peptide and protein abundances using the missForest R package, which applies a non-parametric random forest algorithm to predict missing values. This approach captures nonlinear relationships between features, preserving complex data structures.
+- pcaMethods: Imputation is performed on peptide and protein abundances using the pcaMethods R package with the svdImpute function, which estimates missing values by reconstructing the data matrix from its leading singular vectors. This approach leverages global correlation structures to provide consistent estimates.
+
+| Method | Package | Main Idea | Typical Use |
+|--------|---------|-----------|-------------|
+| **PhosR imputation** | [PhosR](https://www.sciencedirect.com/science/article/pii/S221112472100084X) (Bioconductor) | Designed for phosphoproteomics; implements *round-robin* (iterative imputation without replicates) and *paired tail-based imputation* (using replicate structure). | Phosphoproteomics with sparse coverage or missingness tied to peptide abundance. |
+| **Gaussian estimation imputation** |  | Draws values from a Gaussian distribution defined by low-intensity tail of observed data (shifted mean, reduced SD). | When MNAR (Missing Not At Random) is likely due to detection limit. |
+| **missForest** | [missForest](https://doi.org/10.32614/CRAN.package.missForest) (R) | Non-parametric iterative imputation using random forests. Predicts missing entries using nonlinear relationships between features. | General proteomics where missingness relates to multiple covariates, or when structure is complex. |
+| **pcaMethods `svdImpute`** | [pcaMethods](https://bioconductor.org/packages/release/bioc/html/pcaMethods.html) (Bioconductor) | Uses Singular Value Decomposition to reconstruct missing values from lower-rank structure in the data. | Well-replicated datasets with high correlation between samples. |
+
 
 In this step, two MDSs and two PCAs (proteins and peptides) are generated.
 

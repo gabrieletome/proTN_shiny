@@ -64,12 +64,61 @@
 						the median sweeping
 						method.
 					</p>
-					<p>The principal method is based on the PhosR package <span class="citation">(Kim et
-							al. 2021)</span> that performs a complex and well-balanced imputation of the data based on
-						the association between replicates and
-						conditions. As a backup method, ProTN uses a Gaussian round imputation, for condition with only
-						1 replicate.
-					</p>
+					<p>Imputation</p>
+    <ul>
+      <li>
+        <strong>PhosR:</strong>
+        Imputation is performed on peptide and protein abundances with the Bioconductor package PhosR. Round imputation is performed in absence of replicates. ProTN uses two functions of PhosR for the imputation: Imputes the missing values for a peptide across replicates within a single condition and Tail-based imputation approach as implemented in Perseus.
+      </li>
+      <li>
+        <strong>Gaussian Estimation:</strong>
+        Imputation is performed on peptide and protein abundances using Gaussian estimation, where missing values are sampled from a normal distribution defined by the mean and standard deviation of observed intensities. This preserves data variance and reduces bias from missingness within conditions.
+      </li>
+      <li>
+        <strong>missForest:</strong>
+        Imputation is performed on peptide and protein abundances using the missForest R package, which applies a non-parametric random forest algorithm to predict missing values. This approach captures nonlinear relationships between features, preserving complex data structures.
+      </li>
+      <li>
+        <strong>pcaMethods:</strong>
+        Imputation is performed on peptide and protein abundances using the pcaMethods R package with the <code>svdImpute</code> function, which estimates missing values by reconstructing the data matrix from its leading singular vectors. This approach leverages global correlation structures to provide consistent estimates.
+      </li>
+    </ul>
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Package</th>
+          <th>Main Idea</th>
+          <th>Typical Use</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>PhosR imputation</strong></td>
+          <td><a href="https://www.sciencedirect.com/science/article/pii/S221112472100084X">PhosR</a> (Bioconductor)</td>
+          <td>Designed for phosphoproteomics; implements <em>round-robin</em> (iterative imputation without replicates) and <em>paired tail-based imputation</em> (using replicate structure).</td>
+          <td>Phosphoproteomics with sparse coverage or missingness tied to peptide abundance.</td>
+        </tr>
+        <tr>
+          <td><strong>Gaussian estimation imputation</strong></td>
+          <td></td>
+          <td>Draws values from a Gaussian distribution defined by low-intensity tail of observed data (shifted mean, reduced SD).</td>
+          <td>When MNAR (Missing Not At Random) is likely due to detection limit.</td>
+        </tr>
+        <tr>
+          <td><strong>missForest</strong></td>
+          <td><a href="https://doi.org/10.32614/CRAN.package.missForest">missForest</a> (R)</td>
+          <td>Non-parametric iterative imputation using random forests. Predicts missing entries using nonlinear relationships between features.</td>
+          <td>General proteomics where missingness relates to multiple covariates, or when structure is complex.</td>
+        </tr>
+        <tr>
+          <td><strong>pcaMethods <code>svdImpute</code></strong></td>
+          <td><a href="https://bioconductor.org/packages/release/bioc/html/pcaMethods.html">pcaMethods</a> (Bioconductor)</td>
+          <td>Uses Singular Value Decomposition to reconstruct missing values from lower-rank structure in the data.</td>
+          <td>Well-replicated datasets with high correlation between samples.</td>
+        </tr>
+      </tbody>
+    </table>
 					<p>In this step, many figure can be generated regarding information about pre-process, normalization
 						and imputation.
 						An example from the case study is the PCA based on the protein abundances below.

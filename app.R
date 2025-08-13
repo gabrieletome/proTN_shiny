@@ -845,11 +845,16 @@ server <- function(input, output, session) {
         numericInput("NA_allow_condition", "N° missing value allow per condition", value = 0, min = 0, max = 5),
         numericInput("min_peptide_protein", "Minimum peptide per protein", value = 1, min = 1),
         selectizeInput("impute_algorithm", "Select impute algorithm:",
-                       choices = list("PhosR" = "phosr", "Gaussian estimation" = "gaussian",
-                                      "missForest" = "missForest", "pcaMethods" = "pcaMethods"),
-                       selected = "phosr", multiple = FALSE
+                       choices = list("PhosR and normalization" = "phosr_norm", 
+                                      "Gaussian estimation and normalization" = "gaussian_norm",
+                                      "missForest and normalization" = "missForest_norm",
+                                      "Pre-normalization and PhosR" = "norm_phosr", 
+                                      "Pre-normalization and Gaussian estimation" = "norm_gaussian",
+                                      "Pre-normalization and missForest" = "norm_missForest",
+                                      "Pre-normalization and pcaMethods" = "norm_pcaMethods"),
+                       selected = "norm_phosr", multiple = FALSE
         ),
-        textInput("sample_column", "Column name with the sample name:")
+        textInput("sample_column", "Column name with the sample name:", value = "Sample")
       )
     } 
   })
@@ -1172,19 +1177,28 @@ server <- function(input, output, session) {
               if(input$advance_filter){
                 NA_allow_condition <- input$NA_allow_condition
                 min_peptide_protein <- input$min_peptide_protein
-                impute_algorithm <- input$impute_algorithm
-                sample_column <- input$sample_column
+                impute_algorithm <- unlist(tstrsplit(input$impute_algorithm, "_"))
+                if(input$sample_column == "Sample"){
+                  sample_column <- input$sample_column
+                } else{
+                  if(software=="PD"){
+                    sample_column <- "File Name"
+                  } else{
+                    sample_column <- "Sample"
+                  }
+                }
               } else{
                 NA_allow_condition <- 0
                 min_peptide_protein <- 1
-                impute_algorithm <- "phosr"
+                impute_algorithm <- c("norm","phosr")
                 if(software=="PD"){
                   sample_column <- "File Name"
                 } else{
                   sample_column <- "Sample"
                 }
               }
-              
+              message("SAMPLE COLUMN:")
+              message(as.character(sample_column))
               # If to batch corrected read column
               if(input$batch_correction){
                 batch_corr <- TRUE
@@ -1265,12 +1279,16 @@ server <- function(input, output, session) {
               write_lines(msg_read_function, file = paste0(db_execution$dirOutput,"log_filter_read_function.txt"))
               db_execution$data_loaded <- TRUE
               
-              if(impute_algorithm != "pcaMethods"){
-                db_execution$imputed_data <- impute_intensity(proteome_data = db_execution$proteome_data, type = impute_algorithm)
+              if(impute_algorithm[1] != "norm"){
+                message("Doing before imputation")
+                message(impute_algorithm[1])
+                db_execution$imputed_data <- impute_intensity(proteome_data = db_execution$proteome_data, type = impute_algorithm[1])
                 db_execution$normalized_data <- normalization_ProTN(proteome_data = db_execution$imputed_data)
               } else{
+                message("Doing before normalization")
+                message(impute_algorithm[2])
                 db_execution$normalized_data <- normalization_ProTN(proteome_data = db_execution$proteome_data)
-                db_execution$normalized_data <- impute_intensity(proteome_data = db_execution$normalized_data, type = impute_algorithm)
+                db_execution$normalized_data <- impute_intensity(proteome_data = db_execution$normalized_data, type = impute_algorithm[2])
               }
               
               if(batch_corr){
@@ -1797,7 +1815,7 @@ server <- function(input, output, session) {
               readPD_files = if (input$sw_analyzer == "PD") {TRUE} else {FALSE},
               readMQ_files = if (input$sw_analyzer == "MQ_ev") {TRUE} else {FALSE},
               readMQ_prot_files = if (input$sw_analyzer == "MQ_prot") {TRUE} else {FALSE},
-              impute_algorithm = if(input$advance_filter){input$impute_algorithm} else {"PhosR"},
+              impute_algorithm = if(input$advance_filter){input$impute_algorithm} else {"norm_phosr"},
               db_execution = reactiveValuesToList(db_execution),
               file_input = paste(db_execution$dirOutput, "input_protn", sep = ""),
               batch_corr_exe = if(input$batch_correction){input$batch_correction_col}else{NULL},
@@ -2255,11 +2273,16 @@ server <- function(input, output, session) {
         numericInput("NA_allow_condition_phos", "N° missing value allow per condition", value = 0, min = 0, max = 5),
         numericInput("min_peptide_protein_phos", "Minimum peptide per protein", value = 1, min = 1),
         selectizeInput("impute_algorithm_phos", "Select impute algorithm:",
-                       choices = list("PhosR" = "phosr", "Gaussian estimation" = "gaussian",
-                                      "missForest" = "missForest", "pcaMethods" = "pcaMethods"),
-                       selected = "phosr", multiple = FALSE
+                       choices = list("PhosR and normalization" = "phosr_norm", 
+                                      "Gaussian estimation and normalization" = "gaussian_norm",
+                                      "missForest and normalization" = "missForest_norm",
+                                      "Pre-normalization and PhosR" = "norm_phosr", 
+                                      "Pre-normalization and Gaussian estimation" = "norm_gaussian",
+                                      "Pre-normalization and missForest" = "norm_missForest",
+                                      "Pre-normalization and pcaMethods" = "norm_pcaMethods"),
+                       selected = "norm_phosr", multiple = FALSE
         ),
-        textInput("sample_column_phos", "Column name with the sample name:")
+        textInput("sample_column_phos", "Column name with the sample name:", value = "Sample")
       )
     } 
   })
@@ -2645,12 +2668,20 @@ server <- function(input, output, session) {
               if(input$advance_filter_phos){
                 NA_allow_condition <- input$NA_allow_condition_phos
                 min_peptide_protein <- input$min_peptide_protein_phos
-                impute_algorithm <- input$impute_algorithm_phos
-                sample_column <- input$sample_column_phos
+                impute_algorithm <- unlist(tstrsplit(input$impute_algorithm_phos, "_"))
+                if(input$sample_column_phos == "Sample"){
+                  sample_column <- input$sample_column_phos
+                } else{
+                  if(software=="PD"){
+                    sample_column <- "File Name"
+                  } else{
+                    sample_column <- "Sample"
+                  }
+                }
               } else{
                 NA_allow_condition <- 0
                 min_peptide_protein <- 1
-                impute_algorithm <- "phosr"
+                impute_algorithm <- c("norm","phosr")
                 if(software=="PD"){
                   sample_column <- "File Name"
                 } else{
@@ -2702,12 +2733,16 @@ server <- function(input, output, session) {
               
               db_execution_phos$data_loaded <- TRUE
               
-              if(impute_algorithm != "pcaMethods"){
-                db_execution_phos$imputed_data <- impute_intensity(proteome_data = db_execution_phos$proteome_data, type = impute_algorithm)
+              if(impute_algorithm[1] != "norm"){
+                message("Doing before imputation")
+                message(impute_algorithm[1])
+                db_execution_phos$imputed_data <- impute_intensity(proteome_data = db_execution_phos$proteome_data, type = impute_algorithm[1])
                 db_execution_phos$normalized_data <- normalization_ProTN(proteome_data = db_execution_phos$imputed_data)
               } else{
+                message("Doing before normalization")
+                message(impute_algorithm[2])
                 db_execution_phos$normalized_data <- normalization_ProTN(proteome_data = db_execution_phos$proteome_data)
-                db_execution_phos$normalized_data <- impute_intensity(proteome_data = db_execution_phos$normalized_data, type = impute_algorithm)
+                db_execution_phos$normalized_data <- impute_intensity(proteome_data = db_execution_phos$normalized_data, type = impute_algorithm[2])
               }
               
               if(batch_corr){
@@ -3298,7 +3333,7 @@ server <- function(input, output, session) {
               description = input$description_exp_phos,
               readPD_files = if (input$sw_analyzer_phos == "PD") {TRUE} else {FALSE},
               readMQ_files = if (input$sw_analyzer_phos == "MQ") {TRUE} else {FALSE},
-              impute_algorithm = if(input$advance_filter_phos){input$impute_algorithm_phos} else {"PhosR"},
+              impute_algorithm = if(input$advance_filter_phos){input$impute_algorithm_phos} else {"norm_phosr"},
               db_execution = reactiveValuesToList(db_execution_phos),
               file_input = paste(db_execution_phos$dirOutput, "input_phosprotn", sep = ""),
               batch_corr_exe = if(input$batch_correction_phos){input$batch_correction_col_phos}else{NULL},
@@ -3750,11 +3785,16 @@ server <- function(input, output, session) {
         numericInput("NA_allow_condition_phos_protn", "N° missing value allow per condition", value = 0, min = 0, max = 5),
         numericInput("min_peptide_protein_phos_protn", "Minimum peptide per protein", value = 1, min = 1),
         selectizeInput("impute_algorithm_phos_protn", "Select impute algorithm:",
-                       choices = list("PhosR" = "phosr", "Gaussian estimation" = "gaussian",
-                                      "missForest" = "missForest", "pcaMethods" = "pcaMethods"),
-                       selected = "phosr", multiple = FALSE
+                       choices = list("PhosR and normalization" = "phosr_norm", 
+                                      "Gaussian estimation and normalization" = "gaussian_norm",
+                                      "missForest and normalization" = "missForest_norm",
+                                      "Pre-normalization and PhosR" = "norm_phosr", 
+                                      "Pre-normalization and Gaussian estimation" = "norm_gaussian",
+                                      "Pre-normalization and missForest" = "norm_missForest",
+                                      "Pre-normalization and pcaMethods" = "norm_pcaMethods"),
+                       selected = "norm_phosr", multiple = FALSE
         ),
-        textInput("sample_column_phos_protn", "Column name with the sample name:")
+        textInput("sample_column_phos_protn", "Column name with the sample name:", value = "Sample")
       )
     } 
   })
@@ -4122,12 +4162,21 @@ server <- function(input, output, session) {
               if(input$advance_filter_phos_protn){
                 NA_allow_condition <- input$NA_allow_condition_phos_protn
                 min_peptide_protein <- input$min_peptide_protein_phos_protn
-                impute_algorithm <- input$impute_algorithm_phos_protn
-                sample_column <- input$sample_column_phos_protn
+                impute_algorithm <- unlist(tstrsplit(input$impute_algorithm_phos_protn, "_"))
+
+                if(input$sample_column_phos_protn == "Sample"){
+                  sample_column <- input$sample_column_phos_protn
+                } else{
+                  if(software=="PD"){
+                    sample_column <- "File Name"
+                  } else{
+                    sample_column <- "Sample"
+                  }
+                }
               } else{
                 NA_allow_condition <- 0
                 min_peptide_protein <- 1
-                impute_algorithm <- "phosr"
+                impute_algorithm <- c("norm","phosr")
                 if(software=="PD"){
                   sample_column <- "File Name"
                 } else{
@@ -4200,12 +4249,17 @@ server <- function(input, output, session) {
               
               db_execution_phos_protn$data_loaded <- TRUE
               
-              if(impute_algorithm != "pcaMethods"){
-                db_execution_phos_protn$imputed_data <- impute_intensity(proteome_data = db_execution_phos_protn$proteome_data, type = impute_algorithm)
+              
+              if(impute_algorithm[1] != "norm"){
+                message("Doing before imputation")
+                message(impute_algorithm[1])
+                db_execution_phos_protn$imputed_data <- impute_intensity(proteome_data = db_execution_phos_protn$proteome_data, type = impute_algorithm[1])
                 db_execution_phos_protn$normalized_data <- normalization_ProTN(proteome_data = db_execution_phos_protn$imputed_data)
               } else{
+                message("Doing before normalization")
+                message(impute_algorithm[2])
                 db_execution_phos_protn$normalized_data <- normalization_ProTN(proteome_data = db_execution_phos_protn$proteome_data)
-                db_execution_phos_protn$normalized_data <- impute_intensity(proteome_data = db_execution_phos_protn$normalized_data, type = impute_algorithm)
+                db_execution_phos_protn$normalized_data <- impute_intensity(proteome_data = db_execution_phos_protn$normalized_data, type = impute_algorithm[2])
               }
               
               if(batch_corr){
@@ -4737,7 +4791,7 @@ server <- function(input, output, session) {
               description = input$description_exp_phos_protn,
               readPD_files = if (input$sw_analyzer_phos_protn == "PD") {TRUE} else {FALSE},
               readMQ_files = if (input$sw_analyzer_phos_protn == "MQ") {TRUE} else {FALSE},
-              impute_algorithm = if(input$advance_filter_phos_protn){input$impute_algorithm_phos_protn} else {"PhosR"},
+              impute_algorithm = if(input$advance_filter_phos_protn){input$impute_algorithm_phos_protn} else {"norm_phosr"},
               db_execution = reactiveValuesToList(db_execution_phos_protn),
               file_input_phospho = paste(db_execution_phos_protn$dirOutput, "input_phospho", sep = ""),
               file_input_proteome = paste(db_execution_phos_protn$dirOutput, "input_proteome", sep = ""),
@@ -5206,11 +5260,16 @@ server <- function(input, output, session) {
         numericInput("NA_allow_condition_interactn", "N° missing value allow per condition", value = 0, min = 0, max = 5),
         numericInput("min_peptide_protein_interactn", "Minimum peptide per protein", value = 1, min = 1),
         selectizeInput("impute_algorithm_interactn", "Select impute algorithm:",
-                       choices = list("PhosR" = "phosr", "Gaussian estimation" = "gaussian",
-                                      "missForest" = "missForest", "pcaMethods" = "pcaMethods"),
-                       selected = "phosr", multiple = FALSE
+                       choices = list("PhosR and normalization" = "phosr_norm", 
+                                      "Gaussian estimation and normalization" = "gaussian_norm",
+                                      "missForest and normalization" = "missForest_norm",
+                                      "Pre-normalization and PhosR" = "norm_phosr", 
+                                      "Pre-normalization and Gaussian estimation" = "norm_gaussian",
+                                      "Pre-normalization and missForest" = "norm_missForest",
+                                      "Pre-normalization and pcaMethods" = "norm_pcaMethods"),
+                       selected = "norm_phosr", multiple = FALSE
         ),
-        textInput("sample_column_interactn", "Column name with the sample name:")
+        textInput("sample_column_interactn", "Column name with the sample name:", value = "Sample")
       )
     } 
   })
@@ -5535,12 +5594,20 @@ server <- function(input, output, session) {
               if(input$advance_filter_interactn){
                 NA_allow_condition <- input$NA_allow_condition_interactn
                 min_peptide_protein <- input$min_peptide_protein_interactn
-                impute_algorithm <- input$impute_algorithm_interactn
-                sample_column <- input$sample_column_interactn
+                impute_algorithm <- unlist(tstrsplit(input$impute_algorithm_interactn, "_"))
+                if(input$sample_column_interactn == "Sample"){
+                  sample_column <- input$sample_column_interactn
+                } else{
+                  if(software=="PD"){
+                    sample_column <- "File Name"
+                  } else{
+                    sample_column <- "Sample"
+                  }
+                }
               } else{
                 NA_allow_condition <- 0
                 min_peptide_protein <- 1
-                impute_algorithm <- "phosr"
+                impute_algorithm <- c("norm","phosr")
                 if(software=="PD"){
                   sample_column <- "File Name"
                 } else{
@@ -5630,12 +5697,16 @@ server <- function(input, output, session) {
               
               db_execution_interactn$data_loaded <- TRUE
               
-              if(impute_algorithm != "pcaMethods"){
-                db_execution_interactn$imputed_data <- impute_intensity(proteome_data = db_execution_interactn$proteome_data, type = impute_algorithm)
+              if(impute_algorithm[1] != "norm"){
+                message("Doing before imputation")
+                message(impute_algorithm[1])
+                db_execution_interactn$imputed_data <- impute_intensity(proteome_data = db_execution_interactn$proteome_data, type = impute_algorithm[1])
                 db_execution_interactn$normalized_data <- normalization_ProTN(proteome_data = db_execution_interactn$imputed_data)
               } else{
+                message("Doing before normalization")
+                message(impute_algorithm[2])
                 db_execution_interactn$normalized_data <- normalization_ProTN(proteome_data = db_execution_interactn$proteome_data)
-                db_execution_interactn$normalized_data <- impute_intensity(proteome_data = db_execution_interactn$normalized_data, type = impute_algorithm)
+                db_execution_interactn$normalized_data <- impute_intensity(proteome_data = db_execution_interactn$normalized_data, type = impute_algorithm[2])
               }
               
               if(batch_corr){
@@ -6169,7 +6240,7 @@ server <- function(input, output, session) {
               description = input$description_exp_interactn,
               readPD_files = if (input$sw_analyzer_interactn == "PD") {TRUE} else {FALSE},
               readMQ_files = if (input$sw_analyzer_interactn == "MQ") {TRUE} else {FALSE},
-              impute_algorithm = if(input$advance_filter_interactn){input$impute_algorithm_interactn} else {"PhosR"},
+              impute_algorithm = if(input$advance_filter_interactn){input$impute_algorithm_interactn} else {"norm_phosr"},
               db_execution = reactiveValuesToList(db_execution_interactn),
               file_input = paste(db_execution_interactn$dirOutput, "input_protn", sep = ""),
               batch_corr_exe = if(input$batch_correction_interactn){input$batch_correction_col_interactn}else{NULL},

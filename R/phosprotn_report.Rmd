@@ -14,7 +14,7 @@ params:
   description: NA
   readPD_files: NA
   readMQ_files: NA
-  impute_algorithm: "phosr"
+  impute_algorithm: "norm_phosr"
   db_execution: NA
   file_input: NA
   batch_corr_exe: NA
@@ -47,6 +47,16 @@ description <- params$description
 readPD_files <- params$readPD_files
 readMQ_files <- params$readMQ_files
 impute_algorithm <- params$impute_algorithm
+names(impute_algorithm) <- switch (impute_algorithm,
+                                   "phosr_norm" = "PhosR and normalization", 
+                                   "gaussian_norm" = "Gaussian estimation and normalization",
+                                   "missForest_norm" = "missForest and normalization",
+                                   "norm_phosr" = "Pre-normalization and PhosR", 
+                                   "norm_gaussian" = "Pre-normalization and Gaussian estimation",
+                                   "norm_missForest" = "Pre-normalization and missForest",
+                                   "norm_pcaMethods" = "Pre-normalization and pcaMethods"
+)
+
 db_execution <- params$db_execution
 file_input <- params$file_input
 batch_corr_exe <- params$batch_corr_exe
@@ -146,7 +156,7 @@ text_readme<- c("Description of the output files")
 ```{r print_settings, warning=FALSE, echo=F, message=FALSE, results='asis'}
 cat(" \n \n")
 #Print summary of filter and contrast design
-cat(paste0("- Imputation algorithm: ",impute_algorithm," "))
+cat(paste0("- Preprocess method: ",names(impute_algorithm)," "))
 cat(" \n \n")
 if(!is.null(batch_corr_exe)){
   cat("**Pipeline** \n ")
@@ -206,46 +216,6 @@ Initial filtering removes the following peptides:
 
 After filtering, raw abundances are log2 transformed
 
-```{r read_proteomics_MQ, warning=F, echo=F, eval=F, results='asis'}
-messaggi <- NULL
-risultato <- withCallingHandlers(
-  {
-    read_phosphoproteomics(software = "MQ",
-                           folder = file_input,
-                           peptide_filename = "evidence",
-                           phospho_thr = 0.75)
-  },
-  message = function(m) {
-    messaggi <<- append(messaggi, conditionMessage(m))
-    invokeRestart("muffleMessage")
-  }
-)
-
-# cat("\nStat: \n ")
-# cat(paste(messaggi, collapse = ""))
-# cat("\n\n")
-```
-
-```{r read_proteomics_PD, warning=F, echo=F, eval=F, results='asis'}
-messaggi <- NULL
-risultato <- withCallingHandlers(
-  {
-    read_phosphoproteomics(software = "PD",
-                           folder = file_input,
-                           phospho_thr = 0.75, 
-                    sample_col = "File Name")
-  },
-  message = function(m) {
-    messaggi <<- append(messaggi, conditionMessage(m))
-    invokeRestart("muffleMessage")
-  }
-)
-
-# cat("\nStat: \n ")
-# cat(paste(messaggi, collapse = ""))
-# cat("\n\n")
-```
-
 ```{r phospho_percentage, fig.height=4, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$phospho_percentage)}
 cat("#### Percentage of phosphosite residue \n ")
 cat("The following graph represent the percentage of the phosphosites located on Serine (S), Throenines (T) and Tyrosines (Y). \n ")
@@ -271,14 +241,36 @@ db_execution$generate_peptide_distribution
 
 #### Imputation, normalization, peptide-to-protein summarization 
 
-**Imputation** is performed on peptide and protein abundances with the Bioconductor package [PhosR](https://www.sciencedirect.com/science/article/pii/S221112472100084X). Round imputation is performed in absence of replicates. ProTN uses two function of PhosR for the imputation, the first impute the missing values for a peptide across replicates within a single condition, the second is a tail-based imputation approach as implemented in Perseus.
 
-**Normalization:**
+```{r print_imputation, warning=FALSE, echo=F, message=FALSE, results='asis'}
+cat(" \n")
+to_print <- ""
+to_print <- switch (impute_algorithm,
+                    "phosr_norm" = "**Imputation** is performed on peptide and protein abundances with the Bioconductor package [PhosR](https://www.sciencedirect.com/science/article/pii/S221112472100084X). Round imputation is performed in absence of replicates. ProTN uses two function of PhosR for the imputation, the first impute the missing values for a peptide across replicates within a single condition, the second is a tail-based imputation approach as implemented in Perseus.", 
+                    "gaussian_norm" = "**Imputation** is performed on peptide and protein abundances using Gaussian estimation, where missing values are sampled from a normal distribution defined by the mean and standard deviation of observed intensities. This preserves data variance and reduces bias from missingness within conditions.",
+                    "missForest_norm" = "**Imputation** is performed on peptide and protein abundances using the missForest R package, which applies a non-parametric random forest algorithm to predict missing values. This approach captures nonlinear relationships between features, preserving complex data structures."
+)
+cat(to_print)
+cat(" \n")
+
+cat("**Normalization:**
 
 **Peptides** abundances are normalized with the equalMedianNormalization function from the Bioconductor package [DEqMS](<https://www.bioconductor.org/packages/release/bioc/html/DEqMS.html>) (equal medians in all samples). 
 
 **Protein** normalized abundances were calculated with the medianSweeping function from the Bioconductor package [DEqMS](<https://www.bioconductor.org/packages/release/bioc/html/DEqMS.html>).
+")
 
+
+to_print <- ""
+to_print <- switch (impute_algorithm,
+                    "norm_phosr" = "**Imputation** is performed on peptide and protein abundances with the Bioconductor package [PhosR](https://www.sciencedirect.com/science/article/pii/S221112472100084X). Round imputation is performed in absence of replicates. ProTN uses two function of PhosR for the imputation, the first impute the missing values for a peptide across replicates within a single condition, the second is a tail-based imputation approach as implemented in Perseus.", 
+                    "norm_gaussian" = "**Imputation** is performed on peptide and protein abundances using Gaussian estimation, where missing values are sampled from a normal distribution defined by the mean and standard deviation of observed intensities. This preserves data variance and reduces bias from missingness within conditions.",
+                    "norm_missForest" = "**Imputation** is performed on peptide and protein abundances using the missForest R package, which applies a non-parametric random forest algorithm to predict missing values. This approach captures nonlinear relationships between features, preserving complex data structures.",
+                    "norm_pcaMethods" = "**Imputation** is performed on peptide and protein abundances using the pcaMethods R package with the svdImpute function, which estimates missing values by reconstructing the data matrix from its leading singular vectors. This approach leverages global correlation structures to provide consistent estimates."
+)
+cat(to_print)
+cat(" \n")
+```
 
 
 ```{r normalized_plot_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_abundance_distribution)}
@@ -475,6 +467,12 @@ cat("Significant enrichments are displayed as filled dots, non-significant as em
 cat("The dot plots shows the top significant terms considering selected annotation databases. \n ")
 cat("**Up-regulated and down-regulated proteins (UP,DOWN)** \n ")
 cat(" \n \n")
+if(!is.null(terms_enrich)){
+  cat("The terms are filtered searching for: \n ")
+  cat("**",paste(terms_enrich, collapse = ", "),"** \n ")
+  cat(" \n \n")
+}
+
 for(db in names(plots_down)){
   cat(paste0("##### ",db," \n"))
   print(resize_plot(resizePlot = plots_down[[db]], 
