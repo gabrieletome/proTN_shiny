@@ -239,31 +239,31 @@ db_execution$phospho_percentage
 ```
 
 ```{r preprocess_figure_1_phos, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
-cat("#### Distributions of log2 raw abundances - Phospho-proteomics \n ")
-cat("Violin plot showing sample distributions of log2 raw abundances of peptides. \n ")
+cat("#### Percentage missing values respect detected abundance - Phospho-proteomics \n ")
+cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
 cat("\n \n")
 # Avalaible abundance. The red percentage will be imputed.
 db_execution$generate_abundance$phospho_plot
 ```
 
 ```{r preprocess_figure_1_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
-cat("#### Distributions of log2 raw abundances - Proteomics \n ")
-cat("Violin plot showing sample distributions of log2 raw abundances of peptides. \n ")
+cat("#### Percentage missing values respect detected abundance - Proteomics \n ")
+cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
 cat("\n \n")
 # Avalaible abundance. The red percentage will be imputed.
 db_execution$generate_abundance$proteome_plot
 ```
 
 ```{r preprocess_figure_2_phos, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
-cat("#### Percentage of quantified peptides per sample - Phospho-proteomics \n")
-cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
+cat("#### N° peptides per proteins - Phospho-proteomics \n")
+cat("Barplot showing the number of peptides per a single protein \n ")
 # Number peptide per each protein
 db_execution$generate_peptide_distribution$phospho_plot
 ```
 
 ```{r preprocess_figure_2_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
-cat("#### Percentage of quantified peptides per sample - Proteomics \n")
-cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
+cat("#### N° peptides per proteins - Proteomics \n")
+cat("Barplot showing the number of peptides per a single protein \n ")
 # Number peptide per each protein
 db_execution$generate_peptide_distribution$proteome_plot
 ```

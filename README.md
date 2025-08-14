@@ -2,7 +2,7 @@
 
 # ProTN
 
-Version: 0.2.3
+Version: 0.2.4
 
 ProTN is now a Shiny app that provides an integrated pipeline for the complete downstream analysis of proteomics, phospho-proteomics, and interactomics data following peptide quantification. The app features four distinct workflows—proTN, phosproTN, phosproTN with proteome background, and interacTN—each accessible through a separate tab in the application menu.
 
