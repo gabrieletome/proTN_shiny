@@ -1,3 +1,3 @@
 message("Checking dependencies...")
-source("INSTALL.R")
+#source("INSTALL.R")
 message("Dependencies installed.")

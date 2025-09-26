@@ -1,4 +1,4 @@
-# ProTN v0.2.1: an integrative pipeline for complete analysis of proteomics    # 
+# ProTN v0.2.5.1: an integrative pipeline for complete analysis of proteomics    # 
 # data from mass spectrometry                                                  #
 # Laboratory of RNA and Disease Data Science, University of Trento             #
 # Developer: Gabriele Tomè                                                     #
@@ -149,6 +149,7 @@ ui <- tagList(
                 tags$h3("Select what execute:"),
                 checkboxInput("abundance_plot", "% missing values", TRUE),
                 checkboxInput("peptide_distribution", "N° peptides per protein", TRUE),
+                checkboxInput("complexity_plot", "Complexity plot", FALSE),
                 checkboxInput("protein_violin", "Distribution abundance proteins", FALSE),
                 checkboxInput("peptide_violin", "Distribution abundance peptides", FALSE),
                 checkboxInput("mds_protein", "MDS based on protein", FALSE),
@@ -176,6 +177,12 @@ ui <- tagList(
                   column(
                     width = 6,
                     uiOutput("render_peptide_distribution")
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width = 11,
+                    uiOutput("render_complexity_plot")
                   )
                 ),
                 fluidRow(
@@ -215,6 +222,8 @@ ui <- tagList(
                 uiOutput("render_peptide_diff_table"),
                 uiOutput("render_protein_diff_barplot"),
                 uiOutput("render_peptide_diff_barplot"),
+                uiOutput("render_protein_upset"),
+                uiOutput("render_peptide_upset"),
                 fluidRow(
                   column(
                     width = 6,
@@ -298,6 +307,7 @@ ui <- tagList(
                 checkboxInput("phospho_percentage_plot_phos", "% phosphorylated site", TRUE),
                 checkboxInput("abundance_plot_phos", "% missing values", TRUE),
                 checkboxInput("peptide_distribution_phos", "N° peptides per protein", TRUE),
+                checkboxInput("complexity_plot_phos", "Complexity plot", FALSE),
                 checkboxInput("peptide_violin_phos", "Distribution abundance peptides", FALSE),
                 checkboxInput("mds_peptide_phos", "MDS based on peptide", FALSE),
                 checkboxInput("pca_peptide_phos", "PCA based on peptide", TRUE),
@@ -327,6 +337,12 @@ ui <- tagList(
                 ),
                 fluidRow(
                   column(
+                    width = 11,
+                    uiOutput("render_complexity_plot_phos")
+                  )
+                ),
+                fluidRow(
+                  column(
                     width = 10,
                     uiOutput("render_peptide_violin_phos")
                   )
@@ -348,6 +364,7 @@ ui <- tagList(
                 uiOutput("render_differential_analysis_phos"),
                 uiOutput("render_peptide_diff_table_phos"),
                 uiOutput("render_peptide_diff_barplot_phos"),
+                uiOutput("render_peptide_upset_phos"),
                 fluidRow(
                   column(
                     width = 10,
@@ -420,6 +437,7 @@ ui <- tagList(
                 checkboxInput("phospho_percentage_plot_phos_protn", "% phosphorylated site", TRUE),
                 checkboxInput("abundance_plot_phos_protn", "% missing values", TRUE),
                 checkboxInput("peptide_distribution_phos_protn", "N° peptides per protein", TRUE),
+                checkboxInput("complexity_plot_phos_protn", "Complexity plot", FALSE),
                 checkboxInput("protein_violin_phos_protn", "Distribution abundance proteins", FALSE),
                 checkboxInput("peptide_violin_phos_protn", "Distribution abundance peptides", FALSE),
                 checkboxInput("mds_protein_phos_protn", "MDS based on protein", FALSE),
@@ -442,6 +460,7 @@ ui <- tagList(
                 uiOutput("render_phospho_percentage_plot_phos_protn"),
                 uiOutput("render_abundance_plot_phos_protn"),
                 uiOutput("render_peptide_distribution_phos_protn"),
+                uiOutput("render_complexity_plot_phos_protn"),
                 fluidRow(
                   column(
                     width = 10,
@@ -465,6 +484,7 @@ ui <- tagList(
                 uiOutput("render_differential_analysis_phos_protn"),
                 uiOutput("render_peptide_diff_table_phos_protn"),
                 uiOutput("render_peptide_diff_barplot_phos_protn"),
+                uiOutput("render_peptide_upset_phos_protn"),
                 fluidRow(
                   column(
                     width = 10,
@@ -538,6 +558,7 @@ ui <- tagList(
                 tags$h3("Select what execute:"),
                 checkboxInput("abundance_plot_interactn", "% missing values", TRUE),
                 checkboxInput("peptide_distribution_interactn", "N° peptides per protein", TRUE),
+                checkboxInput("complexity_plot_interactn", "Complexity plot", FALSE),
                 checkboxInput("protein_violin_interactn", "Distribution abundance proteins", FALSE),
                 checkboxInput("peptide_violin_interactn", "Distribution abundance peptides", FALSE),
                 checkboxInput("mds_protein_interactn", "MDS based on protein", FALSE),
@@ -565,6 +586,12 @@ ui <- tagList(
                   column(
                     width = 6,
                     uiOutput("render_peptide_distribution_interactn")
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width = 11,
+                    uiOutput("render_complexity_plot_interactn")
                   )
                 ),
                 fluidRow(
@@ -604,6 +631,8 @@ ui <- tagList(
                 uiOutput("render_peptide_diff_table_interactn"),
                 uiOutput("render_protein_diff_barplot_interactn"),
                 uiOutput("render_peptide_diff_barplot_interactn"),
+                uiOutput("render_protein_upset_interactn"),
+                uiOutput("render_peptide_upset_interactn"),
                 fluidRow(
                   column(
                     width = 6,
@@ -685,12 +714,14 @@ server <- function(input, output, session) {
                                  kinase_tree_res = list(),
                                  phospho_percentage = NULL,
                                  generate_abundance = NULL,
+                                 generate_complexity = NULL,
                                  generate_peptide_distribution = NULL,
                                  protein_abundance_distribution = NULL, peptide_abundance_distirbution = NULL,
                                  protein_MDS = NULL, peptide_MDS = NULL,
                                  protein_PCA = NULL, peptide_PCA = NULL,
                                  protein_boxplot = NULL, protein_heatmap = NULL,
                                  protein_differential_barplot = NULL, peptide_differential_barplot = NULL,
+                                 protein_upset_plot = NULL, peptide_upset_plot = NULL,
                                  protein_vulcano = NULL, peptide_vulcano = NULL,
                                  protein_differential_MDS = NULL, peptide_differential_MDS = NULL,
                                  protein_differential_PCA = NULL, peptide_differential_PCA = NULL)
@@ -710,11 +741,13 @@ server <- function(input, output, session) {
                                       phospho_percentage = NULL,
                                       generate_abundance = NULL,
                                       generate_peptide_distribution = NULL,
+                                      generate_complexity = NULL,
                                       protein_abundance_distribution = NULL, peptide_abundance_distirbution = NULL,
                                       protein_MDS = NULL, peptide_MDS = NULL,
                                       protein_PCA = NULL, peptide_PCA = NULL,
                                       protein_boxplot = NULL, protein_heatmap = NULL,
                                       protein_differential_barplot = NULL, peptide_differential_barplot = NULL,
+                                      protein_upset_plot = NULL, peptide_upset_plot = NULL,
                                       protein_vulcano = NULL, peptide_vulcano = NULL,
                                       protein_differential_MDS = NULL, peptide_differential_MDS = NULL,
                                       protein_differential_PCA = NULL, peptide_differential_PCA = NULL)
@@ -734,11 +767,13 @@ server <- function(input, output, session) {
                                             phospho_percentage = NULL,
                                             generate_abundance = NULL,
                                             generate_peptide_distribution = NULL,
+                                            generate_complexity = NULL,
                                             protein_abundance_distribution = NULL, peptide_abundance_distirbution = NULL,
                                             protein_MDS = NULL, peptide_MDS = NULL,
                                             protein_PCA = NULL, peptide_PCA = NULL,
                                             protein_boxplot = NULL, protein_heatmap = NULL,
                                             protein_differential_barplot = NULL, peptide_differential_barplot = NULL,
+                                            protein_upset_plot = NULL, peptide_upset_plot = NULL,
                                             protein_vulcano = NULL, peptide_vulcano = NULL,
                                             protein_differential_MDS = NULL, peptide_differential_MDS = NULL,
                                             protein_differential_PCA = NULL, peptide_differential_PCA = NULL)
@@ -759,11 +794,13 @@ server <- function(input, output, session) {
                                  phospho_percentage = NULL,
                                  generate_abundance = NULL,
                                  generate_peptide_distribution = NULL,
+                                 generate_complexity = NULL,
                                  protein_abundance_distribution = NULL, peptide_abundance_distirbution = NULL,
                                  protein_MDS = NULL, peptide_MDS = NULL,
                                  protein_PCA = NULL, peptide_PCA = NULL,
                                  protein_boxplot = NULL, protein_heatmap = NULL,
                                  protein_differential_barplot = NULL, peptide_differential_barplot = NULL,
+                                 protein_upset_plot = NULL, peptide_upset_plot = NULL,
                                  protein_vulcano = NULL, peptide_vulcano = NULL,
                                  protein_differential_MDS = NULL, peptide_differential_MDS = NULL,
                                  protein_differential_PCA = NULL, peptide_differential_PCA = NULL)
@@ -883,6 +920,8 @@ server <- function(input, output, session) {
         checkboxInput("peptide_diff_table", "Peptides differentiated table", FALSE),
         checkboxInput("protein_diff_barplot", "Proteins differentiated barplot", TRUE),
         checkboxInput("peptide_diff_barplot", "Peptides differentiated barplot", FALSE),
+        checkboxInput("protein_upset", "Proteins upset plot", FALSE),
+        checkboxInput("peptide_upset", "Peptides upset plot", FALSE),
         checkboxInput("protein_vulcano", "Proteins vulcano plot", FALSE),
         checkboxInput("peptide_vulcano", "Peptides vulcano plot", FALSE),
         checkboxInput("mds_diff_protein", "MDS based on diffential protein", FALSE),
@@ -958,6 +997,17 @@ server <- function(input, output, session) {
       peptide_distribution_fig
     } else{
       db_execution$generate_peptide_distribution = NULL
+    }
+  })
+  
+  generate_complexity <- reactive({
+    req(input$complexity_plot)
+    if(input$complexity_plot){
+      generate_complexity_fig <- complexity_plot(proteome_data = db_execution$proteome_data)$plot
+      db_execution$generate_complexity = generate_complexity_fig
+      generate_complexity_fig
+    } else{
+      db_execution$generate_complexity = NULL
     }
   })
   
@@ -1133,6 +1183,32 @@ server <- function(input, output, session) {
       ploft_diff_number_pep
     } else{
       db_execution$peptide_differential_barplot = NULL
+    }
+  })
+  
+  generate_protein_upset <- reactive(function(){
+    req(input$protein_upset)
+    if(input$protein_upset){
+      ploft_diff_number <- generate_upset_plot(db_execution$differential_results,
+                                               type="protein", 
+                                               DE_class = "all")$plot
+      db_execution$protein_upset_plot = ploft_diff_number
+      ploft_diff_number
+    } else{
+      db_execution$protein_upset_plot = NULL
+    }
+  })
+  
+  generate_peptide_upset <- reactive(function(){
+    req(input$peptide_upset)
+    if(input$peptide_upset){
+      ploft_diff_number_pep <- generate_upset_plot(db_execution$differential_results,
+                                                   type="peptide", 
+                                                   DE_class = "all")$plot
+      db_execution$peptide_upset_plot = ploft_diff_number_pep
+      ploft_diff_number_pep
+    } else{
+      db_execution$peptide_upset_plot = NULL
     }
   })
   
@@ -1352,6 +1428,23 @@ server <- function(input, output, session) {
       generate_peptide_distribution()
     })
     
+    output$render_complexity_plot <- renderUI({
+      if (input$complexity_plot) {
+        tagList(
+          tags$h3("Complexity plot of raw abundance"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot('complexity_plot')",
+            plotOutput("small_complexity_plot")
+          )
+        )
+      }
+    })
+    output$small_complexity_plot <- renderPlot({
+      generate_complexity()
+    })
+    
+    
     output$render_protein_violin <- renderUI({
       if (input$protein_violin) {
         tagList(
@@ -1566,6 +1659,38 @@ server <- function(input, output, session) {
     })
     output$small_peptide_diff_barplot <- renderPlot({
       generate_peptide_diff_barplot()(3)
+    })
+    
+    output$render_protein_upset <- renderUI({
+      if (input$protein_upset) {
+        tagList(
+          tags$h3("Differential proteins upset plot"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot('protein_upset')",
+            plotOutput("small_protein_upset")
+          )
+        )
+      }
+    })
+    output$small_protein_upset <- renderPlot({
+      generate_protein_upset()
+    })
+    
+    output$render_peptide_upset <- renderUI({
+      if (input$peptide_upset) {
+        tagList(
+          tags$h3("Differential peptides upset plot"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot('peptide_upset')",
+            plotOutput("small_peptide_upset")
+          )
+        )
+      }
+    })
+    output$small_peptide_upset <- renderPlot({
+      generate_peptide_upset()
     })
     
     output$render_protein_vulcano <- renderUI({
@@ -1913,6 +2038,16 @@ server <- function(input, output, session) {
             }
             setProgress(value = 0.30)
             
+            if(input$complexity_plot & !is.null(db_execution$generate_complexity)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/complexity_plot.pdf"), 
+                     plot = db_execution$generate_complexity, 
+                     create.dir = T, width = 10, height = 8)
+            } else if("complexity_plot.pdf" %in% list.files(paste0(db_execution$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution$dirOutput,"pics/complexity_plot.pdf"))
+            }
+            setProgress(value = 0.33)
+            
             if(input$protein_violin & !is.null(db_execution$protein_abundance_distribution)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_abundance_distribution.pdf"), 
                      plot = db_execution$protein_abundance_distribution, 
@@ -2014,6 +2149,26 @@ server <- function(input, output, session) {
               system(paste0("rm ",db_execution$dirOutput,"pics/peptide_differential_barplot.pdf"))
             }
             setProgress(value = 0.60)
+            
+            if(!is.null(db_execution$protein_upset_plot)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_upset_plot.pdf"), 
+                     plot = db_execution$protein_upset_plot, 
+                     create.dir = T,width = 12, height = 6)
+            } else if("protein_upset_plot.pdf" %in% list.files(paste0(db_execution$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution$dirOutput,"pics/protein_upset_plot.pdf"))
+            }
+            setProgress(value = 0.62)
+            
+            if(!is.null(db_execution$peptide_upset_plot)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_upset_plot.pdf"), 
+                     plot = db_execution$peptide_upset_plot, 
+                     create.dir = T, width = 12, height = 6)
+            } else if("peptide_upset_plot.pdf" %in% list.files(paste0(db_execution$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution$dirOutput,"pics/peptide_upset_plot.pdf"))
+            }
+            setProgress(value = 0.63)
             
             if(!is.null(db_execution$protein_vulcano)){
               dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
@@ -2203,6 +2358,7 @@ server <- function(input, output, session) {
     switch(selected_plot(),
            "abundance_plot" = generate_abundance() + ggtitle("Percentage missing values respect detected abundance")+theme(text=element_text(size=25)),
            "peptide_distribution_plot" = generate_peptide_distribution() + ggtitle("N° peptides per proteins")+theme(text=element_text(size=25)),
+           "complexity_plot" = generate_complexity() + ggtitle("Complexity plot of raw abundance")+theme(text=element_text(size=25)),
            "protein_violin_plot" = generate_protein_violin() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
            "peptide_violin_plot" = generate_peptide_violin() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
            "mds_protein" = generate_mds_protein() + ggtitle("MDS based on protein")+theme(text=element_text(size=25)),
@@ -2213,6 +2369,8 @@ server <- function(input, output, session) {
            "protein_heatmap" = generate_protein_heatmap() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
            "protein_diff_barplot" = generate_protein_diff_barplot()(8) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
            "peptide_diff_barplot" = generate_peptide_diff_barplot()(8) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
+           "protein_upset" = generate_protein_upset() + ggtitle("Differential proteins upset plot")+theme(text=element_text(size=25)),
+           "peptide_upset" = generate_peptide_upset() + ggtitle("Differential peptides upset plot")+theme(text=element_text(size=25)),
            "mds_protein_diff" = generate_mds_protein_diff() + ggtitle("MDS based on differential protein")+theme(text=element_text(size=25)),
            "mds_peptide_diff" = generate_mds_peptide_diff() + ggtitle("MDS based on differential peptides")+theme(text=element_text(size=25)),
            "pca_protein_diff" = generate_pca_protein_diff() + ggtitle("PCA based on differential protein")+theme(text=element_text(size=25)),
@@ -2311,6 +2469,7 @@ server <- function(input, output, session) {
         checkboxInput("peptide_diff_table_phos", "Peptides differentiated table", FALSE),
         # checkboxInput("protein_diff_barplot_phos", "Proteins differentiated barplot", TRUE),
         checkboxInput("peptide_diff_barplot_phos", "Peptides differentiated barplot", TRUE),
+        checkboxInput("peptide_upset_phos", "Peptides upset plot", FALSE),
         # checkboxInput("protein_vulcano_phos", "Proteins vulcano plot", FALSE),
         checkboxInput("peptide_vulcano_phos", "Peptides vulcano plot", FALSE),
         # checkboxInput("mds_diff_protein_phos", "MDS based on diffential protein", FALSE),
@@ -2425,6 +2584,17 @@ server <- function(input, output, session) {
       generate_abundance_fig
     } else{
       db_execution_phos$generate_abundance = NULL
+    }
+  })
+  
+  generate_complexity_phos <- reactive({
+    req(input$complexity_plot_phos)
+    if(input$complexity_plot_phos){
+      generate_complexity_fig <- complexity_plot(proteome_data = db_execution_phos$proteome_data)$plot
+      db_execution_phos$generate_complexity = generate_complexity_fig
+      generate_complexity_fig
+    } else{
+      db_execution_phos$generate_complexity = NULL
     }
   })
   
@@ -2613,6 +2783,19 @@ server <- function(input, output, session) {
       ploft_diff_number_pep
     } else{
       db_execution_phos$peptide_differential_barplot = NULL
+    }
+  })
+  
+  generate_peptide_upset_phos <- reactive(function(){
+    req(input$peptide_upset_phos)
+    if(input$peptide_upset_phos){
+      ploft_diff_number_pep <- generate_upset_plot(db_execution_phos$differential_results,
+                                                   type="peptide", 
+                                                   DE_class = "all")$plot
+      db_execution_phos$peptide_upset_plot = ploft_diff_number_pep
+      ploft_diff_number_pep
+    } else{
+      db_execution_phos$peptide_upset_plot = NULL
     }
   })
   
@@ -2806,6 +2989,22 @@ server <- function(input, output, session) {
     })
     output$small_abundance_plot_phos <- renderPlot({
       generate_abundance_phos()
+    })
+    
+    output$render_complexity_plot_phos <- renderUI({
+      if (input$complexity_plot_phos) {
+        tagList(
+          tags$h3("Complexity plot of raw abundance"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot('complexity_plot_phos')",
+            plotOutput("small_complexity_plot_phos")
+          )
+        )
+      }
+    })
+    output$small_complexity_plot_phos <- renderPlot({
+      generate_complexity_phos()
     })
     
     output$render_peptide_distribution_phos <- renderUI({
@@ -3039,6 +3238,21 @@ server <- function(input, output, session) {
       generate_peptide_diff_barplot_phos()(3,zoom=F)
     })
     
+    output$render_peptide_upset_phos <- renderUI({
+      if (input$peptide_upset_phos) {
+        tagList(
+          tags$h3("Differential peptides upset plot"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot('peptide_upset_phos')",
+            plotOutput("small_peptide_upset_phos")
+          )
+        )
+      }
+    })
+    output$small_peptide_upset_phos <- renderPlot({
+      generate_peptide_upset_phos()
+    })
     # output$render_protein_vulcano_phos <- renderUI({
     #   if(input$protein_vulcano_phos){
     #     generate_volcano_plots_protein <- list()
@@ -3424,6 +3638,16 @@ server <- function(input, output, session) {
             }
             setProgress(value = 0.30)
             
+            if(input$complexity_plot_phos & !is.null(db_execution_phos$generate_complexity)){
+              ggsave(filename = paste0(db_execution_phos$dirOutput,"pics/complexity_plot.pdf"), 
+                     plot = db_execution_phos$generate_complexity, 
+                     create.dir = T, width = 10, height = 8)
+            } else if("complexity_plot.pdf" %in% list.files(paste0(db_execution_phos$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_phos$dirOutput,"pics/complexity_plot.pdf"))
+            }
+            setProgress(value = 0.33)
+            
             # if(input$protein_violin_phos & !is.null(db_execution_phos$protein_abundance_distribution)){
             #   ggsave(filename = paste0(db_execution_phos$dirOutput,"pics/protein_abundance_distribution.pdf"), 
             #          plot = db_execution_phos$protein_abundance_distribution, 
@@ -3525,6 +3749,16 @@ server <- function(input, output, session) {
               system(paste0("rm ",db_execution_phos$dirOutput,"pics/peptide_differential_barplot.pdf"))
             }
             setProgress(value = 0.60)
+            
+            if(!is.null(db_execution_phos$peptide_upset_plot)){
+              ggsave(filename = paste0(db_execution_phos$dirOutput,"pics/peptide_upset_plot.pdf"), 
+                     plot = db_execution_phos$peptide_upset_plot, 
+                     create.dir = T, width = 12, height = 6)
+            } else if("peptide_upset_plot.pdf" %in% list.files(paste0(db_execution_phos$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_phos$dirOutput,"pics/peptide_upset_plot.pdf"))
+            }
+            setProgress(value = 0.63)
             
             # if(!is.null(db_execution_phos$protein_vulcano)){
             #   dir.create(file.path(paste0(db_execution_phos$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
@@ -3698,6 +3932,7 @@ server <- function(input, output, session) {
            "phospho_percentage_plot_phos" = generate_phospho_percentage_plot_phos()(size_text=8,zoom=T) + ggtitle("Percentage of phosphosite residue")+theme(text=element_text(size=25), axis.text.y = element_text(size = 25)),
            "abundance_plot_phos" = generate_abundance_phos() + ggtitle("Percentage missing values respect detected abundance")+theme(text=element_text(size=25)),
            "peptide_distribution_plot_phos" = generate_peptide_distribution_phos() + ggtitle("N° peptides per proteins")+theme(text=element_text(size=25)),
+           "complexity_plot_phos" = generate_complexity_phos() + ggtitle("Complexity plot of raw abundance")+theme(text=element_text(size=25)),
            # "protein_violin_plot_phos" = generate_protein_violin_phos() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
            "peptide_violin_plot_phos" = generate_peptide_violin_phos() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
            # "mds_protein_phos" = generate_mds_protein_phos() + ggtitle("MDS based on protein")+theme(text=element_text(size=25)),
@@ -3708,6 +3943,7 @@ server <- function(input, output, session) {
            "protein_heatmap_phos" = generate_protein_heatmap_phos() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
            # "protein_diff_barplot_phos" = generate_protein_diff_barplot_phos()(10) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
            "peptide_diff_barplot_phos" = generate_peptide_diff_barplot_phos()(8,zoom=T) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
+           "peptide_upset_phos" = generate_peptide_upset_phos() + ggtitle("Differential peptides upset plot")+theme(text=element_text(size=25)),
            # "mds_protein_diff_phos" = generate_mds_protein_diff_phos() + ggtitle("MDS based on differential protein")+theme(text=element_text(size=25)),
            "mds_peptide_diff_phos" = generate_mds_peptide_diff_phos() + ggtitle("MDS based on differential peptides")+theme(text=element_text(size=25)),
            # "pca_protein_diff_phos" = generate_pca_protein_diff_phos() + ggtitle("PCA based on differential protein")+theme(text=element_text(size=25)),
@@ -3821,6 +4057,7 @@ server <- function(input, output, session) {
         actionButton("execute_differential_analysis_btn_phos_protn", "Run!"),
         checkboxInput("peptide_diff_table_phos_protn", "Phospho-peptides differentiated table", FALSE),
         checkboxInput("peptide_diff_barplot_phos_protn", "Phospho-peptides differentiated barplot", TRUE),
+        checkboxInput("peptide_upset_phos_protn", "Peptides upset plot", FALSE),
         checkboxInput("peptide_vulcano_phos_protn", "Phospho-peptides vulcano plot", FALSE),
         checkboxInput("mds_diff_peptide_phos_protn", "MDS based on diffential phospho-peptide", FALSE),
         checkboxInput("pca_diff_peptide_phos_protn", "PCA based on diffential phospho-peptide", FALSE),
@@ -3966,6 +4203,27 @@ server <- function(input, output, session) {
     }
   })
   
+  generate_complexity_phos_protn_prot <- reactive({
+    req(input$complexity_plot_phos_protn)
+    if(input$complexity_plot_phos_protn){
+      generate_complexity_fig <- complexity_plot(proteome_data = db_execution_phos_protn$proteome_data, phospho_with_proteome = T)
+      db_execution_phos_protn$generate_complexity = generate_complexity_fig
+      generate_complexity_fig$proteome_plot
+    } else{
+      db_execution_phos_protn$generate_complexity = NULL
+    }
+  })
+  generate_complexity_phos_protn_phos <- reactive({
+    req(input$complexity_plot_phos_protn)
+    if(input$complexity_plot_phos_protn){
+      generate_complexity_fig <- complexity_plot(proteome_data = db_execution_phos_protn$proteome_data, phospho_with_proteome = T)
+      db_execution_phos_protn$generate_complexity = generate_complexity_fig
+      generate_complexity_fig$phospho_plot
+    } else{
+      db_execution_phos_protn$generate_complexity = NULL
+    }
+  })
+  
   generate_protein_violin_phos_protn <- reactive({
     req(input$protein_violin_phos_protn)
     if(input$protein_violin_phos_protn){
@@ -4102,6 +4360,19 @@ server <- function(input, output, session) {
       ploft_diff_number_pep
     } else{
       db_execution_phos_protn$peptide_differential_barplot = NULL
+    }
+  })
+  
+  generate_peptide_upset_phos_protn <- reactive(function(){
+    req(input$peptide_upset_phos_protn)
+    if(input$peptide_upset_phos_protn){
+      ploft_diff_number_pep <- generate_upset_plot(db_execution_phos_protn$differential_results,
+                                                   type="peptide", 
+                                                   DE_class = "all")$plot
+      db_execution_phos_protn$peptide_upset_plot = ploft_diff_number_pep
+      ploft_diff_number_pep
+    } else{
+      db_execution_phos_protn$peptide_upset_plot = NULL
     }
   })
   
@@ -4376,6 +4647,39 @@ server <- function(input, output, session) {
       generate_peptide_distribution_phos_protn_phos()
     })
     
+    output$render_complexity_plot_phos_protn <- renderUI({
+      if (input$complexity_plot_phos_protn) {
+        tagList(
+          fluidRow(
+            column(
+              width = 6,
+              tags$h3("Complexity plot of raw abundance - Proteomics"),
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_phos_protn('complexity_plot_phos_protn_prot')",
+                plotOutput("small_complexity_plot_phos_protn_prot")
+              )
+            ),
+            column(
+              width = 6,
+              tags$h3("Complexity plot of raw abundance - Phospho-proteomics"),
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_phos_protn('complexity_plot_phos_protn_phos')",
+                plotOutput("small_complexity_plot_phos_protn_phos")
+              )
+            )
+          )
+        )
+      }
+    })
+    output$small_complexity_plot_phos_protn_prot <- renderPlot({
+      generate_complexity_phos_protn_prot()
+    })
+    output$small_complexity_plot_phos_protn_phos <- renderPlot({
+      generate_complexity_phos_protn_phos()
+    })
+    
     output$render_protein_violin_phos_protn <- renderUI({
       if (input$protein_violin_phos_protn) {
         tagList(
@@ -4566,6 +4870,22 @@ server <- function(input, output, session) {
     })
     output$small_peptide_diff_barplot_phos_protn <- renderPlot({
       generate_peptide_diff_barplot_phos_protn()(3, zoom=F)
+    })
+    
+    output$render_peptide_upset_phos_protn <- renderUI({
+      if (input$peptide_upset_phos_protn) {
+        tagList(
+          tags$h3("Differential peptides upset plot"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot('peptide_upset_phos_protn')",
+            plotOutput("small_peptide_upset_phos_protn")
+          )
+        )
+      }
+    })
+    output$small_peptide_upset_phos_protn <- renderPlot({
+      generate_peptide_upset_phos_protn()
     })
     
     output$render_peptide_vulcano_phos_protn <- renderUI({
@@ -4890,6 +5210,19 @@ server <- function(input, output, session) {
             }
             setProgress(value = 0.30)
             
+            if(input$complexity_plot_phos_protn & !is.null(db_execution_phos_protn$generate_complexity)){
+              ggsave(filename = paste0(db_execution_phos_protn$dirOutput,"pics/complexity_proteomics.pdf"), 
+                     plot = db_execution_phos_protn$generate_complexity$proteome_plot, 
+                     create.dir = T, width = 7, height = 5)
+              ggsave(filename = paste0(db_execution_phos_protn$dirOutput,"pics/complexity_phosphoproteomics.pdf"), 
+                     plot = db_execution_phos_protn$generate_complexity$phospho_plot, 
+                     create.dir = T, width = 7, height = 5)
+            } else if("complexity_proteomics.pdf" %in% list.files(paste0(db_execution_phos_protn$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_phos_protn$dirOutput,"pics/complexity_*"))
+            }
+            setProgress(value = 0.33)
+            
             if(input$protein_violin_phos_protn & !is.null(db_execution_phos_protn$protein_abundance_distribution)){
               ggsave(filename = paste0(db_execution_phos_protn$dirOutput,"pics/protein_abundance_distribution.pdf"), 
                      plot = db_execution_phos_protn$protein_abundance_distribution, 
@@ -4991,6 +5324,16 @@ server <- function(input, output, session) {
               system(paste0("rm ",db_execution_phos_protn$dirOutput,"pics/peptide_differential_barplot.pdf"))
             }
             setProgress(value = 0.60)
+            
+            if(!is.null(db_execution_phos_protn$peptide_upset_plot)){
+              ggsave(filename = paste0(db_execution_phos_protn$dirOutput,"pics/peptide_upset_plot.pdf"), 
+                     plot = db_execution_phos_protn$peptide_upset_plot, 
+                     create.dir = T, width = 12, height = 6)
+            } else if("peptide_upset_plot.pdf" %in% list.files(paste0(db_execution_phos_protn$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_phos_protn$dirOutput,"pics/peptide_upset_plot.pdf"))
+            }
+            setProgress(value = 0.63)
             
             if(!is.null(db_execution_phos_protn$protein_vulcano)){
               dir.create(file.path(paste0(db_execution_phos_protn$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
@@ -5166,6 +5509,8 @@ server <- function(input, output, session) {
            "abundance_plot_phos_protn_phos" = generate_abundance_phos_protn_phos() + ggtitle("Percentage missing values respect detected abundance - Phospho-proteomics")+theme(text=element_text(size=25)),
            "peptide_distribution_plot_phos_protn_prot" = generate_peptide_distribution_phos_protn_prot() + ggtitle("N° peptides per proteins - Proteomics")+theme(text=element_text(size=25)),
            "peptide_distribution_plot_phos_protn_phos" = generate_peptide_distribution_phos_protn_phos() + ggtitle("N° peptides per proteins - Phospho-proteomics")+theme(text=element_text(size=25)),
+           "complexity_plot_phos_protn_prot" = generate_complexity_phos_protn_prot() + ggtitle("Complexity plot of raw abundance - Proteomics")+theme(text=element_text(size=25)),
+           "complexity_plot_phos_protn_phos" = generate_complexity_phos_protn_prot() + ggtitle("Complexity plot of raw abundance - Phospho-proteomics")+theme(text=element_text(size=25)),
            "protein_violin_plot_phos_protn" = generate_protein_violin_phos_protn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
            "peptide_violin_plot_phos_protn" = generate_peptide_violin_phos_protn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
            "mds_protein_phos_protn" = generate_mds_protein_phos_protn() + ggtitle("MDS based on protein")+theme(text=element_text(size=25)),
@@ -5175,6 +5520,7 @@ server <- function(input, output, session) {
            "protein_boxplot_phos_protn" = generate_protein_boxplot_phos_protn() + ggtitle("Boxplot selected proteins")+theme(text=element_text(size=25)),
            "protein_heatmap_phos_protn" = generate_protein_heatmap_phos_protn() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
            "peptide_diff_barplot_phos_protn" = generate_peptide_diff_barplot_phos_protn()(8, zoom=T) + ggtitle("N° differential phospho-peptides")+theme(text=element_text(size=25)),
+           "peptide_upset_phos_protn" = generate_peptide_upset_phos_protn() + ggtitle("Differential phospho-peptides upset plot")+theme(text=element_text(size=25)),
            "mds_peptide_diff_phos_protn" = generate_mds_peptide_diff_phos_protn() + ggtitle("MDS based on differential phospho-peptides")+theme(text=element_text(size=25)),
            "pca_peptide_diff_phos_protn" = generate_pca_peptide_diff_phos_protn() + ggtitle("PCA based on differential phospho-peptides")+theme(text=element_text(size=25)),
            # default fallback:
@@ -5299,6 +5645,8 @@ server <- function(input, output, session) {
         checkboxInput("peptide_diff_table_interactn", "Peptides differentiated table", FALSE),
         checkboxInput("protein_diff_barplot_interactn", "Proteins differentiated barplot", TRUE),
         checkboxInput("peptide_diff_barplot_interactn", "Peptides differentiated barplot", FALSE),
+        checkboxInput("protein_upset_interactn", "Proteins upset plot", FALSE),
+        checkboxInput("peptide_upset_interactn", "Peptides upset plot", FALSE),
         checkboxInput("protein_vulcano_interactn", "Proteins vulcano plot", FALSE),
         checkboxInput("peptide_vulcano_interactn", "Peptides vulcano plot", FALSE),
         checkboxInput("mds_diff_protein_interactn", "MDS based on diffential protein", FALSE),
@@ -5375,6 +5723,17 @@ server <- function(input, output, session) {
       peptide_distribution_fig
     } else{
       db_execution_interactn$generate_peptide_distribution = NULL
+    }
+  })
+  
+  generate_complexity_interactn <- reactive({
+    req(input$complexity_plot_interactn)
+    if(input$complexity_plot_interactn){
+      generate_complexity_fig <- complexity_plot(proteome_data = db_execution_interactn$proteome_data)$plot
+      db_execution_interactn$generate_complexity = generate_complexity_fig
+      generate_complexity_fig
+    } else{
+      db_execution_interactn$generate_complexity = NULL
     }
   })
   
@@ -5550,6 +5909,32 @@ server <- function(input, output, session) {
       ploft_diff_number_pep
     } else{
       db_execution_interactn$peptide_differential_barplot = NULL
+    }
+  })
+  
+  generate_protein_upset_interactn <- reactive(function(){
+    req(input$protein_upset_interactn)
+    if(input$protein_upset_interactn){
+      ploft_diff_number <- generate_upset_plot(db_execution_interactn$differential_results,
+                                               type="protein", 
+                                               DE_class = "all")$plot
+      db_execution_interactn$protein_upset_plot = ploft_diff_number
+      ploft_diff_number
+    } else{
+      db_execution_interactn$protein_upset_plot = NULL
+    }
+  })
+  
+  generate_peptide_upset_interactn <- reactive(function(){
+    req(input$peptide_upset_interactn)
+    if(input$peptide_upset_interactn){
+      ploft_diff_number_pep <- generate_upset_plot(db_execution_interactn$differential_results,
+                                                   type="peptide", 
+                                                   DE_class = "all")$plot
+      db_execution_interactn$peptide_upset_plot = ploft_diff_number_pep
+      ploft_diff_number_pep
+    } else{
+      db_execution_interactn$peptide_upset_plot = NULL
     }
   })
   
@@ -5772,6 +6157,23 @@ server <- function(input, output, session) {
       generate_peptide_distribution_interactn()
     })
     
+    output$render_complexity_plot_interactn <- renderUI({
+      if (input$complexity_plot_interactn) {
+        tagList(
+          tags$h3("Complexity plot of raw abundance"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot('complexity_plot_interactn')",
+            plotOutput("small_complexity_plot_interactn")
+          )
+        )
+      }
+    })
+    output$small_complexity_plot_interactn <- renderPlot({
+      generate_complexity_interactn()
+    })
+    
+    
     output$render_protein_violin_interactn <- renderUI({
       if (input$protein_violin_interactn) {
         tagList(
@@ -5987,6 +6389,38 @@ server <- function(input, output, session) {
     })
     output$small_peptide_diff_barplot_interactn <- renderPlot({
       generate_peptide_diff_barplot_interactn()(4)
+    })
+    
+    output$render_protein_upset_interactn <- renderUI({
+      if (input$protein_upset_interactn) {
+        tagList(
+          tags$h3("Differential proteins upset plot"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot('protein_upset_interactn')",
+            plotOutput("small_protein_upset_interactn")
+          )
+        )
+      }
+    })
+    output$small_protein_upset_interactn <- renderPlot({
+      generate_protein_upset_interactn()
+    })
+    
+    output$render_peptide_upset_interactn <- renderUI({
+      if (input$peptide_upset_interactn) {
+        tagList(
+          tags$h3("Differential peptides upset plot"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot('peptide_upset_interactn')",
+            plotOutput("small_peptide_upset_interactn")
+          )
+        )
+      }
+    })
+    output$small_peptide_upset_interactn <- renderPlot({
+      generate_peptide_upset_interactn()
     })
     
     output$render_protein_vulcano_interactn <- renderUI({
@@ -6324,6 +6758,16 @@ server <- function(input, output, session) {
             }
             setProgress(value = 0.30)
             
+            if(input$complexity_plot_interactn & !is.null(db_execution_interactn$generate_complexity)){
+              ggsave(filename = paste0(db_execution_interactn$dirOutput,"pics/complexity_plot.pdf"), 
+                     plot = db_execution_interactn$generate_complexity, 
+                     create.dir = T, width = 10, height = 8)
+            } else if("complexity_plot.pdf" %in% list.files(paste0(db_execution_interactn$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_interactn$dirOutput,"pics/complexity_plot.pdf"))
+            }
+            setProgress(value = 0.33)
+            
             if(input$protein_violin_interactn & !is.null(db_execution_interactn$protein_abundance_distribution)){
               ggsave(filename = paste0(db_execution_interactn$dirOutput,"pics/protein_abundance_distribution.pdf"), 
                      plot = db_execution_interactn$protein_abundance_distribution, 
@@ -6425,6 +6869,26 @@ server <- function(input, output, session) {
               system(paste0("rm ",db_execution_interactn$dirOutput,"pics/peptide_differential_barplot.pdf"))
             }
             setProgress(value = 0.60)
+            
+            if(!is.null(db_execution_interactn$protein_upset_plot)){
+              ggsave(filename = paste0(db_execution_interactn$dirOutput,"pics/protein_upset_plot.pdf"), 
+                     plot = db_execution_interactn$protein_upset_plot, 
+                     create.dir = T,width = 12, height = 6)
+            } else if("protein_upset_plot.pdf" %in% list.files(paste0(db_execution_interactn$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_interactn$dirOutput,"pics/protein_upset_plot.pdf"))
+            }
+            setProgress(value = 0.62)
+            
+            if(!is.null(db_execution_interactn$peptide_upset_plot)){
+              ggsave(filename = paste0(db_execution_interactn$dirOutput,"pics/peptide_upset_plot.pdf"), 
+                     plot = db_execution_interactn$peptide_upset_plot, 
+                     create.dir = T, width = 12, height = 6)
+            } else if("peptide_upset_plot.pdf" %in% list.files(paste0(db_execution_interactn$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_interactn$dirOutput,"pics/peptide_upset_plot.pdf"))
+            }
+            setProgress(value = 0.63)
             
             if(!is.null(db_execution_interactn$protein_vulcano)){
               dir.create(file.path(paste0(db_execution_interactn$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
@@ -6593,6 +7057,7 @@ server <- function(input, output, session) {
     switch(selected_plot_interactn(),
            "abundance_plot_interactn" = generate_abundance_interactn() + ggtitle("Percentage missing values respect detected abundance")+theme(text=element_text(size=25)),
            "peptide_distribution_plot_interactn" = generate_peptide_distribution_interactn() + ggtitle("N° peptides per proteins")+theme(text=element_text(size=25)),
+           "complexity_plot_interactn" = generate_complexity_interactn() + ggtitle("Complexity plot of raw abundance")+theme(text=element_text(size=25)),
            "protein_violin_plot_interactn" = generate_protein_violin_interactn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
            "peptide_violin_plot_interactn" = generate_peptide_violin_interactn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
            "mds_protein_interactn" = generate_mds_protein_interactn() + ggtitle("MDS based on protein")+theme(text=element_text(size=25)),
@@ -6603,6 +7068,8 @@ server <- function(input, output, session) {
            "protein_heatmap_interactn" = generate_protein_heatmap_interactn() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
            "protein_diff_barplot_interactn" = generate_protein_diff_barplot_interactn()(8) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
            "peptide_diff_barplot_interactn" = generate_peptide_diff_barplot_interactn()(8) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
+           "protein_upset_interactn" = generate_protein_upset_interactn() + ggtitle("Differential proteins upset plot")+theme(text=element_text(size=25)),
+           "peptide_upset_interactn" = generate_peptide_upset_interactn() + ggtitle("Differential peptides upset plot")+theme(text=element_text(size=25)),
            "mds_protein_diff_interactn" = generate_mds_protein_diff_interactn() + ggtitle("MDS based on differential protein")+theme(text=element_text(size=25)),
            "mds_peptide_diff_interactn" = generate_mds_peptide_diff_interactn() + ggtitle("MDS based on differential peptides")+theme(text=element_text(size=25)),
            "pca_protein_diff_interactn" = generate_pca_protein_diff_interactn() + ggtitle("PCA based on differential protein")+theme(text=element_text(size=25)),
