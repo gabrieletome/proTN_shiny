@@ -31,6 +31,7 @@ library(bslib)
 library(plotly)
 library(readr)
 library(DT)
+library(limma)
 library(proTN)
 library(data.table)
 library(rhandsontable)
@@ -224,6 +225,8 @@ ui <- tagList(
                 uiOutput("render_peptide_diff_barplot"),
                 uiOutput("render_protein_upset"),
                 uiOutput("render_peptide_upset"),
+                uiOutput("render_protein_ma_plot"),
+                uiOutput("render_peptide_ma_plot"),
                 fluidRow(
                   column(
                     width = 6,
@@ -722,6 +725,7 @@ server <- function(input, output, session) {
                                  protein_boxplot = NULL, protein_heatmap = NULL,
                                  protein_differential_barplot = NULL, peptide_differential_barplot = NULL,
                                  protein_upset_plot = NULL, peptide_upset_plot = NULL,
+                                 protein_ma_plot = NULL, peptide_ma_plot = NULL,
                                  protein_vulcano = NULL, peptide_vulcano = NULL,
                                  protein_differential_MDS = NULL, peptide_differential_MDS = NULL,
                                  protein_differential_PCA = NULL, peptide_differential_PCA = NULL)
@@ -924,6 +928,8 @@ server <- function(input, output, session) {
         checkboxInput("peptide_upset", "Peptides upset plot", FALSE),
         checkboxInput("protein_vulcano", "Proteins vulcano plot", FALSE),
         checkboxInput("peptide_vulcano", "Peptides vulcano plot", FALSE),
+        checkboxInput("protein_ma_plot", "Proteins MA plot", FALSE),
+        checkboxInput("peptide_ma_plot", "Peptides MA plot", FALSE),
         checkboxInput("mds_diff_protein", "MDS based on diffential protein", FALSE),
         checkboxInput("mds_diff_peptide", "MDS based on diffential peptide", FALSE),
         checkboxInput("pca_diff_protein", "PCA based on diffential protein", FALSE),
@@ -1186,7 +1192,7 @@ server <- function(input, output, session) {
     }
   })
   
-  generate_protein_upset <- reactive(function(){
+  generate_protein_upset <- reactive({
     req(input$protein_upset)
     if(input$protein_upset){
       ploft_diff_number <- generate_upset_plot(db_execution$differential_results,
@@ -1199,7 +1205,7 @@ server <- function(input, output, session) {
     }
   })
   
-  generate_peptide_upset <- reactive(function(){
+  generate_peptide_upset <- reactive({
     req(input$peptide_upset)
     if(input$peptide_upset){
       ploft_diff_number_pep <- generate_upset_plot(db_execution$differential_results,
@@ -1663,11 +1669,12 @@ server <- function(input, output, session) {
     
     output$render_protein_upset <- renderUI({
       if (input$protein_upset) {
+        message("plotting protein upset")
         tagList(
           tags$h3("Differential proteins upset plot"),
           tags$div(
             style = "cursor:pointer;",
-            onclick = "showFullscreenPlot('protein_upset')",
+            onclick = "showFullscreenPlot('protein_upset_l')",
             plotOutput("small_protein_upset")
           )
         )
@@ -1683,7 +1690,7 @@ server <- function(input, output, session) {
           tags$h3("Differential peptides upset plot"),
           tags$div(
             style = "cursor:pointer;",
-            onclick = "showFullscreenPlot('peptide_upset')",
+            onclick = "showFullscreenPlot('peptide_upset_l')",
             plotOutput("small_peptide_upset")
           )
         )
@@ -1693,6 +1700,100 @@ server <- function(input, output, session) {
       generate_peptide_upset()
     })
     
+    output$render_protein_ma_plot <- renderUI({
+      if (input$protein_ma_plot) {
+        c_anno <- db_execution$proteome_data$c_anno
+        generate_ma_plots_protein <- list()
+        for(comp in names(db_execution$formule_contrast)){
+          message(comp)
+          design <- model.matrix(~0 + c_anno$condition)
+          colnames(design) <- levels(as.factor(c_anno$condition))
+          rownames(design) <- c_anno$sample
+          
+          conds <- as.data.table(makeContrasts(contrasts = db_execution$formule_contrast[[comp]], levels = design), keep.rownames = T)
+          conds <- conds[as.vector(conds[,2]!=0), rn]
+          message(conds)
+          
+          generate_ma_plots_protein[[comp]] <- ma_plot(differential_results = db_execution$differential_results, 
+                                                    proteome_data = db_execution$normalized_data,
+                                                    type="protein", comparison = comp, condition = conds)$plot
+        }
+        db_execution$protein_ma_plot = generate_ma_plots_protein
+        # Generate tabPanels in a for loop
+        tabs <- list()
+        for (i in seq_along(generate_ma_plots_protein)) {
+          plot_id <- paste0(names(generate_ma_plots_protein)[i], "_prot")
+          # Create an output slot for each plot
+          local({
+            my_i <- i
+            my_plot_id <- plot_id
+            # output[[my_plot_id]] <- renderPlot(generate_ma_plots_protein[[names(generate_ma_plots_protein)[my_i]]])
+            output[[my_plot_id]] <- renderPlotly(ggplotly(generate_ma_plots_protein[[names(generate_ma_plots_protein)[my_i]]], tooltip = c("text")))
+          })
+          
+          tabs[[i]] <- tabPanel(
+            title = paste(names(generate_ma_plots_protein)[i]),
+            # plotOutput(plot_id)
+            plotlyOutput(plot_id)
+          )
+        }
+        
+        # Use do.call to unpack the tab list into tabsetPanel
+        tagList(
+          tags$h3("MA Plot differential proteins"),
+          do.call(tabsetPanel, c(list(id = "dynamic_tabs_ma_protein"), tabs))
+        )
+      } else{
+        db_execution$protein_ma_plot = NULL
+      }
+    })
+    
+    output$render_peptide_ma_plot <- renderUI({
+      if (input$peptide_ma_plot) {
+        c_anno <- db_execution$proteome_data$c_anno
+        generate_ma_plots_peptide <- list()
+        for(comp in names(db_execution$formule_contrast)){
+          message(comp)
+          design <- model.matrix(~0 + c_anno$condition)
+          colnames(design) <- levels(as.factor(c_anno$condition))
+          rownames(design) <- c_anno$sample
+          
+          conds <- as.data.table(makeContrasts(contrasts = db_execution$formule_contrast[[comp]], levels = design), keep.rownames = T)
+          conds <- conds[as.vector(conds[,2]!=0), rn]
+          message(conds)
+          
+          generate_ma_plots_peptide[[comp]] <- ma_plot(differential_results = db_execution$differential_results, 
+                                                       proteome_data = db_execution$normalized_data,
+                                                       type="peptide", comparison = comp, condition = conds)$plot
+        }
+        db_execution$peptide_ma_plot = generate_ma_plots_peptide
+        # Generate tabPanels in a for loop
+        tabs <- list()
+        for (i in seq_along(generate_ma_plots_peptide)) {
+          plot_id <- paste0(names(generate_ma_plots_peptide)[i], "_prot")
+          # Create an output slot for each plot
+          local({
+            my_i <- i
+            my_plot_id <- plot_id
+            output[[my_plot_id]] <- renderPlotly(ggplotly(generate_ma_plots_peptide[[names(generate_ma_plots_peptide)[my_i]]], tooltip = "text"))
+          })
+          
+          tabs[[i]] <- tabPanel(
+            title = paste(names(generate_ma_plots_peptide)[i]),
+            plotlyOutput(plot_id)
+          )
+        }
+        
+        # Use do.call to unpack the tab list into tabsetPanel
+        tagList(
+          tags$h3("MA Plot differential peptides"),
+          do.call(tabsetPanel, c(list(id = "dynamic_tabs_ma_peptide"), tabs))
+        )
+      } else{
+        db_execution$peptide_ma_plot = NULL
+      }
+    })
+  
     output$render_protein_vulcano <- renderUI({
       if(input$protein_vulcano){
         generate_volcano_plots_protein <- list()
@@ -2170,6 +2271,54 @@ server <- function(input, output, session) {
             }
             setProgress(value = 0.63)
             
+            if(!is.null(db_execution$protein_ma_plot)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_ma_plot.pdf"), 
+                     plot = db_execution$protein_ma_plot, 
+                     create.dir = T,width = 12, height = 6)
+            } else if("protein_ma_plot.pdf" %in% list.files(paste0(db_execution$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution$dirOutput,"pics/protein_ma_plot.pdf"))
+            }
+            setProgress(value = 0.64)
+            
+            if(!is.null(db_execution$peptide_ma_plot)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_ma_plot.pdf"), 
+                     plot = db_execution$peptide_ma_plot, 
+                     create.dir = T, width = 12, height = 6)
+            } else if("peptide_ma_plot.pdf" %in% list.files(paste0(db_execution$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution$dirOutput,"pics/peptide_ma_plot.pdf"))
+            }
+            setProgress(value = 0.63)
+            
+            
+            if(!is.null(db_execution$protein_ma_plot)){
+              dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "protein_ma_plot"), showWarnings = FALSE)
+              for(comp in names(db_execution$protein_ma_plot)){
+                ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_ma_plot/",comp,"_protein_ma_plot.pdf"), 
+                       plot = db_execution$protein_ma_plot[[comp]], 
+                       create.dir = T, width = 6, height = 6)
+              }
+            } else{
+              message("Removing old rendered plot")
+              system(paste0("rm -r ",db_execution$dirOutput,"pics/protein_ma_plot"))
+            }
+            setProgress(value = 0.64)
+            
+            
+            if(!is.null(db_execution$peptide_ma_plot)){
+              dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "peptide_ma_plot"), showWarnings = FALSE)
+              for(comp in names(db_execution$peptide_ma_plot)){
+                ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.pdf"), 
+                       plot = db_execution$peptide_ma_plot[[comp]], 
+                       create.dir = T, width = 6, height = 6)
+              }
+            } else{
+              message("Removing old rendered plot")
+              system(paste0("rm -r ",db_execution$dirOutput,"pics/peptide_ma_plot"))
+            }
+            setProgress(value = 0.64)
+            
             if(!is.null(db_execution$protein_vulcano)){
               dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "protein_vulcano"), showWarnings = FALSE)
               for(comp in names(db_execution$protein_vulcano)){
@@ -2369,8 +2518,10 @@ server <- function(input, output, session) {
            "protein_heatmap" = generate_protein_heatmap() + ggtitle("Heatmap selected proteins")+theme(text=element_text(size=25)),
            "protein_diff_barplot" = generate_protein_diff_barplot()(8) + ggtitle("N° differential proteins")+theme(text=element_text(size=25)),
            "peptide_diff_barplot" = generate_peptide_diff_barplot()(8) + ggtitle("N° differential peptides")+theme(text=element_text(size=25)),
-           "protein_upset" = generate_protein_upset() + ggtitle("Differential proteins upset plot")+theme(text=element_text(size=25)),
-           "peptide_upset" = generate_peptide_upset() + ggtitle("Differential peptides upset plot")+theme(text=element_text(size=25)),
+           "protein_upset_l" = generate_protein_upset() + ggtitle("Differential proteins upset plot")+theme(text=element_text(size=25)),
+           "peptide_upset_l" = generate_peptide_upset() + ggtitle("Differential peptides upset plot")+theme(text=element_text(size=25)),
+           "protein_ma_plot" = generate_protein_ma_plot() + ggtitle("Differential proteins MA plot")+theme(text=element_text(size=25)),
+           "peptide_ma_plot" = generate_peptide_ma_plot() + ggtitle("Differential peptides MA plot")+theme(text=element_text(size=25)),
            "mds_protein_diff" = generate_mds_protein_diff() + ggtitle("MDS based on differential protein")+theme(text=element_text(size=25)),
            "mds_peptide_diff" = generate_mds_peptide_diff() + ggtitle("MDS based on differential peptides")+theme(text=element_text(size=25)),
            "pca_protein_diff" = generate_pca_protein_diff() + ggtitle("PCA based on differential protein")+theme(text=element_text(size=25)),
