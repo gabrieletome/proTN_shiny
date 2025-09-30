@@ -390,6 +390,22 @@ cat("#### Upset plot between comparison in peptides \n")
 db_execution$peptide_upset_plot
 ```
 
+```{r ma_plot_protein, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_ma_plot))}
+cat("#### MA plots of Proteins {.tabset} \n")
+cat("MA plot log2 FC vs mean of abundance of the conditions in the comparison. \n ")
+cat(" \n \n")
+in_tabs(db_execution$protein_ma_plot, labels = names(db_execution$protein_ma_plot), level = 4L)
+cat(" \n \n")
+```
+
+```{r ma_plot_peptide, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_ma_plot))}
+cat("#### MA plots of Peptides {.tabset} \n")
+cat("MA plot log2 FC vs mean of abundance of the conditions in the comparison. \n ")
+cat(" \n \n")
+in_tabs(db_execution$peptide_ma_plot, labels = names(db_execution$peptide_ma_plot), level = 4L)
+cat(" \n \n")
+```
+
 ```{r volcano_protein, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_vulcano))}
 cat("#### Volcano plots of Proteins {.tabset} \n")
 cat("Differentially expressed proteins are displayes according to the thresholds set in the input. \n ")
