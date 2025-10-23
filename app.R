@@ -1727,7 +1727,7 @@ server <- function(input, output, session) {
                                                     proteome_data = db_execution$normalized_data,
                                                     type="protein", comparison = comp, condition = conds)$plot
         }
-        db_execution$protein_ma_plot = generate_ma_plots_protein
+        db_execution$protein_ma_plot = lapply(generate_ma_plots_protein, function(x){ggplotly(x, tooltip = c("text"))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(generate_ma_plots_protein)) {
@@ -1775,7 +1775,7 @@ server <- function(input, output, session) {
                                                        proteome_data = db_execution$normalized_data,
                                                        type="peptide", comparison = comp, condition = conds)$plot
         }
-        db_execution$peptide_ma_plot = generate_ma_plots_peptide
+        db_execution$peptide_ma_plot = lapply(generate_ma_plots_peptide, function(x){ggplotly(x, tooltip = c("text"))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(generate_ma_plots_peptide)) {
@@ -2283,9 +2283,10 @@ server <- function(input, output, session) {
             if(!is.null(db_execution$protein_ma_plot)){
               dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "protein_ma_plot"), showWarnings = FALSE)
               for(comp in names(db_execution$protein_ma_plot)){
-                ggsave(filename = paste0(db_execution$dirOutput,"pics/protein_ma_plot/",comp,"_protein_ma_plot.pdf"), 
-                       plot = db_execution$protein_ma_plot[[comp]], 
-                       create.dir = T, width = 7, height = 6)
+                htmlwidgets::saveWidget(db_execution$protein_ma_plot[[comp]], 
+                                        file = paste0(db_execution$dirOutput,"pics/protein_ma_plot/",comp,"_protein_ma_plot.html"))
+                webshot2::webshot(url = paste0(db_execution$dirOutput,"pics/protein_ma_plot/",comp,"_protein_ma_plot.html"), 
+                                  file = paste0(db_execution$dirOutput,"pics/protein_ma_plot/",comp,"_protein_ma_plot.png"), delay = 1, zoom = 4)
               }
             } else{
               message("Removing old rendered plot")
@@ -2297,9 +2298,10 @@ server <- function(input, output, session) {
             if(!is.null(db_execution$peptide_ma_plot)){
               dir.create(file.path(paste0(db_execution$dirOutput,"pics/"), "peptide_ma_plot"), showWarnings = FALSE)
               for(comp in names(db_execution$peptide_ma_plot)){
-                ggsave(filename = paste0(db_execution$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.pdf"), 
-                       plot = db_execution$peptide_ma_plot[[comp]], 
-                       create.dir = T, width = 7, height = 6)
+                htmlwidgets::saveWidget(db_execution$peptide_ma_plot[[comp]], 
+                                        file = paste0(db_execution$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.html"))
+                webshot2::webshot(url = paste0(db_execution$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.html"), 
+                                  file = paste0(db_execution$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.png"), delay = 1, zoom = 4)
               }
             } else{
               message("Removing old rendered plot")
@@ -3337,7 +3339,7 @@ server <- function(input, output, session) {
                                                        proteome_data = db_execution_phos$normalized_data,
                                                        type="peptide", comparison = comp, condition = conds)$plot
         }
-        db_execution_phos$peptide_ma_plot = generate_ma_plots_peptide
+        db_execution_phos$peptide_ma_plot = lapply(generate_ma_plots_peptide, function(x){ggplotly(x, tooltip = c("text"))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(generate_ma_plots_peptide)) {
@@ -3770,9 +3772,11 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_phos$peptide_ma_plot)){
               dir.create(file.path(paste0(db_execution_phos$dirOutput,"pics/"), "peptide_ma_plot"), showWarnings = FALSE)
               for(comp in names(db_execution_phos$peptide_ma_plot)){
-                ggsave(filename = paste0(db_execution_phos$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.pdf"), 
-                       plot = db_execution_phos$peptide_ma_plot[[comp]], 
-                       create.dir = T, width = 6, height = 6)
+                
+                htmlwidgets::saveWidget(db_execution_phos$peptide_ma_plot[[comp]], 
+                                        file = paste0(db_execution_phos$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.html"))
+                webshot2::webshot(url = paste0(db_execution_phos$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.html"), 
+                                  file = paste0(db_execution_phos$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.png"), delay = 1, zoom = 4)
               }
             } else{
               message("Removing old rendered plot")
@@ -4885,7 +4889,7 @@ server <- function(input, output, session) {
                                                        proteome_data = db_execution_phos_protn$normalized_data,
                                                        type="peptide", comparison = comp, condition = conds)$plot
         }
-        db_execution_phos_protn$peptide_ma_plot = generate_ma_plots_peptide
+        db_execution_phos_protn$peptide_ma_plot = lapply(generate_ma_plots_peptide, function(x){ggplotly(x, tooltip = c("text"))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(generate_ma_plots_peptide)) {
@@ -5363,9 +5367,10 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_phos_protn$peptide_ma_plot)){
               dir.create(file.path(paste0(db_execution_phos_protn$dirOutput,"pics/"), "peptide_ma_plot"), showWarnings = FALSE)
               for(comp in names(db_execution_phos_protn$peptide_ma_plot)){
-                ggsave(filename = paste0(db_execution_phos_protn$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.pdf"), 
-                       plot = db_execution_phos_protn$peptide_ma_plot[[comp]], 
-                       create.dir = T, width = 6, height = 6)
+                htmlwidgets::saveWidget(db_execution_phos_protn$peptide_ma_plot[[comp]], 
+                                        file = paste0(db_execution_phos_protn$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.html"))
+                webshot2::webshot(url = paste0(db_execution_phos_protn$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.html"), 
+                                  file = paste0(db_execution_phos_protn$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.png"), delay = 1, zoom = 4)
               }
             } else{
               message("Removing old rendered plot")
@@ -6481,7 +6486,7 @@ server <- function(input, output, session) {
                                                        proteome_data = db_execution_interactn$normalized_data,
                                                        type="protein", comparison = comp, condition = conds)$plot
         }
-        db_execution_interactn$protein_ma_plot = generate_ma_plots_protein
+        db_execution_interactn$protein_ma_plot = lapply(generate_ma_plots_protein, function(x){ggplotly(x, tooltip = c("text"))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(generate_ma_plots_protein)) {
@@ -6529,7 +6534,7 @@ server <- function(input, output, session) {
                                                        proteome_data = db_execution_interactn$normalized_data,
                                                        type="peptide", comparison = comp, condition = conds)$plot
         }
-        db_execution_interactn$peptide_ma_plot = generate_ma_plots_peptide
+        db_execution_interactn$peptide_ma_plot = lapply(generate_ma_plots_peptide, function(x){ggplotly(x, tooltip = c("text"))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(generate_ma_plots_peptide)) {
@@ -7027,9 +7032,10 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_interactn$protein_ma_plot)){
               dir.create(file.path(paste0(db_execution_interactn$dirOutput,"pics/"), "protein_ma_plot"), showWarnings = FALSE)
               for(comp in names(db_execution_interactn$protein_ma_plot)){
-                ggsave(filename = paste0(db_execution_interactn$dirOutput,"pics/protein_ma_plot/",comp,"_protein_ma_plot.pdf"), 
-                       plot = db_execution_interactn$protein_ma_plot[[comp]], 
-                       create.dir = T, width = 6, height = 6)
+                htmlwidgets::saveWidget(db_execution_interactn$protein_ma_plot[[comp]], 
+                                        file = paste0(db_execution_interactn$dirOutput,"pics/protein_ma_plot/",comp,"_protein_ma_plot.html"))
+                webshot2::webshot(url = paste0(db_execution_interactn$dirOutput,"pics/protein_ma_plot/",comp,"_protein_ma_plot.html"), 
+                                  file = paste0(db_execution_interactn$dirOutput,"pics/protein_ma_plot/",comp,"_protein_ma_plot.png"), delay = 1, zoom = 4)
               }
             } else{
               message("Removing old rendered plot")
@@ -7041,9 +7047,10 @@ server <- function(input, output, session) {
             if(!is.null(db_execution_interactn$peptide_ma_plot)){
               dir.create(file.path(paste0(db_execution_interactn$dirOutput,"pics/"), "peptide_ma_plot"), showWarnings = FALSE)
               for(comp in names(db_execution_interactn$peptide_ma_plot)){
-                ggsave(filename = paste0(db_execution_interactn$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.pdf"), 
-                       plot = db_execution_interactn$peptide_ma_plot[[comp]], 
-                       create.dir = T, width = 6, height = 6)
+                htmlwidgets::saveWidget(db_execution_interactn$peptide_ma_plot[[comp]], 
+                                        file = paste0(db_execution_interactn$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.html"))
+                webshot2::webshot(url = paste0(db_execution_interactn$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.html"), 
+                                  file = paste0(db_execution_interactn$dirOutput,"pics/peptide_ma_plot/",comp,"_peptide_ma_plot.png"), delay = 1, zoom = 4)
               }
             } else{
               message("Removing old rendered plot")
