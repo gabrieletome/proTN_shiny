@@ -233,6 +233,13 @@ cat("Barplot showing the number of peptides per a single protein \n ")
 db_execution$generate_peptide_distribution
 ```
 
+```{r preprocess_figure_3, fig.height=8, fig.width=12,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_complexity)}
+cat("#### Complexity plot of raw abundance \n")
+cat("Sorted raw abundance of each peptides detected reporting the number of peptides for each quantile \n ")
+# Number peptide per each protein
+db_execution$generate_complexity
+```
+
 #### Imputation, normalization, peptide-to-protein summarization 
 
 ```{r print_imputation, warning=FALSE, echo=F, message=FALSE, results='asis'}
@@ -371,6 +378,32 @@ db_execution$protein_differential_barplot
 ```{r differentiated_peptide,  fig.height=6, fig.width=15, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_differential_barplot))}
 cat("#### Number of differentially expressed peptide for each comparison \n")
 db_execution$peptide_differential_barplot
+```
+
+```{r upset_protein,  fig.height=6, fig.width=10, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_upset_plot))}
+cat("#### Upset plot between comparison in proteins \n")
+db_execution$protein_upset_plot
+```
+
+```{r upset_peptide,  fig.height=6, fig.width=10, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_upset_plot))}
+cat("#### Upset plot between comparison in peptides \n")
+db_execution$peptide_upset_plot
+```
+
+```{r ma_plot_protein, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_ma_plot))}
+cat("#### MA plots of Proteins {.tabset} \n")
+cat("MA plot log2 FC vs mean of abundance of the conditions in the comparison. \n ")
+cat(" \n \n")
+in_tabs(db_execution$protein_ma_plot, labels = names(db_execution$protein_ma_plot), level = 4L)
+cat(" \n \n")
+```
+
+```{r ma_plot_peptide, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_ma_plot))}
+cat("#### MA plots of Peptides {.tabset} \n")
+cat("MA plot log2 FC vs mean of abundance of the conditions in the comparison. \n ")
+cat(" \n \n")
+in_tabs(db_execution$peptide_ma_plot, labels = names(db_execution$peptide_ma_plot), level = 4L)
+cat(" \n \n")
 ```
 
 ```{r volcano_protein, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_vulcano))}

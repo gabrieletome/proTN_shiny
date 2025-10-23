@@ -53,13 +53,17 @@ if (!require("limma", quietly = TRUE))
   BiocManager::install("limma")
 if (!require("preprocessCore", quietly = TRUE))
   BiocManager::install("preprocessCore")
+if (!require("pcaMethods", quietly = TRUE))
+  BiocManager::install("pcaMethods")
+if (!require("igraph", quietly = TRUE))
+  install.packages("igraph")
 
 if (!require("proBatch", quietly = TRUE))
   devtools::install_github("symbioticMe/proBatch", dependencies = T)
 if (!require("PhosR", quietly = TRUE))
   devtools::install_github("PYangLab/PhosR", dependencies = T)
 if (!require("proTN", quietly = TRUE))
-  devtools::install_github("tomegabriele/proTN_package", dependencies = T)
+  devtools::install_github("gabrieletome/proTN_package", dependencies = T, build_vignettes = F)
 
 #Install additional packages for PhosProTN
 if (!require("shinyWidgets", quietly = TRUE))
@@ -73,7 +77,8 @@ list.of.packages <- c("BiocManager","shiny","markdown","knitr",
                       "shinyjs","shinyBS", "rmdformats","extrafont",
                       "devtools","wesanderson","svgPanZoom", "biomaRt", 
                       'SummarizedExperiment', 'STRINGdb', 'DEqMS', 'limma', 'preprocessCore',
-                      "impute", "pvca","sva","proBatch","PhosR","proTN")
+                      "impute", "pvca","sva","proBatch","PhosR","proTN",
+                      "igraph", "shinyWidgets", "webshot2")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) {
   message(paste0("ERROR: Some error occur durig the installation of the current package:\n\t",
