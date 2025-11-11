@@ -150,6 +150,7 @@ ui <- tagList(
                 tags$h3("Select what execute:"),
                 checkboxInput("abundance_plot", "% missing values", TRUE),
                 checkboxInput("peptide_distribution", "N° peptides per protein", TRUE),
+                checkboxInput("raw_violin", "Distribution raw abundance", FALSE),
                 checkboxInput("complexity_plot", "Complexity plot", FALSE),
                 checkboxInput("protein_violin", "Distribution abundance proteins", FALSE),
                 checkboxInput("peptide_violin", "Distribution abundance peptides", FALSE),
@@ -170,14 +171,32 @@ ui <- tagList(
                 tags$br(),
                 # textOutput("messagge_read"),
                 uiOutput("protn_results_ui"),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_abundance_plot")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_peptide_distribution")
+                #   )
+                # ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_abundance_plot")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_peptide_distribution")
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width = 11,
+                    uiOutput("render_raw_violin")
                   )
                 ),
                 fluidRow(
@@ -188,34 +207,70 @@ ui <- tagList(
                 ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_protein_violin")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_peptide_violin")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_mds_protein")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_mds_peptide")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_pca_protein")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_pca_peptide")
                   )
                 ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_protein_violin")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_peptide_violin")
+                #   )
+                # ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_mds_protein")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_mds_peptide")
+                #   )
+                # ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_pca_protein")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_pca_peptide")
+                #   )
+                # ),
                 uiOutput("render_protein_boxplot"),
                 uiOutput("render_protein_heatmap"),
                 uiOutput("render_differential_analysis"),
@@ -229,34 +284,70 @@ ui <- tagList(
                 uiOutput("render_peptide_ma_plot"),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_protein_vulcano")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_peptide_vulcano")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_mds_protein_diff")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_mds_peptide_diff")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_pca_protein_diff")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_pca_peptide_diff")
                   )
                 ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_protein_vulcano")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_peptide_vulcano")
+                #   )
+                # ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_mds_protein_diff")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_mds_peptide_diff")
+                #   )
+                # ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_pca_protein_diff")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_pca_peptide_diff")
+                #   )
+                # ),
                 uiOutput("render_enrichement_analysis"),
                 uiOutput("render_stringdb")
               )
@@ -310,10 +401,11 @@ ui <- tagList(
                 checkboxInput("phospho_percentage_plot_phos", "% phosphorylated site", TRUE),
                 checkboxInput("abundance_plot_phos", "% missing values", TRUE),
                 checkboxInput("peptide_distribution_phos", "N° peptides per protein", TRUE),
+                checkboxInput("raw_violin_phos", "Distribution raw abundance", FALSE),
                 checkboxInput("complexity_plot_phos", "Complexity plot", FALSE),
-                checkboxInput("peptide_violin_phos", "Distribution abundance peptides", FALSE),
-                checkboxInput("mds_peptide_phos", "MDS based on peptide", FALSE),
-                checkboxInput("pca_peptide_phos", "PCA based on peptide", TRUE),
+                checkboxInput("peptide_violin_phos", "Distribution abundance phospho-peptides", FALSE),
+                checkboxInput("mds_peptide_phos", "MDS based on phospho-peptide", FALSE),
+                checkboxInput("pca_peptide_phos", "PCA based on phospho-peptide", TRUE),
                 checkboxInput("boxplot_protein_phos", "Boxplot selected proteins", FALSE),
                 checkboxInput("heatmap_protein_phos", "Heatmap selected proteins", FALSE),
                 uiOutput("list_protein_ui_phos"),
@@ -328,14 +420,32 @@ ui <- tagList(
                 # textOutput("messagge_read_phos"),
                 uiOutput("protn_results_ui_phos"),
                 uiOutput("render_phospho_percentage_plot_phos"),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_abundance_plot_phos")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_peptide_distribution_phos")
+                #   )
+                # ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_abundance_plot_phos")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_peptide_distribution_phos")
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width = 11,
+                    uiOutput("render_raw_violin_phos")
                   )
                 ),
                 fluidRow(
@@ -346,19 +456,19 @@ ui <- tagList(
                 ),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_peptide_violin_phos")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_mds_peptide_phos")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_pca_peptide_phos")
                   )
                 ),
@@ -371,19 +481,19 @@ ui <- tagList(
                 uiOutput("render_peptide_ma_plot_phos"),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_peptide_vulcano_phos")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_mds_peptide_diff_phos")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_pca_peptide_diff_phos")
                   )
                 ),
@@ -441,13 +551,15 @@ ui <- tagList(
                 checkboxInput("phospho_percentage_plot_phos_protn", "% phosphorylated site", TRUE),
                 checkboxInput("abundance_plot_phos_protn", "% missing values", TRUE),
                 checkboxInput("peptide_distribution_phos_protn", "N° peptides per protein", TRUE),
+                checkboxInput("raw_violin_prot_phos_protn", "Distribution raw abundance proteome", FALSE),
+                checkboxInput("raw_violin_pep_phos_protn", "Distribution raw abundance phospho-peptides", FALSE),
                 checkboxInput("complexity_plot_phos_protn", "Complexity plot", FALSE),
                 checkboxInput("protein_violin_phos_protn", "Distribution abundance proteins", FALSE),
-                checkboxInput("peptide_violin_phos_protn", "Distribution abundance peptides", FALSE),
+                checkboxInput("peptide_violin_phos_protn", "Distribution abundance phospho-peptides", FALSE),
                 checkboxInput("mds_protein_phos_protn", "MDS based on protein", FALSE),
-                checkboxInput("mds_peptide_phos_protn", "MDS based on peptide", FALSE),
+                checkboxInput("mds_peptide_phos_protn", "MDS based on phospho-peptide", FALSE),
                 checkboxInput("pca_protein_phos_protn", "PCA based on protein", FALSE),
-                checkboxInput("pca_peptide_phos_protn", "PCA based on peptide", TRUE),
+                checkboxInput("pca_peptide_phos_protn", "PCA based on phospho-peptide", TRUE),
                 checkboxInput("boxplot_protein_phos_protn", "Boxplot selected proteins", FALSE),
                 checkboxInput("heatmap_protein_phos_protn", "Heatmap selected proteins", FALSE),
                 uiOutput("list_protein_ui_phos_protn"),
@@ -464,22 +576,34 @@ ui <- tagList(
                 uiOutput("render_phospho_percentage_plot_phos_protn"),
                 uiOutput("render_abundance_plot_phos_protn"),
                 uiOutput("render_peptide_distribution_phos_protn"),
+                fluidRow(
+                  column(
+                    width = 11,
+                    uiOutput("render_raw_violin_prot_phos_protn")
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width = 11,
+                    uiOutput("render_raw_violin_pep_phos_protn")
+                  )
+                ),
                 uiOutput("render_complexity_plot_phos_protn"),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_peptide_violin_phos_protn")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_mds_peptide_phos_protn")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_pca_peptide_phos_protn")
                   )
                 ),
@@ -492,19 +616,19 @@ ui <- tagList(
                 uiOutput("render_peptide_ma_plot_phos_protn"),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_peptide_vulcano_phos_protn")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_mds_peptide_diff_phos_protn")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 10,
+                    width = 11,
                     uiOutput("render_pca_peptide_diff_phos_protn")
                   )
                 ),
@@ -563,6 +687,7 @@ ui <- tagList(
                 tags$h3("Select what execute:"),
                 checkboxInput("abundance_plot_interactn", "% missing values", TRUE),
                 checkboxInput("peptide_distribution_interactn", "N° peptides per protein", TRUE),
+                checkboxInput("raw_violin_interactn", "Distribution raw abundance", FALSE),
                 checkboxInput("complexity_plot_interactn", "Complexity plot", FALSE),
                 checkboxInput("protein_violin_interactn", "Distribution abundance proteins", FALSE),
                 checkboxInput("peptide_violin_interactn", "Distribution abundance peptides", FALSE),
@@ -583,14 +708,32 @@ ui <- tagList(
                 tags$br(),
                 # textOutput("messagge_read"),
                 uiOutput("protn_results_ui_interactn"),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_abundance_plot_interactn")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_peptide_distribution_interactn")
+                #   )
+                # ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_abundance_plot_interactn")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_peptide_distribution_interactn")
+                  )
+                ),
+                fluidRow(
+                  column(
+                    width = 11,
+                    uiOutput("render_raw_violin_interactn")
                   )
                 ),
                 fluidRow(
@@ -601,34 +744,70 @@ ui <- tagList(
                 ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_protein_violin_interactn")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_peptide_violin_interactn")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_mds_protein_interactn")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_mds_peptide_interactn")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_pca_protein_interactn")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_pca_peptide_interactn")
                   )
                 ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_protein_violin_interactn")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_peptide_violin_interactn")
+                #   )
+                # ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_mds_protein_interactn")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_mds_peptide_interactn")
+                #   )
+                # ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_pca_protein_interactn")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_pca_peptide_interactn")
+                #   )
+                # ),
                 uiOutput("render_protein_boxplot_interactn"),
                 uiOutput("render_protein_heatmap_interactn"),
                 uiOutput("render_differential_analysis_interactn"),
@@ -642,34 +821,70 @@ ui <- tagList(
                 uiOutput("render_peptide_ma_plot_interactn"),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_protein_vulcano_interactn")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_peptide_vulcano_interactn")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_mds_protein_diff_interactn")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_mds_peptide_diff_interactn")
                   )
                 ),
                 fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_pca_protein_diff_interactn")
-                  ),
+                  )
+                ),
+                fluidRow(
                   column(
-                    width = 6,
+                    width = 11,
                     uiOutput("render_pca_peptide_diff_interactn")
                   )
                 ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_protein_vulcano_interactn")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_peptide_vulcano_interactn")
+                #   )
+                # ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_mds_protein_diff_interactn")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_mds_peptide_diff_interactn")
+                #   )
+                # ),
+                # fluidRow(
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_pca_protein_diff_interactn")
+                #   ),
+                #   column(
+                #     width = 6,
+                #     uiOutput("render_pca_peptide_diff_interactn")
+                #   )
+                # ),
                 uiOutput("render_enrichement_analysis_interactn"),
                 uiOutput("render_stringdb_interactn")
               )
@@ -708,6 +923,7 @@ server <- function(input, output, session) {
   options(shiny.maxRequestSize = 10 * 1024^3)
   # PROTN: db variable analysis ----
   db_execution <- reactiveValues(session = session$token,
+                                 parameter = list(),
                                  data_loaded = FALSE,
                                  dirOutput = "",
                                  proteome_data = list(),
@@ -721,7 +937,7 @@ server <- function(input, output, session) {
                                  kinase_tree_res = list(),
                                  phospho_percentage = NULL,
                                  generate_abundance = NULL,
-                                 generate_complexity = NULL,
+                                 generate_complexity = NULL, raw_abundance_distribution = NULL,
                                  generate_peptide_distribution = NULL,
                                  protein_abundance_distribution = NULL, peptide_abundance_distirbution = NULL,
                                  protein_MDS = NULL, peptide_MDS = NULL,
@@ -735,6 +951,7 @@ server <- function(input, output, session) {
                                  protein_differential_PCA = NULL, peptide_differential_PCA = NULL)
   # PHOSPROTN: db variable analysis ----
   db_execution_phos <- reactiveValues(session = session$token,
+                                      parameter = list(),
                                       data_loaded = FALSE,
                                       dirOutput = "",
                                       proteome_data = list(),
@@ -748,7 +965,8 @@ server <- function(input, output, session) {
                                       kinase_tree_res = list(),
                                       phospho_percentage = NULL,
                                       generate_abundance = NULL,
-                                      generate_peptide_distribution = NULL,
+                                      generate_peptide_distribution = NULL, 
+                                      raw_abundance_distribution = NULL,
                                       generate_complexity = NULL,
                                       protein_abundance_distribution = NULL, peptide_abundance_distirbution = NULL,
                                       protein_MDS = NULL, peptide_MDS = NULL,
@@ -762,6 +980,7 @@ server <- function(input, output, session) {
                                       protein_differential_PCA = NULL, peptide_differential_PCA = NULL)
   # PhosProTN_with_prot: db variable analysis ----
   db_execution_phos_protn <- reactiveValues(session = session$token,
+                                            parameter = list(),
                                             data_loaded = FALSE,
                                             dirOutput = "",
                                             proteome_data = list(),
@@ -776,6 +995,7 @@ server <- function(input, output, session) {
                                             phospho_percentage = NULL,
                                             generate_abundance = NULL,
                                             generate_peptide_distribution = NULL,
+                                            raw_proteome_abundance_distribution = NULL, raw_phospho_abundance_distribution = NULL,
                                             generate_complexity = NULL,
                                             protein_abundance_distribution = NULL, peptide_abundance_distirbution = NULL,
                                             protein_MDS = NULL, peptide_MDS = NULL,
@@ -790,6 +1010,7 @@ server <- function(input, output, session) {
   
   # InteracTN: db variable analysis ----
   db_execution_interactn <- reactiveValues(session = session$token,
+                                           parameter = list(),
                                  data_loaded = FALSE,
                                  dirOutput = "",
                                  proteome_data = list(),
@@ -803,7 +1024,7 @@ server <- function(input, output, session) {
                                  kinase_tree_res = list(),
                                  phospho_percentage = NULL,
                                  generate_abundance = NULL,
-                                 generate_peptide_distribution = NULL,
+                                 generate_peptide_distribution = NULL, raw_abundance_distribution = NULL,
                                  generate_complexity = NULL,
                                  protein_abundance_distribution = NULL, peptide_abundance_distirbution = NULL,
                                  protein_MDS = NULL, peptide_MDS = NULL,
@@ -1013,6 +1234,18 @@ server <- function(input, output, session) {
     }
   })
   
+  generate_raw_violin <- reactive({
+    req(input$raw_violin)
+    if(input$raw_violin){
+      raw_abundance_distribution_fig <- plot_raw_abundance_distribution(proteome_data = db_execution$proteome_data,
+                                                                        type = "protein")$plot
+      db_execution$raw_abundance_distribution = raw_abundance_distribution_fig
+      raw_abundance_distribution_fig
+    } else{
+      db_execution$raw_abundance_distribution = NULL
+    }
+  })
+  
   generate_complexity <- reactive({
     req(input$complexity_plot)
     if(input$complexity_plot){
@@ -1100,6 +1333,7 @@ server <- function(input, output, session) {
     req(input$boxplot_protein)
     if(input$boxplot_protein){
       req(input$list_proteins)
+      db_execution$parameter <- c(db_execution$parameter, "List proteins boxplot abundance: "=input$list_proteins)
       list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins), regex=",")
       boxplot_protein_fig <- plot_selected_proteins(proteome_data = db_execution$normalized_data,
                                              list_protein = unlist(list_proteins))$plot
@@ -1114,6 +1348,7 @@ server <- function(input, output, session) {
     req(input$heatmap_protein)
     if(input$heatmap_protein){
       req(input$list_proteins)
+      db_execution$parameter <- c(db_execution$parameter, "List proteins heatmap abundance: "=input$list_proteins)
       list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins), regex=",")
       heatmap_protein_fig <- heatmap_selected_proteins(proteome_data = db_execution$normalized_data, list_protein = unlist(list_proteins))$plot
       db_execution$protein_heatmap = heatmap_protein_fig
@@ -1388,11 +1623,23 @@ server <- function(input, output, session) {
                                                                  batch_col = str_to_lower(batch_correction_col))
               }
               
+              db_execution$parameter<-list("Imputation and normalization algorithm: " = ifelse(impute_algorithm[1] != "norm", impute_algorithm[1], impute_algorithm[2]), 
+                                           "Sample column in annotation file: " = sample_column, 
+                                           "Batch correction: " = ifelse(batch_corr, batch_correction_col, "FALSE"), 
+                                           "N° missing value allow per condition: " = NA_allow_condition, 
+                                           "Minimum peptide per protein: " = min_peptide_protein)
+              
               output$c_anno <- DT::renderDT(db_execution$proteome_data$c_anno)
               tagList(
                 fluidRow(
                   downloadButton("download_proteome", "Download results (ZIP file)", width = "240px")
                 ),
+                tags$h3("Statistics:"),
+                tags$h4(paste0("Number of proteins: ", uniqueN(db_execution$normalized_data$dat_gene$GeneName))),
+                if("dat_pep" %in% names(db_execution$normalized_data)){
+                  tags$h4(paste0("Number of peptides: ", uniqueN(db_execution$normalized_data$dat_pep$ID_peptide)))
+                },
+                tags$h3("Annotation table"),
                 DT::DTOutput("c_anno")
               )
             })
@@ -1442,6 +1689,24 @@ server <- function(input, output, session) {
     output$small_peptide_distribution <- renderPlot({
       generate_peptide_distribution()
     })
+    
+    
+    output$render_raw_violin <- renderUI({
+      if (input$raw_violin) {
+        tagList(
+          tags$h3("Distribution raw abundance"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot('raw_violin_plot')",
+            plotOutput("small_raw_violin")
+          )
+        )
+      }
+    })
+    output$small_raw_violin <- renderPlot({
+      generate_raw_violin()
+    })
+    
     
     output$render_complexity_plot <- renderUI({
       if (input$complexity_plot) {
@@ -1625,7 +1890,10 @@ server <- function(input, output, session) {
           db_execution$formule_contrast <- db_execution$formule_contrast[unique(union(db_execution$differential_results$protein_results_long$comp, 
                                                                                       db_execution$differential_results$peptide_results_long$comp))]
         })
-
+        db_execution$parameter<-c(db_execution$parameter,
+                                      "Fold change threshold for significance: "=input$FC_thr,
+                                      "P.value type used: "=input$pval_fdr,
+                                      "P.value threshold for significance: "=input$pval_thr)
         tags$h2("Differential Analysis")
       })
     })
@@ -1957,13 +2225,22 @@ server <- function(input, output, session) {
         db_execution$enrichmnent_results <- perform_enrichment_analysis(differential_results = db_execution$differential_results,
                                                           enrichR_custom_DB = T,
                                                           enrich_filter_DBs=input$DB_enrichment,    
-                                                          overlap_size_enrich_thr=as.double(input$FC_thr),
+                                                          overlap_size_enrich_thr=as.double(input$os_enrich),
                                                           pval_fdr_enrich = input$pval_fdr,
                                                           pval_enrich_thr=as.double(input$pval_thr),
                                                           dirOutput=db_execution$dirOutput, 
                                                           with_background = input$enrich_with_background)
         
         terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich), regex=","))
+        
+        db_execution$parameter <- c(db_execution$parameter,
+                                       "Enrichment databases selected: "=paste(input$DB_enrichment, collapse = ", "),
+                                       "P.value type used for enrichment: "=input$pval_fdr,
+                                       "P.value threshold for enrichment significance: "=input$pval_thr,
+                                       "Overlap size threshold for enrichment significance: "=input$os_enrich,
+                                       "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
+                                       "Enrichment with background: "=input$enrich_with_background)
+        
         plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
                                         category = c("down","up"), 
                                         enrich_filter_term = terms_enrich,
@@ -2013,7 +2290,10 @@ server <- function(input, output, session) {
                                                         dirOutput=db_execution$dirOutput, 
                                                         score_thr=input$score_thr_stringdb,
                                                         shiny = T)
-          
+          db_execution$parameter <- c(db_execution$parameter,
+                                         "STRINGdb taxonomy: "=input$taxonomy,
+                                         "STRINGdb score threshold: "=input$score_thr_stringdb)
+            
           tagList(
             tags$h2("STRINGdb analysis"),
             fluidRow(
@@ -2147,6 +2427,15 @@ server <- function(input, output, session) {
               system(paste0("rm ",db_execution$dirOutput,"pics/peptide_per_protein.pdf"))
             }
             setProgress(value = 0.30)
+            
+            if(input$raw_violin & !is.null(db_execution$raw_abundance_distribution)){
+              ggsave(filename = paste0(db_execution$dirOutput,"pics/raw_abundance_distribution.pdf"), 
+                     plot = db_execution$raw_abundance_distribution, 
+                     create.dir = T, width = 7, height = 5)
+            } else if("raw_abundance_distribution.pdf" %in% list.files(paste0(db_execution$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution$dirOutput,"pics/raw_abundance_distribution.pdf"))
+            }
             
             if(input$complexity_plot & !is.null(db_execution$generate_complexity)){
               ggsave(filename = paste0(db_execution$dirOutput,"pics/complexity_plot.pdf"), 
@@ -2402,6 +2691,11 @@ server <- function(input, output, session) {
             } 
             setProgress(value = 0.95)
             
+            # Write tsv file with parameter
+            params <- data.table("Parameter" = names(db_execution$parameter),
+                                 "Value" = unlist(db_execution$parameter))
+            fwrite(params, paste0(db_execution$dirOutput,"parameters_used.txt"), sep = "\t", col.names = F)
+            
             #Get results Report
             #Wait 10 minutes. If do not end in 10 minutes, kill the process
             hide_res<-p$read_output()
@@ -2498,6 +2792,7 @@ server <- function(input, output, session) {
     switch(selected_plot(),
            "abundance_plot" = generate_abundance() + ggtitle("Percentage missing values respect detected abundance")+theme(text=element_text(size=25)),
            "peptide_distribution_plot" = generate_peptide_distribution() + ggtitle("N° peptides per proteins")+theme(text=element_text(size=25)),
+           "raw_violin_plot" = generate_raw_violin() + ggtitle("Raw abundance distribution")+theme(text=element_text(size=25)),
            "complexity_plot" = generate_complexity() + ggtitle("Complexity plot of raw abundance")+theme(text=element_text(size=25)),
            "protein_violin_plot" = generate_protein_violin() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
            "peptide_violin_plot" = generate_peptide_violin() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
@@ -2724,6 +3019,18 @@ server <- function(input, output, session) {
     }
   })
   
+  generate_raw_violin_phos <- reactive({
+    req(input$raw_violin_phos)
+    if(input$raw_violin_phos){
+      raw_abundance_distribution_fig <- plot_raw_abundance_distribution(proteome_data = db_execution_phos$proteome_data,
+                                                                        type = "protein")$plot
+      db_execution_phos$raw_abundance_distribution = raw_abundance_distribution_fig
+      raw_abundance_distribution_fig
+    } else{
+      db_execution_phos$raw_abundance_distribution = NULL
+    }
+  })
+  
   generate_complexity_phos <- reactive({
     req(input$complexity_plot_phos)
     if(input$complexity_plot_phos){
@@ -2746,18 +3053,6 @@ server <- function(input, output, session) {
     }
   })
   
-  # generate_protein_violin_phos <- reactive({
-  #   req(input$protein_violin_phos)
-  #   if(input$protein_violin_phos){
-  #     protein_abundance_distribution_fig <- plot_abundance_distribution(proteome_data = db_execution_phos$normalized_data,
-  #                                                                       type = "protein")$plot
-  #     db_execution_phos$protein_abundance_distribution = protein_abundance_distribution_fig
-  #     protein_abundance_distribution_fig
-  #   } else{
-  #     db_execution_phos$protein_abundance_distribution = NULL
-  #   }
-  # })
-  # 
   generate_peptide_violin_phos <- reactive({
     req(input$peptide_violin_phos)
     if(input$peptide_violin_phos){
@@ -2770,18 +3065,6 @@ server <- function(input, output, session) {
     }
   })
   
-  # generate_mds_protein_phos <- reactive({
-  #   req(input$mds_protein_phos)
-  #   if(input$mds_protein_phos){
-  #     mds_protein_fig <- mds_plot(proteome_data = db_execution_phos$normalized_data,
-  #                                 type = "protein")$plot
-  #     db_execution_phos$protein_MDS = mds_protein_fig
-  #     mds_protein_fig
-  #   } else{
-  #     db_execution_phos$protein_MDS = NULL
-  #   }
-  # })
-  # 
   generate_mds_peptide_phos <- reactive({
     req(input$mds_peptide_phos)
     if(input$mds_peptide_phos){
@@ -2794,18 +3077,6 @@ server <- function(input, output, session) {
     }
   })
   
-  # generate_pca_protein_phos <- reactive({
-  #   req(input$pca_protein_phos)
-  #   if(input$pca_protein_phos){
-  #     pca_protein_fig <- pca_plot(proteome_data = db_execution_phos$normalized_data,
-  #                                 type = "protein")$plot
-  #     db_execution_phos$protein_PCA = pca_protein_fig
-  #     pca_protein_fig
-  #   } else{
-  #     db_execution_phos$protein_PCA = NULL
-  #   }
-  # })
-  # 
   generate_pca_peptide_phos <- reactive({
     req(input$pca_peptide_phos)
     if(input$pca_peptide_phos){
@@ -2823,6 +3094,7 @@ server <- function(input, output, session) {
     if(input$boxplot_protein_phos){
       req(input$list_proteins_phos)
       list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_phos), regex=",")
+      db_execution_phos$parameter <- c(db_execution_phos$parameter, "List proteins boxplot abundance: "=input$list_proteins_phos)
       boxplot_protein_fig <- plot_selected_proteins(proteome_data = db_execution_phos$normalized_data,
                                                     list_protein = unlist(list_proteins))$plot
       db_execution_phos$protein_boxplot = boxplot_protein_fig
@@ -2837,6 +3109,7 @@ server <- function(input, output, session) {
     if(input$heatmap_protein_phos){
       req(input$list_proteins_phos)
       list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_phos), regex=",")
+      db_execution_phos$parameter <- c(db_execution_phos$parameter, "List proteins heatmap abundance: "=input$list_proteins_phos)
       heatmap_protein_fig <- heatmap_selected_proteins(proteome_data = db_execution_phos$normalized_data, list_protein = unlist(list_proteins))$plot
       db_execution_phos$protein_heatmap = heatmap_protein_fig
       heatmap_protein_fig
@@ -3072,6 +3345,13 @@ server <- function(input, output, session) {
                                                                  batch_col = str_to_lower(batch_correction_col))
               }
               
+              db_execution_phos$parameter<-list("Imputation and normalization algorithm: " = ifelse(impute_algorithm[1] != "norm", impute_algorithm[1], impute_algorithm[2]), 
+                                           "Sample column in annotation file: " = sample_column, 
+                                           "Batch correction: " = ifelse(batch_corr, batch_correction_col, "FALSE"), 
+                                           "N° missing value allow per condition: " = NA_allow_condition, 
+                                           "Minimum peptide per protein: " = min_peptide_protein,
+                                           "Phospho site threshold: " = input$phos_thr)
+              
               output$c_anno_phos <- DT::renderDT(db_execution_phos$proteome_data$c_anno)
               tagList(
                 fluidRow(
@@ -3079,6 +3359,10 @@ server <- function(input, output, session) {
                 ),
                 # html(html = paste0("<p>",msg_read_function,"</p><br>"), id = "messagge_read"),
                 # shinyjs::html(id = "messagge_read", html = paste0("<p>",m$message,"</p>"), add = TRUE),
+                tags$h3("Statistics:"),
+                tags$h4(paste0("Number of phospho-proteins: ", uniqueN(db_execution_phos$normalized_data$dat_gene$GeneName))),
+                tags$h4(paste0("Number of phospho-peptides: ", uniqueN(db_execution_phos$normalized_data$dat_pep$ID_peptide))),
+                tags$h3("Annotation table"),
                 DT::DTOutput("c_anno_phos")
               )
             })
@@ -3129,6 +3413,22 @@ server <- function(input, output, session) {
       generate_abundance_phos()
     })
     
+    output$render_raw_violin_phos <- renderUI({
+      if (input$raw_violin_phos) {
+        tagList(
+          tags$h3("Distribution raw abundance"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos('raw_violin_plot_phos')",
+            plotOutput("small_raw_violin_phos")
+          )
+        )
+      }
+    })
+    output$small_raw_violin_phos <- renderPlot({
+      generate_raw_violin_phos()
+    })
+    
     output$render_complexity_plot_phos <- renderUI({
       if (input$complexity_plot_phos) {
         tagList(
@@ -3164,7 +3464,7 @@ server <- function(input, output, session) {
     output$render_peptide_violin_phos <- renderUI({
       if (input$peptide_violin_phos) {
         tagList(
-          tags$h3("Distribution peptide abundance"),
+          tags$h3("Distribution phospho-peptide abundance"),
           tags$div(
             style = "cursor:pointer;",
             onclick = "showFullscreenPlot_phos('peptide_violin_plot_phos')",
@@ -3180,7 +3480,7 @@ server <- function(input, output, session) {
     output$render_mds_peptide_phos <- renderUI({
       if (input$mds_peptide_phos) {
         tagList(
-          tags$h3("MDS based on peptides"),
+          tags$h3("MDS based on phospho-peptides"),
           tags$div(
             style = "cursor:pointer;",
             onclick = "showFullscreenPlot_phos('mds_peptide_phos')",
@@ -3196,7 +3496,7 @@ server <- function(input, output, session) {
     output$render_pca_peptide_phos <- renderUI({
       if (input$pca_peptide_phos) {
         tagList(
-          tags$h3("PCA based on peptides"),
+          tags$h3("PCA based on phospho-peptides"),
           tags$div(
             style = "cursor:pointer;",
             onclick = "showFullscreenPlot_phos('pca_peptide_phos')",
@@ -3276,6 +3576,10 @@ server <- function(input, output, session) {
                                                                      signal_thr=0)
           db_execution_phos$formule_contrast <- db_execution_phos$formule_contrast[unique(union(db_execution_phos$differential_results$protein_results_long$comp, 
                                                                                                 db_execution_phos$differential_results$peptide_results_long$comp))]
+          db_execution_phos$parameter <- c(db_execution_phos$parameter,
+                                           "Fold change threshold for significance: "=input$FC_thr_phos,
+                                           "P.value type used: "=input$pval_fdr_phos,
+                                           "P.value threshold for significance: "=input$pval_thr_phos)
         })
         
         tags$h2("Differential Analysis")
@@ -3449,13 +3753,23 @@ server <- function(input, output, session) {
         db_execution_phos$enrichmnent_results <- perform_enrichment_analysis(differential_results = db_execution_phos$differential_results,
                                                                         enrichR_custom_DB = T,
                                                                         enrich_filter_DBs=input$DB_enrichment_phos,    
-                                                                        overlap_size_enrich_thr=as.double(input$FC_thr_phos),
+                                                                        overlap_size_enrich_thr=as.double(input$os_enrich_phos),
                                                                         pval_fdr_enrich = input$pval_fdr_phos,
                                                                         pval_enrich_thr=as.double(input$pval_thr_phos),
                                                                         dirOutput=db_execution_phos$dirOutput, 
                                                                         with_background = input$enrich_with_background_phos)
         
         terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich_phos), regex=","))
+        
+        db_execution_phos$parameter <- c(db_execution_phos$parameter,
+                                    "Enrichment databases selected: "=paste(input$DB_enrichment_phos, collapse = ", "),
+                                    "P.value type used for enrichment: "=input$pval_fdr_phos,
+                                    "P.value threshold for enrichment significance: "=input$pval_thr_phos,
+                                    "Overlap size threshold for enrichment significance: "=input$os_enrich_phos,
+                                    "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
+                                    "Enrichment with background: "=input$enrich_with_background_phos)
+        
+        
         plots_down <- enrichment_figure(enr_df = db_execution_phos$enrichmnent_results,
                                         category = c("down","up"), 
                                         enrich_filter_term = terms_enrich,
@@ -3505,6 +3819,9 @@ server <- function(input, output, session) {
                                                         dirOutput=db_execution_phos$dirOutput, 
                                                         score_thr=input$score_thr_stringdb_phos,
                                                         shiny = T)
+          db_execution_phos$parameter <- c(db_execution_phos$parameter,
+                                      "STRINGdb taxonomy: "=input$taxonomy_phos,
+                                      "STRINGdb score threshold: "=input$score_thr_stringdb_phos)
           
           tagList(
             tags$h2("STRINGdb analysis"),
@@ -3536,6 +3853,9 @@ server <- function(input, output, session) {
                                                       dirOutput=db_execution_phos$dirOutput, 
                                                       phosR_thr = input$score_thr_phosr_phos, 
                                                       species = input$taxonomy_kinase_phos)
+          db_execution_phos$parameter <- c(db_execution_phos$parameter,
+                                      "Kinase tree taxonomy: "=input$taxonomy_kinase_phos,
+                                      "Score thr for PhosR: "=input$score_thr_phosr_phos)
           
           if(input$taxonomy_kinase_phos == "Homo sapiens"){
             tagList(
@@ -3667,6 +3987,16 @@ server <- function(input, output, session) {
               system(paste0("rm ",db_execution_phos$dirOutput,"pics/missing_available_abundance.pdf"))
             }
             setProgress(value = 0.25)
+            
+            if(input$raw_violin_phos & !is.null(db_execution_phos$raw_abundance_distribution)){
+              ggsave(filename = paste0(db_execution_phos$dirOutput,"pics/raw_abundance_distribution.pdf"), 
+                     plot = db_execution_phos$raw_abundance_distribution, 
+                     create.dir = T, width = 7, height = 5)
+            } else if("raw_abundance_distribution.pdf" %in% list.files(paste0(db_execution_phos$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_phos$dirOutput,"pics/raw_abundance_distribution.pdf"))
+            }
+            
             
             if(input$peptide_distribution_phos & !is.null(db_execution_phos$generate_peptide_distribution)){
               ggsave(filename = paste0(db_execution_phos$dirOutput,"pics/peptide_per_protein.pdf"), 
@@ -3841,6 +4171,11 @@ server <- function(input, output, session) {
             } 
             setProgress(value = 0.95)
             
+            # Write tsv file with parameter
+            params <- data.table("Parameter" = names(db_execution_phos$parameter),
+                                 "Value" = unlist(db_execution_phos$parameter))
+            fwrite(params, paste0(db_execution_phos$dirOutput,"parameters_used.txt"), sep = "\t", col.names = F)
+            
             #Get results Report
             #Wait 10 minutes. If do not end in 10 minutes, kill the process
             hide_res<-p$read_output()
@@ -3919,6 +4254,7 @@ server <- function(input, output, session) {
     switch(selected_plot_phos(),
            "phospho_percentage_plot_phos" = generate_phospho_percentage_plot_phos()(size_text=8,zoom=T) + ggtitle("Percentage of phosphosite residue")+theme(text=element_text(size=25), axis.text.y = element_text(size = 25)),
            "abundance_plot_phos" = generate_abundance_phos() + ggtitle("Percentage missing values respect detected abundance")+theme(text=element_text(size=25)),
+           "raw_violin_plot_phos" = generate_raw_violin_phos() + ggtitle("Raw abundance distribution")+theme(text=element_text(size=25)),
            "peptide_distribution_plot_phos" = generate_peptide_distribution_phos() + ggtitle("N° peptides per proteins")+theme(text=element_text(size=25)),
            "complexity_plot_phos" = generate_complexity_phos() + ggtitle("Complexity plot of raw abundance")+theme(text=element_text(size=25)),
            "peptide_violin_plot_phos" = generate_peptide_violin_phos() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
@@ -4186,6 +4522,29 @@ server <- function(input, output, session) {
     }
   })
   
+  generate_raw_violin_prot_phos_protn <- reactive({
+    req(input$raw_violin_prot_phos_protn)
+    if(input$raw_violin_prot_phos_protn){
+      raw_abundance_distribution_fig <- plot_raw_abundance_distribution(proteome_data = db_execution_phos_protn$proteome_data,
+                                                                        type = "protein")$plot
+      db_execution_phos_protn$raw_proteome_abundance_distribution = raw_abundance_distribution_fig
+      raw_abundance_distribution_fig
+    } else{
+      db_execution_phos_protn$raw_proteome_abundance_distribution = NULL
+    }
+  })
+  generate_raw_violin_pep_phos_protn <- reactive({
+    req(input$raw_violin_pep_phos_protn)
+    if(input$raw_violin_pep_phos_protn){
+      raw_abundance_distribution_fig <- plot_raw_abundance_distribution(proteome_data = db_execution_phos_protn$proteome_data,
+                                                                        type = "peptide")$plot
+      db_execution_phos_protn$raw_phospho_abundance_distribution = raw_abundance_distribution_fig
+      raw_abundance_distribution_fig
+    } else{
+      db_execution_phos_protn$raw_phospho_abundance_distribution = NULL
+    }
+  })
+  
   generate_complexity_phos_protn_prot <- reactive({
     req(input$complexity_plot_phos_protn)
     if(input$complexity_plot_phos_protn){
@@ -4284,6 +4643,7 @@ server <- function(input, output, session) {
     if(input$boxplot_protein_phos_protn){
       req(input$list_proteins_phos_protn)
       list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_phos_protn), regex=",")
+      db_execution_phos_protn$parameter <- c(db_execution_phos_protn$parameter, "List proteins boxplot abundance: "=input$list_proteins_phos_protn)
       boxplot_protein_fig <- plot_selected_proteins(proteome_data = db_execution_phos_protn$normalized_data,
                                                     list_protein = unlist(list_proteins))$plot
       db_execution_phos_protn$protein_boxplot = boxplot_protein_fig
@@ -4298,6 +4658,7 @@ server <- function(input, output, session) {
     if(input$heatmap_protein_phos_protn){
       req(input$list_proteins_phos_protn)
       list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_phos_protn), regex=",")
+      db_execution_phos_protn$parameter <- c(db_execution_phos_protn$parameter, "List proteins heatmap abundance: "=input$list_proteins_phos_protn)
       heatmap_protein_fig <- heatmap_selected_proteins(proteome_data = db_execution_phos_protn$normalized_data, list_protein = unlist(list_proteins))$plot
       db_execution_phos_protn$protein_heatmap = heatmap_protein_fig
       heatmap_protein_fig
@@ -4522,6 +4883,14 @@ server <- function(input, output, session) {
                                                                  batch_col = str_to_lower(batch_correction_col))
               }
               
+              db_execution_phos_protn$parameter<-list("Imputation and normalization algorithm: " = ifelse(impute_algorithm[1] != "norm", impute_algorithm[1], impute_algorithm[2]), 
+                                                "Sample column in annotation file: " = sample_column, 
+                                                "Batch correction: " = ifelse(batch_corr, batch_correction_col, "FALSE"), 
+                                                "N° missing value allow per condition: " = NA_allow_condition, 
+                                                "Minimum peptide per protein: " = min_peptide_protein,
+                                                "Phospho site threshold: " = input$phos_thr_phos_protn)
+              
+              
               output$c_anno_phos_protn <- DT::renderDT(db_execution_phos_protn$proteome_data$c_anno)
               tagList(
                 fluidRow(
@@ -4529,6 +4898,10 @@ server <- function(input, output, session) {
                 ),
                 # html(html = paste0("<p>",msg_read_function,"</p><br>"), id = "messagge_read"),
                 # shinyjs::html(id = "messagge_read", html = paste0("<p>",m$message,"</p>"), add = TRUE),
+                tags$h3("Statistics:"),
+                tags$h4(paste0("Number of proteins from proteome dataset: ", uniqueN(db_execution_phos_protn$normalized_data$dat_gene$GeneName))),
+                tags$h4(paste0("Number of phospho-peptides from phospho-proteome dataset: ", uniqueN(db_execution_phos_protn$normalized_data$dat_pep$ID_peptide))),
+                tags$h3("Annotation table"),
                 DT::DTOutput("c_anno_phos_protn")
               )
             })
@@ -4630,6 +5003,37 @@ server <- function(input, output, session) {
       generate_peptide_distribution_phos_protn_phos()
     })
     
+    output$render_raw_violin_pep_phos_protn <- renderUI({
+      if (input$raw_violin_pep_phos_protn) {
+        tagList(
+          tags$h3("Distribution raw abundance - Phospho-proteome"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('raw_violin_plot_pep_phos_protn')",
+            plotOutput("small_raw_violin_pep_phos_protn")
+          )
+        )
+      }
+    })
+    output$small_raw_violin_pep_phos_protn <- renderPlot({
+      generate_raw_violin_pep_phos_protn()
+    })
+    output$render_raw_violin_prot_phos_protn <- renderUI({
+      if (input$raw_violin_prot_phos_protn) {
+        tagList(
+          tags$h3("Distribution raw abundance - Proteome"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_phos_protn('raw_violin_plot_prot_phos_protn')",
+            plotOutput("small_raw_violin_prot_phos_protn")
+          )
+        )
+      }
+    })
+    output$small_raw_violin_prot_phos_protn <- renderPlot({
+      generate_raw_violin_prot_phos_protn()
+    })
+    
     output$render_complexity_plot_phos_protn <- renderUI({
       if (input$complexity_plot_phos_protn) {
         tagList(
@@ -4682,7 +5086,7 @@ server <- function(input, output, session) {
     output$render_peptide_violin_phos_protn <- renderUI({
       if (input$peptide_violin_phos_protn) {
         tagList(
-          tags$h3("Distribution peptide abundance"),
+          tags$h3("Distribution phospho-peptide abundance"),
           tags$div(
             style = "cursor:pointer;",
             onclick = "showFullscreenPlot_phos_protn('peptide_violin_plot_phos_protn')",
@@ -4714,7 +5118,7 @@ server <- function(input, output, session) {
     output$render_mds_peptide_phos_protn <- renderUI({
       if (input$mds_peptide_phos_protn) {
         tagList(
-          tags$h3("MDS based on peptides"),
+          tags$h3("MDS based on phospho-peptides"),
           tags$div(
             style = "cursor:pointer;",
             onclick = "showFullscreenPlot_phos_protn('mds_peptide_phos_protn')",
@@ -4746,7 +5150,7 @@ server <- function(input, output, session) {
     output$render_pca_peptide_phos_protn <- renderUI({
       if (input$pca_peptide_phos_protn) {
         tagList(
-          tags$h3("PCA based on peptides"),
+          tags$h3("PCA based on phospho-peptides"),
           tags$div(
             style = "cursor:pointer;",
             onclick = "showFullscreenPlot_phos_protn('pca_peptide_phos_protn')",
@@ -4826,6 +5230,11 @@ server <- function(input, output, session) {
                                                                      signal_thr=0)
           ll<-reactiveValuesToList(db_execution_phos_protn)
           db_execution_phos_protn$formule_contrast <- db_execution_phos_protn$formule_contrast[names(db_execution_phos_protn$formule_contrast) %in% unique((db_execution_phos_protn$differential_results$peptide_results_long$comp))]
+          
+          db_execution_phos_protn$parameter <- c(db_execution_phos_protn$parameter,
+                                           "Fold change threshold for significance: "=input$FC_thr_phos_protn,
+                                           "P.value type used: "=input$pval_fdr_phos_protn,
+                                           "P.value threshold for significance: "=input$pval_thr_phos_protn)
         })
         
         tags$h2("Differential Analysis")
@@ -5002,13 +5411,23 @@ server <- function(input, output, session) {
         db_execution_phos_protn$enrichmnent_results <- perform_enrichment_analysis(differential_results = db_execution_phos_protn$differential_results,
                                                                         enrichR_custom_DB = T,
                                                                         enrich_filter_DBs=input$DB_enrichment_phos_protn,    
-                                                                        overlap_size_enrich_thr=as.double(input$FC_thr_phos_protn),
+                                                                        overlap_size_enrich_thr=as.double(input$os_enrich_phos_protn),
                                                                         pval_fdr_enrich = input$pval_fdr_phos_protn,
                                                                         pval_enrich_thr=as.double(input$pval_thr_phos_protn),
                                                                         dirOutput=db_execution_phos_protn$dirOutput, 
                                                                         with_background = input$enrich_with_background_phos_protn)
         
         terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich_phos_protn), regex=","))
+        
+        db_execution_phos_protn$parameter <- c(db_execution_phos_protn$parameter,
+                                         "Enrichment databases selected: "=paste(input$DB_enrichment_phos_protn, collapse = ", "),
+                                         "P.value type used for enrichment: "=input$pval_fdr_phos_protn,
+                                         "P.value threshold for enrichment significance: "=input$pval_thr_phos_protn,
+                                         "Overlap size threshold for enrichment significance: "=input$os_enrich_phos_protn,
+                                         "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
+                                         "Enrichment with background: "=input$enrich_with_background_phos_protn)
+        
+        
         plots_down <- enrichment_figure(enr_df = db_execution_phos_protn$enrichmnent_results,
                                         category = c("down","up"), 
                                         enrich_filter_term = terms_enrich,
@@ -5058,7 +5477,9 @@ server <- function(input, output, session) {
                                                         dirOutput=db_execution_phos_protn$dirOutput, 
                                                         score_thr=input$score_thr_stringdb_phos_protn,
                                                         shiny = T)
-          
+          db_execution_phos_protn$parameter <- c(db_execution_phos_protn$parameter,
+                                           "STRINGdb taxonomy: "=input$taxonomy_phos_protn,
+                                           "STRINGdb score threshold: "=input$score_thr_stringdb_phos_protn)
           tagList(
             tags$h2("STRINGdb analysis"),
             fluidRow(
@@ -5089,7 +5510,9 @@ server <- function(input, output, session) {
                                                       dirOutput=db_execution_phos_protn$dirOutput, 
                                                       phosR_thr = input$score_thr_phosr_phos_protn, 
                                                       species = input$taxonomy_kinase_phos_protn)
-          
+          db_execution_phos_protn$parameter <- c(db_execution_phos_protn$parameter,
+                                           "Kinase tree taxonomy: "=input$taxonomy_kinase_phos_protn,
+                                           "Score thr for PhosR: "=input$score_thr_phosr_phos_protn)
           if(input$taxonomy_kinase_phos_protn == "Homo sapiens"){
             tagList(
               tags$h2("Kinase Tree analysis"),
@@ -5238,6 +5661,24 @@ server <- function(input, output, session) {
               system(paste0("rm ",db_execution_phos_protn$dirOutput,"pics/peptide_per_protein_*"))
             }
             setProgress(value = 0.30)
+            
+            if(input$raw_violin_prot_phos_protn & !is.null(db_execution_phos_protn$raw_proteome_abundance_distribution)){
+              ggsave(filename = paste0(db_execution_phos_protn$dirOutput,"pics/raw_abundance_distribution_proteome.pdf"), 
+                     plot = db_execution_phos_protn$raw_proteome_abundance_distribution, 
+                     create.dir = T, width = 7, height = 5)
+            } else if("raw_abundance_distribution.pdf" %in% list.files(paste0(db_execution_phos_protn$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_phos_protn$dirOutput,"pics/raw_abundance_distribution_proteome.pdf"))
+            }
+            
+            if(input$raw_violin_pep_phos_protn & !is.null(db_execution_phos_protn$raw_phospho_abundance_distribution)){
+              ggsave(filename = paste0(db_execution_phos_protn$dirOutput,"pics/raw_abundance_distribution_phosphoproteomics.pdf"), 
+                     plot = db_execution_phos_protn$raw_phospho_abundance_distribution, 
+                     create.dir = T, width = 7, height = 5)
+            } else if("raw_abundance_distribution.pdf" %in% list.files(paste0(db_execution_phos_protn$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_phos_protn$dirOutput,"pics/raw_abundance_distribution_phosphoproteomics.pdf"))
+            }
             
             if(input$complexity_plot_phos_protn & !is.null(db_execution_phos_protn$generate_complexity)){
               ggsave(filename = paste0(db_execution_phos_protn$dirOutput,"pics/complexity_proteomics.pdf"), 
@@ -5471,6 +5912,12 @@ server <- function(input, output, session) {
             } 
             setProgress(value = 0.95)
             
+            # Write tsv file with parameter
+            params <- data.table("Parameter" = names(db_execution_phos_protn$parameter),
+                                 "Value" = unlist(db_execution_phos_protn$parameter))
+            fwrite(params, paste0(db_execution_phos_protn$dirOutput,"parameters_used.txt"), sep = "\t", col.names = F)
+            
+            
             #Get results Report
             #Wait 10 minutes. If do not end in 10 minutes, kill the process
             hide_res<-p$read_output()
@@ -5552,6 +5999,8 @@ server <- function(input, output, session) {
            "abundance_plot_phos_protn_phos" = generate_abundance_phos_protn_phos() + ggtitle("Percentage missing values respect detected abundance - Phospho-proteomics")+theme(text=element_text(size=25)),
            "peptide_distribution_plot_phos_protn_prot" = generate_peptide_distribution_phos_protn_prot() + ggtitle("N° peptides per proteins - Proteomics")+theme(text=element_text(size=25)),
            "peptide_distribution_plot_phos_protn_phos" = generate_peptide_distribution_phos_protn_phos() + ggtitle("N° peptides per proteins - Phospho-proteomics")+theme(text=element_text(size=25)),
+           "raw_violin_plot_prot_phos_protn" = generate_raw_violin_prot_phos_protn() + ggtitle("Raw abundance distribution - Proteome")+theme(text=element_text(size=25)),
+           "raw_violin_plot_pep_phos_protn" = generate_raw_violin_pep_phos_protn() + ggtitle("Raw abundance distribution - Phospho-proteome")+theme(text=element_text(size=25)),
            "complexity_plot_phos_protn_prot" = generate_complexity_phos_protn_prot() + ggtitle("Complexity plot of raw abundance - Proteomics")+theme(text=element_text(size=25)),
            "complexity_plot_phos_protn_phos" = generate_complexity_phos_protn_prot() + ggtitle("Complexity plot of raw abundance - Phospho-proteomics")+theme(text=element_text(size=25)),
            "protein_violin_plot_phos_protn" = generate_protein_violin_phos_protn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
@@ -5771,6 +6220,18 @@ server <- function(input, output, session) {
     }
   })
   
+  generate_raw_violin_interactn <- reactive({
+    req(input$raw_violin_interactn)
+    if(input$raw_violin_interactn){
+      raw_abundance_distribution_fig <- plot_raw_abundance_distribution(proteome_data = db_execution_interactn$proteome_data,
+                                                                        type = "protein")$plot
+      db_execution_interactn$raw_abundance_distribution = raw_abundance_distribution_fig
+      raw_abundance_distribution_fig
+    } else{
+      db_execution_interactn$raw_abundance_distribution = NULL
+    }
+  })
+  
   generate_complexity_interactn <- reactive({
     req(input$complexity_plot_interactn)
     if(input$complexity_plot_interactn){
@@ -5859,6 +6320,7 @@ server <- function(input, output, session) {
     if(input$boxplot_protein_interactn){
       req(input$list_proteins_interactn)
       list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_interactn), regex=",")
+      db_execution_interactn$parameter <- c(db_execution_interactn$parameter, "List proteins boxplot abundance: "=input$list_proteins_interactn)
       boxplot_protein_fig <- plot_selected_proteins(proteome_data = db_execution_interactn$normalized_data,
                                                     list_protein = unlist(list_proteins))$plot
       db_execution_interactn$protein_boxplot = boxplot_protein_fig
@@ -5873,6 +6335,7 @@ server <- function(input, output, session) {
     if(input$heatmap_protein_interactn){
       req(input$list_proteins_interactn)
       list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins_interactn), regex=",")
+      db_execution_interactn$parameter <- c(db_execution_interactn$parameter, "List proteins heatmap abundance: "=input$list_proteins_interactn)
       heatmap_protein_fig <- heatmap_selected_proteins(proteome_data = db_execution_interactn$normalized_data, list_protein = unlist(list_proteins))$plot
       db_execution_interactn$protein_heatmap = heatmap_protein_fig
       heatmap_protein_fig
@@ -6145,6 +6608,12 @@ server <- function(input, output, session) {
                                                                  batch_col = str_to_lower(batch_correction_col))
               }
               
+              db_execution_interactn$parameter<-list("Imputation and normalization algorithm: " = ifelse(impute_algorithm[1] != "norm", impute_algorithm[1], impute_algorithm[2]), 
+                                           "Sample column in annotation file: " = sample_column, 
+                                           "Batch correction: " = ifelse(batch_corr, batch_correction_col, "FALSE"), 
+                                           "N° missing value allow per condition: " = NA_allow_condition, 
+                                           "Minimum peptide per protein: " = min_peptide_protein)
+              
               output$c_anno_interactn <- DT::renderDT(db_execution_interactn$proteome_data$c_anno)
               tagList(
                 fluidRow(
@@ -6152,6 +6621,10 @@ server <- function(input, output, session) {
                 ),
                 # html(html = paste0("<p>",msg_read_function,"</p><br>"), id = "messagge_read"),
                 # shinyjs::html(id = "messagge_read", html = paste0("<p>",m$message,"</p>"), add = TRUE),
+                tags$h3("Statistics:"),
+                tags$h4(paste0("Number of proteins: ", uniqueN(db_execution_interactn$normalized_data$dat_gene$GeneName))),
+                tags$h4(paste0("Number of peptides: ", uniqueN(db_execution_interactn$normalized_data$dat_pep$ID_peptide))),
+                tags$h3("Annotation table"),
                 DT::DTOutput("c_anno_interactn")
               )
             })
@@ -6201,6 +6674,25 @@ server <- function(input, output, session) {
     output$small_peptide_distribution_interactn <- renderPlot({
       generate_peptide_distribution_interactn()
     })
+    
+    
+    output$render_raw_violin_interactn <- renderUI({
+      if (input$raw_violin_interactn) {
+        tagList(
+          tags$h3("Distribution raw abundance"),
+          tags$div(
+            style = "cursor:pointer;",
+            onclick = "showFullscreenPlot_interactn('raw_violin_plot_interactn')",
+            plotOutput("small_raw_violin_interactn")
+          )
+        )
+      }
+    })
+    output$small_raw_violin_interactn <- renderPlot({
+      generate_raw_violin_interactn()
+    })
+    
+    
     
     output$render_complexity_plot_interactn <- renderUI({
       if (input$complexity_plot_interactn) {
@@ -6383,6 +6875,11 @@ server <- function(input, output, session) {
                                                                      interactomics = TRUE)
           db_execution_interactn$formule_contrast <- db_execution_interactn$formule_contrast[unique(union(db_execution_interactn$differential_results$protein_results_long$comp, 
                                                                                                           db_execution_interactn$differential_results$peptide_results_long$comp))]
+          
+          db_execution_interactn$parameter<-c(db_execution_interactn$parameter,
+                                    "Fold change threshold for significance: "=input$FC_thr_interactn,
+                                    "P.value type used: "=input$pval_fdr_interactn,
+                                    "P.value threshold for significance: "=input$pval_thr_interactn)
           
         })
         
@@ -6721,13 +7218,22 @@ server <- function(input, output, session) {
         db_execution_interactn$enrichmnent_results <- perform_enrichment_analysis(differential_results = db_execution_interactn$differential_results,
                                                                         enrichR_custom_DB = T,
                                                                         enrich_filter_DBs=input$DB_enrichment_interactn,    
-                                                                        overlap_size_enrich_thr=as.double(input$FC_thr_interactn),
+                                                                        overlap_size_enrich_thr=as.double(input$os_enrich_interactn),
                                                                         pval_fdr_enrich = input$pval_fdr_interactn,
                                                                         pval_enrich_thr=as.double(input$pval_thr_interactn),
                                                                         dirOutput=db_execution_interactn$dirOutput, 
                                                                         with_background = input$enrich_with_background_interactn)
         
         terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich_interactn), regex=","))
+        
+        db_execution_interactn$parameter <- c(db_execution_interactn$parameter,
+                                    "Enrichment databases selected: "=paste(input$DB_enrichment_interactn, collapse = ", "),
+                                    "P.value type used for enrichment: "=input$pval_fdr_interactn,
+                                    "P.value threshold for enrichment significance: "=input$pval_thr_interactn,
+                                    "Overlap size threshold for enrichment significance: "=input$os_enrich_interactn,
+                                    "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
+                                    "Enrichment with background: "=input$enrich_with_background_interactn)
+        
         plots_down <- enrichment_figure(enr_df = db_execution_interactn$enrichmnent_results,
                                         category = c("down","up"), 
                                         enrich_filter_term = terms_enrich,
@@ -6777,6 +7283,9 @@ server <- function(input, output, session) {
                                                         dirOutput=db_execution_interactn$dirOutput, 
                                                         score_thr=input$score_thr_stringdb_interactn,
                                                         shiny = T)
+          db_execution_interactn$parameter <- c(db_execution_interactn$parameter,
+                                      "STRINGdb taxonomy: "=input$taxonomy_interactn,
+                                      "STRINGdb score threshold: "=input$score_thr_stringdb_interactn)
           
           tagList(
             tags$h2("STRINGdb analysis"),
@@ -6886,6 +7395,16 @@ server <- function(input, output, session) {
               system(paste0("rm ",db_execution_interactn$dirOutput,"pics/missing_available_abundance.pdf"))
             }
             setProgress(value = 0.25)
+            
+            if(input$raw_violin_interactn & !is.null(db_execution_interactn$raw_abundance_distribution)){
+              ggsave(filename = paste0(db_execution_interactn$dirOutput,"pics/raw_abundance_distribution.pdf"), 
+                     plot = db_execution_interactn$raw_abundance_distribution, 
+                     create.dir = T, width = 7, height = 5)
+            } else if("raw_abundance_distribution.pdf" %in% list.files(paste0(db_execution_interactn$dirOutput,"pics"))){
+              message("Removing old rendered plot")
+              system(paste0("rm ",db_execution_interactn$dirOutput,"pics/raw_abundance_distribution.pdf"))
+            }
+            
             
             if(input$peptide_distribution_interactn & !is.null(db_execution_interactn$generate_peptide_distribution)){
               ggsave(filename = paste0(db_execution_interactn$dirOutput,"pics/peptide_per_protein.pdf"), 
@@ -7151,6 +7670,12 @@ server <- function(input, output, session) {
             } 
             setProgress(value = 0.95)
             
+            # Write tsv file with parameter
+            params <- data.table("Parameter" = names(db_execution_interactn$parameter),
+                                 "Value" = unlist(db_execution_interactn$parameter))
+            fwrite(params, paste0(db_execution_interactn$dirOutput,"parameters_used.txt"), sep = "\t", col.names = F)
+            
+            
             #Get results Report
             #Wait 10 minutes. If do not end in 10 minutes, kill the process
             hide_res<-p$read_output()
@@ -7225,6 +7750,7 @@ server <- function(input, output, session) {
     switch(selected_plot_interactn(),
            "abundance_plot_interactn" = generate_abundance_interactn() + ggtitle("Percentage missing values respect detected abundance")+theme(text=element_text(size=25)),
            "peptide_distribution_plot_interactn" = generate_peptide_distribution_interactn() + ggtitle("N° peptides per proteins")+theme(text=element_text(size=25)),
+           "raw_violin_plot_interactn" = generate_raw_violin_interactn() + ggtitle("Raw abundance distribution")+theme(text=element_text(size=25)),
            "complexity_plot_interactn" = generate_complexity_interactn() + ggtitle("Complexity plot of raw abundance")+theme(text=element_text(size=25)),
            "protein_violin_plot_interactn" = generate_protein_violin_interactn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),
            "peptide_violin_plot_interactn" = generate_peptide_violin_interactn() + ggtitle("Distribution peptide abundance")+theme(text=element_text(size=25)),

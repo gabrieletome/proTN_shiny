@@ -230,6 +230,16 @@ Initial filtering removes the following peptides:
 
 After filtering, raw abundances are log2 transformed
 
+```{r print_number, warning=FALSE, echo=F, message=FALSE, results='asis'}
+cat(" \n")
+cat("#### Statistics \n")
+cat("The following statistics summarize the input datasets used for the analysis. \n \n ")
+cat("Number of proteins and peptides considered after filtering steps: \n \n ")
+cat(paste0(" - N° proteins in proteome dataset: ", uniqueN(db_execution$normalized_data$dat_gene$GeneName), " \n \n "))
+cat(paste0(" - N° phospho-peptides in phospho-proteome dataset: ", uniqueN(db_execution$normalized_data$dat_pep$ID_peptide), " \n \n "))
+cat(" \n")
+```
+
 ```{r phospho_percentage, fig.height=4, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$phospho_percentage)}
 cat("#### Percentage of phosphosite residue \n ")
 cat("The following graph represent the percentage of the phosphosites located on Serine (S), Throenines (T) and Tyrosines (Y). \n ")
@@ -266,6 +276,20 @@ cat("#### N° peptides per proteins - Proteomics \n")
 cat("Barplot showing the number of peptides per a single protein \n ")
 # Number peptide per each protein
 db_execution$generate_peptide_distribution$proteome_plot
+```
+
+```{r normalized_plot_raw_phospho, fig.height=5, fig.width=7,results='asis', echo=FALSE, warning=FALSE, eval=!is.null(db_execution$raw_phospho_abundance_distribution)}
+cat("#### Distribution of phospho-peptides raw abundance - Phospho-proteomics \n")
+cat("Violin plot showing sample distributions of log2 raw abundances. \n ")
+#Abundance per raw
+db_execution$raw_phospho_abundance_distribution
+```
+
+```{r normalized_plot_raw_proteome, fig.height=5, fig.width=7,results='asis', echo=FALSE, warning=FALSE, eval=!is.null(db_execution$raw_proteome_abundance_distribution)}
+cat("#### Distribution of proteome raw abundance - Proteomics \n")
+cat("Violin plot showing sample distributions of log2 raw abundances. \n ")
+#Abundance per raw
+db_execution$raw_proteome_abundance_distribution
 ```
 
 ```{r preprocess_figure_3_phos, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_complexity_protein)}

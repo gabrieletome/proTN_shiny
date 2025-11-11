@@ -218,6 +218,18 @@ Initial filtering removes the following peptides:
 
 After filtering, raw abundances are log2 transformed
 
+```{r print_number, warning=FALSE, echo=F, message=FALSE, results='asis'}
+cat(" \n")
+cat("#### Statistics \n")
+cat("The following statistics summarize the input datasets used for the analysis. \n \n ")
+cat("Number of proteins and peptides (if present) considered after filtering steps: \n \n ")
+cat(paste0(" - N° proteins: ", uniqueN(db_execution$normalized_data$dat_gene$GeneName), " \n \n "))
+if("dat_pep" %in% names(db_execution$normalized_data)){
+  cat(paste0(" - N° peptides: ", uniqueN(db_execution$normalized_data$dat_pep$ID_peptide), " \n \n "))
+}
+cat(" \n")
+```
+
 ```{r preprocess_figure_1, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
 cat("#### Percentage missing values respect detected abundance \n ")
 cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
@@ -231,6 +243,13 @@ cat("#### N° peptides per proteins \n")
 cat("Barplot showing the number of peptides per a single protein \n ")
 # Number peptide per each protein
 db_execution$generate_peptide_distribution
+```
+
+```{r normalized_plot_raw, fig.height=5, fig.width=7,results='asis', echo=FALSE, warning=FALSE, eval=!is.null(db_execution$raw_abundance_distribution)}
+cat("#### Distribution of raw abundance \n")
+cat("Violin plot showing sample distributions of log2 raw abundances. \n ")
+#Abundance per raw
+db_execution$raw_abundance_distribution
 ```
 
 ```{r preprocess_figure_3, fig.height=8, fig.width=12,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_complexity)}
