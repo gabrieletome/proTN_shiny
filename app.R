@@ -1,4 +1,4 @@
-# ProTN v0.2.5.1: an integrative pipeline for complete analysis of proteomics    # 
+# ProTN v0.3.1.1: an integrative pipeline for complete analysis of proteomics    # 
 # data from mass spectrometry                                                  #
 # Laboratory of RNA and Disease Data Science, University of Trento             #
 # Developer: Gabriele Tomè                                                     #
