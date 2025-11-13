@@ -28,21 +28,21 @@
 				<i id="plus_elem" class="fa fa-plus"></i>
 			</div>
 			<div class="collapsible-body">
-				<p>The InteracTN workflow is divided into preprocessing, differential analysis and biological
+				<p>The InteracTN workflow is divided into preprocessing, differential analysis, and biological
 					interpretation. During
 					preprocessing, input data are filtered, imputed, normalized, and optionally batch-corrected. Next,
 					differential analysis
-					is performed in parallel at peptide and protein resolution, based on users’ defined comparisons and
-					considering compled
+					is performed in parallel at peptide and protein resolution, based on users' defined comparisons and
+					considering complex
 					designs. Finally, biological interpretation of differentially expressed proteins is performed,
 					including functional
-					enrichment analysis, and detection of communities in protein-protein interaction networks.
+					enrichment analysis and detection of communities in protein-protein interaction networks.
 				</p>
 				<img src="images/Workflow_InteracTN.svg" width="100%" alt="">
 				<div id="set-settings-for-the-execution-and-read-the-raw-data-from-loaded-files-interactn" class="section level3">
 					<h3>01. Define analysis settings and load input data files
 					</h3>
-					<p>InteracTN analyses the results of</p>
+					<p>InteracTN analyzes the results of</p>
 					<ul>
 						<li>Proteome Discoverer</li>
 						<li>MaxQuant</li>
@@ -228,11 +228,9 @@
 						<p><a href="https://maayanlab.cloud/Enrichr/"><img src="images/enrichr_logo.png" width="200px"
 									alt="" /></a></p>
 					</div>
-					<p>Each comparison defined in the differential analysis stage can result in 1 sets of proteins: the
-						Up-regulated (called
-						Up). InteracTN provides
-						for each term statistical
-						parameters like P.Value, fdr, odds ratio, overlap size.
+					<p>Each comparison defined in the differential analysis stage can result in one set of proteins: the
+						up-regulated proteins (called UP). InteracTN provides for each term statistical
+						parameters such as p-value, FDR, odds ratio, and overlap size.
 					</p>
 					<p>InteracTN creates an RData of the complete enrichment data frame, allowing the user an easy
 						import in R to perform further
@@ -276,9 +274,8 @@
 						<p><a href="https://string-db.org/"><img src="images/string_logo_2015.png" width="200"
 									alt=""></a></p>
 					</div>
-					<p>The species-specific database is retrieved from the STRING server, and all the interactions above
-						a user-defined threshold are used
-						to generate a network with</p>
+					<p>The species-specific database is retrieved from the STRING server, and all interactions above
+						a user-defined threshold are used to generate a network.</p>
 					<img src="images/figures/stringdb_readme_protn.png" width="75%"
 						style="display:block;margin-left:auto;margin-right:auto" />
 				</div>

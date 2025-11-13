@@ -932,7 +932,7 @@ server <- function(input, output, session) {
                                  formule_contrast = list(),
                                  dt_formule_contrast = data.table("Name"=c("","","",""),"Formule"=c("","","","")),
                                  differential_results = list(),
-                                 enrichmnent_results = list(),
+                                 enrichment_results = list(),
                                  stringdb_res = list(),
                                  kinase_tree_res = list(),
                                  phospho_percentage = NULL,
@@ -960,7 +960,7 @@ server <- function(input, output, session) {
                                       formule_contrast = list(),
                                       dt_formule_contrast = data.table("Name"=c("","","",""),"Formule"=c("","","","")),
                                       differential_results = list(),
-                                      enrichmnent_results = list(),
+                                      enrichment_results = list(),
                                       stringdb_res = list(),
                                       kinase_tree_res = list(),
                                       phospho_percentage = NULL,
@@ -989,7 +989,7 @@ server <- function(input, output, session) {
                                             formule_contrast = list(),
                                             dt_formule_contrast = data.table("Name"=c("","","",""),"Formule"=c("","","","")),
                                             differential_results = list(),
-                                            enrichmnent_results = list(),
+                                            enrichment_results = list(),
                                             stringdb_res = list(),
                                             kinase_tree_res = list(),
                                             phospho_percentage = NULL,
@@ -1019,7 +1019,7 @@ server <- function(input, output, session) {
                                  formule_contrast = list(),
                                  dt_formule_contrast = data.table("Name"=c("","","",""),"Formule"=c("","","","")),
                                  differential_results = list(),
-                                 enrichmnent_results = list(),
+                                 enrichment_results = list(),
                                  stringdb_res = list(),
                                  kinase_tree_res = list(),
                                  phospho_percentage = NULL,
@@ -1169,7 +1169,61 @@ server <- function(input, output, session) {
         checkboxInput("stringdb_analysis", "Execute STRINGdb", FALSE),
         uiOutput("stringdb_params_ui")
       )
-    } 
+    } else{
+      # Reset UI elements
+      updateCheckboxInput(session, "enrichment_analysis", value = FALSE)
+      updateCheckboxInput(session, "stringdb_analysis", value = FALSE)
+      
+      db_execution$formule_contrast <- list()
+      db_execution$dt_formule_contrast <- data.table("Name"=c("","","",""),"Formule"=c("","","",""))
+      db_execution$differential_results <- list()
+      
+      updateCheckboxInput(session, "protein_diff_barplot", value = FALSE)
+      updateCheckboxInput(session, "peptide_diff_barplot",  value = FALSE)
+      updateCheckboxInput(session, "protein_diff_table", value = FALSE)
+      updateCheckboxInput(session, "peptide_diff_table", value = FALSE)
+      updateCheckboxInput(session, "protein_upset", value = FALSE)
+      updateCheckboxInput(session, "peptide_upset", value = FALSE)
+      updateCheckboxInput(session, "protein_vulcano",  value =  FALSE)
+      updateCheckboxInput(session, "peptide_vulcano", value = FALSE)
+      updateCheckboxInput(session, "protein_ma_plot", value = FALSE)
+      updateCheckboxInput(session, "peptide_ma_plot", value = FALSE)
+      updateCheckboxInput(session, "mds_diff_protein", value = FALSE)
+      updateCheckboxInput(session, "mds_diff_peptide", value = FALSE)
+      updateCheckboxInput(session, "pca_diff_protein", value = FALSE)
+      updateCheckboxInput(session, "pca_diff_peptide", value = FALSE)
+      
+
+      db_execution$protein_differential_barplot <- NULL
+      db_execution$peptide_differential_barplot <- NULL
+      db_execution$protein_upset_plot <- NULL
+      db_execution$peptide_upset_plot <- NULL
+      db_execution$protein_ma_plot <- NULL
+      db_execution$peptide_ma_plot <- NULL
+      db_execution$protein_vulcano <- NULL
+      db_execution$peptide_vulcano <- NULL
+      db_execution$protein_differential_MDS <- NULL
+      db_execution$peptide_differential_MDS <- NULL
+      db_execution$protein_differential_PCA <- NULL
+      db_execution$peptide_differential_PCA <- NULL
+      
+
+      output$render_differential_analysis <- renderUI({NULL})
+      output$render_protein_diff_table <- renderUI({NULL})
+      output$render_peptide_diff_table <- renderUI({NULL})
+      output$render_protein_diff_barplot <- renderUI({NULL})
+      output$render_peptide_diff_barplot <- renderUI({NULL})
+      output$render_protein_upset <- renderUI({NULL})
+      output$render_peptide_upset <- renderUI({NULL})
+      output$render_protein_ma_plot <- renderUI({NULL})
+      output$render_peptide_ma_plot <- renderUI({NULL})
+      output$render_protein_vulcano <- renderUI({NULL})
+      output$render_peptide_vulcano <- renderUI({NULL})
+      output$render_mds_protein_diff <- renderUI({NULL})
+      output$render_mds_peptide_diff <- renderUI({NULL})
+      output$render_pca_protein_diff <- renderUI({NULL})
+      output$render_pca_peptide_diff <- renderUI({NULL})
+    }
   })
   
   output$render_formule_contrast_table <- renderRHandsontable({
@@ -1194,7 +1248,10 @@ server <- function(input, output, session) {
         checkboxInput("enrich_with_background", "Enrichment with background", FALSE),
         actionButton("execute_enrichment_analysis_btn", "Run!")
       )
-    } 
+    } else{
+      db_execution$enrichment_results <- list()
+      output$render_enrichement_analysis <- renderUI({NULL})
+    }
   })
   
   ## PROTN: show stringdb parameter ----
@@ -1208,6 +1265,9 @@ server <- function(input, output, session) {
         actionButton("execute_stringdb_analysis_btn", "Run!"),
         tags$br()
       )
+    } else{
+      db_execution$stringdb_res <- list()
+      output$render_stringdb <- renderUI({NULL})
     }
   })
   
@@ -1467,9 +1527,15 @@ server <- function(input, output, session) {
     
     output$protn_results_ui <- renderUI({
       isolate({
+        
         tryCatch(
           {
             withProgress(message = "Rendering, please wait!", {
+              # Reset other analysis
+              db_execution$parameter <- list()
+              updateCheckboxInput(session, "differential_analysis_checkbox", value = FALSE)
+
+              
               message(session$token)
               message(tempdir())
               #Creation directory for the results
@@ -1668,6 +1734,8 @@ server <- function(input, output, session) {
             plotOutput("small_abundance_plot")
           )
         )
+      } else{
+        db_execution$generate_abundance = NULL
       }
     })
     output$small_abundance_plot <- renderPlot({
@@ -1684,6 +1752,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_distribution")
           )
         )
+      } else{
+        db_execution$generate_peptide_distribution = NULL
       }
     })
     output$small_peptide_distribution <- renderPlot({
@@ -1701,6 +1771,8 @@ server <- function(input, output, session) {
             plotOutput("small_raw_violin")
           )
         )
+      } else{
+        db_execution$raw_abundance_distribution = NULL
       }
     })
     output$small_raw_violin <- renderPlot({
@@ -1718,6 +1790,8 @@ server <- function(input, output, session) {
             plotOutput("small_complexity_plot")
           )
         )
+      } else{
+        db_execution$generate_complexity = NULL
       }
     })
     output$small_complexity_plot <- renderPlot({
@@ -1735,6 +1809,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_violin")
           )
         )
+      } else{
+        db_execution$protein_abundance_distribution = NULL
       }
     })
     output$small_protein_violin <- renderPlot({
@@ -1751,6 +1827,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_violin")
           )
         )
+      } else{
+        db_execution$peptide_abundance_distirbution = NULL
       }
     })
     output$small_peptide_violin <- renderPlot({
@@ -1767,6 +1845,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_protein")
           )
         )
+      } else{
+        db_execution$protein_MDS = NULL
       }
     })
     output$small_mds_protein <- renderPlot({
@@ -1783,6 +1863,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_peptide")
           )
         )
+      } else{
+        db_execution$peptide_MDS = NULL
       }
     })
     output$small_mds_peptide <- renderPlot({
@@ -1799,6 +1881,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_protein")
           )
         )
+      } else{
+        db_execution$protein_PCA = NULL
       }
     })
     output$small_pca_protein <- renderPlot({
@@ -1815,6 +1899,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_peptide")
           )
         )
+      } else{
+        db_execution$peptide_PCA = NULL
       }
     })
     output$small_pca_peptide <- renderPlot({
@@ -1832,6 +1918,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_boxplot")
           )
         )
+      } else{
+        db_execution$protein_boxplot = NULL
       }
     })
     output$small_protein_boxplot <- renderPlot({
@@ -1849,6 +1937,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_heatmap")
           )
         )
+      } else{
+        db_execution$protein_heatmap = NULL
       }
     })
     output$small_protein_heatmap <- renderPlot({
@@ -1861,6 +1951,9 @@ server <- function(input, output, session) {
   observeEvent(input$execute_differential_analysis_btn, {
     output$render_differential_analysis <- renderUI({
       isolate({
+        updateCheckboxInput(session, "enrichment_analysis", value = FALSE)
+        updateCheckboxInput(session, "stringdb_analysis", value = FALSE)
+        
         db_execution$dt_formule_contrast <- as.data.table(hot_to_r(input$render_formule_contrast_table))
         db_execution$dt_formule_contrast <- db_execution$dt_formule_contrast[Formule!=""]
         print(db_execution$dt_formule_contrast)
@@ -1894,6 +1987,8 @@ server <- function(input, output, session) {
                                       "Fold change threshold for significance: "=input$FC_thr,
                                       "P.value type used: "=input$pval_fdr,
                                       "P.value threshold for significance: "=input$pval_thr)
+        
+        
         tags$h2("Differential Analysis")
       })
     })
@@ -1922,6 +2017,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_diff_barplot")
           )
         )
+      } else{
+        db_execution$protein_differential_barplot = NULL
       }
     })
     output$small_protein_diff_barplot <- renderPlot({
@@ -1938,6 +2035,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_diff_barplot")
           )
         )
+      } else{
+        db_execution$peptide_differential_barplot = NULL
       }
     })
     output$small_peptide_diff_barplot <- renderPlot({
@@ -1955,6 +2054,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_upset")
           )
         )
+      } else{
+        db_execution$protein_upset_plot = NULL
       }
     })
     output$small_protein_upset <- renderPlot({
@@ -1971,6 +2072,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_upset")
           )
         )
+      } else{
+        db_execution$peptide_upset_plot = NULL
       }
     })
     output$small_peptide_upset <- renderPlot({
@@ -2162,6 +2265,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_protein_diff")
           )
         )
+      } else{
+        db_execution$protein_differential_MDS = NULL
       }
     })
     output$small_mds_protein_diff <- renderPlot({
@@ -2178,6 +2283,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_peptide_diff")
           )
         )
+      } else{
+        db_execution$peptide_differential_MDS = NULL
       }
     })
     output$small_mds_peptide_diff <- renderPlot({
@@ -2194,6 +2301,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_protein_diff")
           )
         )
+      } else{
+        db_execution$protein_differential_PCA = NULL
       }
     })
     output$small_pca_protein_diff <- renderPlot({
@@ -2210,6 +2319,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_peptide_diff")
           )
         )
+      } else{
+        db_execution$peptide_differential_PCA = NULL
       }
     })
     output$small_pca_peptide_diff <- renderPlot({
@@ -2222,7 +2333,7 @@ server <- function(input, output, session) {
   observeEvent(input$execute_enrichment_analysis_btn, {
     output$render_enrichement_analysis <- renderUI({
       isolate({
-        db_execution$enrichmnent_results <- perform_enrichment_analysis(differential_results = db_execution$differential_results,
+        db_execution$enrichment_results <- perform_enrichment_analysis(differential_results = db_execution$differential_results,
                                                           enrichR_custom_DB = T,
                                                           enrich_filter_DBs=input$DB_enrichment,    
                                                           overlap_size_enrich_thr=as.double(input$os_enrich),
@@ -2241,7 +2352,7 @@ server <- function(input, output, session) {
                                        "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
                                        "Enrichment with background: "=input$enrich_with_background)
         
-        plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
+        plots_down <- enrichment_figure(enr_df = db_execution$enrichment_results,
                                         category = c("down","up"), 
                                         enrich_filter_term = terms_enrich,
                                         save=F)
@@ -2249,7 +2360,7 @@ server <- function(input, output, session) {
         #LOAD category EnrichR
         dbs_default <- read_tsv("data/dbs_enrichR.txt", col_names = FALSE) %>% as.data.frame()
         dbs_category <- dbs_default %>% split(f = as.factor(.$X2))
-        category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution$enrichmnent_results$anno_class), input$DB_enrichment))})
+        category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution$enrichment_results$anno_class), input$DB_enrichment))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(plots_down)) {
@@ -2670,10 +2781,10 @@ server <- function(input, output, session) {
             }
             setProgress(value = 0.75)
             
-            if(length(db_execution$enrichmnent_results)>0){
+            if(length(db_execution$enrichment_results)>0){
               terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",
                                                                  str = input$terms_enrich), regex=","))
-              plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
+              plots_down <- enrichment_figure(enr_df = db_execution$enrichment_results,
                                               category = c("down","up"), 
                                               enrich_filter_term = terms_enrich,
                                               save=T, 
@@ -2918,7 +3029,60 @@ server <- function(input, output, session) {
         checkboxInput("kinase_tree_analysis_phos", "Execute PhosR kinase tree", FALSE),
         uiOutput("kinase_tree_params_ui_phos")
       )
-    } 
+    } else{
+      # Reset UI elements
+      updateCheckboxInput(session, "enrichment_analysis_phos", value = FALSE)
+      updateCheckboxInput(session, "stringdb_analysis_phos", value = FALSE)
+      updateCheckboxInput(session, "kinase_tree_analysis_phos", value = FALSE)
+      
+      db_execution_phos$formule_contrast <- list()
+      db_execution_phos$dt_formule_contrast <- data.table("Name"=c("","","",""),"Formule"=c("","","",""))
+      db_execution_phos$differential_results <- list()
+      
+      updateCheckboxInput(session, "protein_diff_barplot_phos", value = FALSE)
+      updateCheckboxInput(session, "peptide_diff_barplot_phos",  value = FALSE)
+      updateCheckboxInput(session, "protein_diff_table_phos", value = FALSE)
+      updateCheckboxInput(session, "peptide_diff_table_phos", value = FALSE)
+      updateCheckboxInput(session, "protein_upset_phos", value = FALSE)
+      updateCheckboxInput(session, "peptide_upset_phos", value = FALSE)
+      updateCheckboxInput(session, "protein_vulcano_phos",  value =  FALSE)
+      updateCheckboxInput(session, "peptide_vulcano_phos", value = FALSE)
+      updateCheckboxInput(session, "protein_ma_plot_phos", value = FALSE)
+      updateCheckboxInput(session, "peptide_ma_plot_phos", value = FALSE)
+      updateCheckboxInput(session, "mds_diff_protein_phos", value = FALSE)
+      updateCheckboxInput(session, "mds_diff_peptide_phos", value = FALSE)
+      updateCheckboxInput(session, "pca_diff_protein_phos", value = FALSE)
+      updateCheckboxInput(session, "pca_diff_peptide_phos", value = FALSE)
+      
+      db_execution_phos$protein_differential_barplot <- NULL
+      db_execution_phos$peptide_differential_barplot <- NULL
+      db_execution_phos$protein_upset_plot <- NULL
+      db_execution_phos$peptide_upset_plot <- NULL
+      db_execution_phos$protein_ma_plot <- NULL
+      db_execution_phos$peptide_ma_plot <- NULL
+      db_execution_phos$protein_vulcano <- NULL
+      db_execution_phos$peptide_vulcano <- NULL
+      db_execution_phos$protein_differential_MDS <- NULL
+      db_execution_phos$peptide_differential_MDS <- NULL
+      db_execution_phos$protein_differential_PCA <- NULL
+      db_execution_phos$peptide_differential_PCA <- NULL
+      
+      output$render_differential_analysis_phos <- renderUI({NULL})
+      output$render_protein_diff_table_phos <- renderUI({NULL})
+      output$render_peptide_diff_table_phos <- renderUI({NULL})
+      output$render_protein_diff_barplot_phos <- renderUI({NULL})
+      output$render_peptide_diff_barplot_phos <- renderUI({NULL})
+      output$render_protein_upset_phos <- renderUI({NULL})
+      output$render_peptide_upset_phos <- renderUI({NULL})
+      output$render_protein_ma_plot_phos <- renderUI({NULL})
+      output$render_peptide_ma_plot_phos <- renderUI({NULL})
+      output$render_protein_vulcano_phos <- renderUI({NULL})
+      output$render_peptide_vulcano_phos <- renderUI({NULL})
+      output$render_mds_protein_diff_phos <- renderUI({NULL})
+      output$render_mds_peptide_diff_phos <- renderUI({NULL})
+      output$render_pca_protein_diff_phos <- renderUI({NULL})
+      output$render_pca_peptide_diff_phos <- renderUI({NULL})
+    }
   })
   
   output$render_formule_contrast_table_phos <- renderRHandsontable({
@@ -2944,7 +3108,10 @@ server <- function(input, output, session) {
         checkboxInput("enrich_with_background_phos", "Enrichment with background", FALSE),
         actionButton("execute_enrichment_analysis_btn_phos", "Run!")
       )
-    } 
+    } else{
+      db_execution_phos$enrichment_results <- list()
+      output$render_enrichement_analysis_phos <- renderUI({NULL})
+    }
   })
   
   ## PHOSPROTN: show stringdb parameter ----
@@ -2958,8 +3125,12 @@ server <- function(input, output, session) {
         actionButton("execute_stringdb_analysis_btn_phos", "Run!"),
         tags$br()
       )
+    } else{
+      db_execution_phos$stringdb_res <- list()
+      output$render_stringdb_phos <- renderUI({NULL})
     }
   })
+  
   ## PHOSPROTN: show kinase_tree parameter ----
   output$kinase_tree_params_ui_phos <- renderUI({
     if(input$kinase_tree_analysis_phos){
@@ -2989,6 +3160,9 @@ server <- function(input, output, session) {
           tags$br()
         )
       }
+    }else{
+      db_execution_phos$kinase_tree_res <- list()
+      output$render_kinase_tree_phos <- renderUI({NULL})
     }
   })
   
@@ -3218,6 +3392,10 @@ server <- function(input, output, session) {
         tryCatch(
           {
             withProgress(message = "Rendering, please wait!", {
+              # Reset other analysis
+              db_execution_phos$parameter <- list()
+              updateCheckboxInput(session, "differential_analysis_checkbox_phos", value = FALSE)
+              
               message(session$token)
               message(tempdir())
               #Creation directory for the results
@@ -3391,6 +3569,8 @@ server <- function(input, output, session) {
             plotOutput("small_phospho_percentage_plot_phos")
           )
         )
+      } else{
+        db_execution_phos$phospho_percentage = NULL
       }
     })
     output$small_phospho_percentage_plot_phos <- renderPlot({
@@ -3407,6 +3587,8 @@ server <- function(input, output, session) {
             plotOutput("small_abundance_plot_phos")
           )
         )
+      } else{
+        db_execution_phos$generate_abundance = NULL
       }
     })
     output$small_abundance_plot_phos <- renderPlot({
@@ -3423,6 +3605,8 @@ server <- function(input, output, session) {
             plotOutput("small_raw_violin_phos")
           )
         )
+      } else{
+        db_execution_phos$raw_abundance_distribution = NULL
       }
     })
     output$small_raw_violin_phos <- renderPlot({
@@ -3439,6 +3623,8 @@ server <- function(input, output, session) {
             plotOutput("small_complexity_plot_phos")
           )
         )
+      } else{
+        db_execution_phos$generate_complexity = NULL
       }
     })
     output$small_complexity_plot_phos <- renderPlot({
@@ -3455,6 +3641,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_distribution_phos")
           )
         )
+      } else{
+        db_execution_phos$generate_peptide_distribution = NULL
       }
     })
     output$small_peptide_distribution_phos <- renderPlot({
@@ -3471,6 +3659,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_violin_phos")
           )
         )
+      } else{
+        db_execution_phos$peptide_abundance_distirbution = NULL
       }
     })
     output$small_peptide_violin_phos <- renderPlot({
@@ -3487,6 +3677,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_peptide_phos")
           )
         )
+      } else{
+        db_execution_phos$peptide_MDS = NULL
       }
     })
     output$small_mds_peptide_phos <- renderPlot({
@@ -3503,6 +3695,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_peptide_phos")
           )
         )
+      } else{
+        db_execution_phos$peptide_PCA = NULL
       }
     })
     output$small_pca_peptide_phos <- renderPlot({
@@ -3520,6 +3714,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_boxplot_phos")
           )
         )
+      } else{
+        db_execution_phos$protein_boxplot = NULL
       }
     })
     output$small_protein_boxplot_phos <- renderPlot({
@@ -3537,6 +3733,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_heatmap_phos")
           )
         )
+      } else{
+        db_execution_phos$protein_heatmap = NULL
       }
     })
     output$small_protein_heatmap_phos <- renderPlot({
@@ -3548,6 +3746,10 @@ server <- function(input, output, session) {
   observeEvent(input$execute_differential_analysis_btn_phos, {
     output$render_differential_analysis_phos <- renderUI({
       isolate({
+        updateCheckboxInput(session, "enrichment_analysis_phos", value = FALSE)
+        updateCheckboxInput(session, "stringdb_analysis_phos", value = FALSE)
+        updateCheckboxInput(session, "kinase_tree_analysis_phos", value = FALSE)
+        
         db_execution_phos$dt_formule_contrast <- as.data.table(hot_to_r(input$render_formule_contrast_table_phos))
         db_execution_phos$dt_formule_contrast <- db_execution_phos$dt_formule_contrast[Formule!=""]
         print(db_execution_phos$dt_formule_contrast)
@@ -3603,6 +3805,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_diff_barplot_phos")
           )
         )
+      } else{
+        db_execution_phos$peptide_differential_barplot = NULL
       }
     })
     output$small_peptide_diff_barplot_phos <- renderPlot({
@@ -3619,6 +3823,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_upset_phos")
           )
         )
+      } else{
+        db_execution_phos$peptide_upset_plot = NULL
       }
     })
     output$small_peptide_upset_phos <- renderPlot({
@@ -3721,6 +3927,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_peptide_diff_phos")
           )
         )
+      } else{
+        db_execution_phos$peptide_differential_MDS = NULL
       }
     })
     output$small_mds_peptide_diff_phos <- renderPlot({
@@ -3737,6 +3945,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_peptide_diff_phos")
           )
         )
+      } else{
+        db_execution_phos$peptide_differential_PCA = NULL
       }
     })
     output$small_pca_peptide_diff_phos <- renderPlot({
@@ -3750,7 +3960,7 @@ server <- function(input, output, session) {
     output$render_enrichement_analysis_phos <- renderUI({
       isolate({
         # TODO: gallery of plots
-        db_execution_phos$enrichmnent_results <- perform_enrichment_analysis(differential_results = db_execution_phos$differential_results,
+        db_execution_phos$enrichment_results <- perform_enrichment_analysis(differential_results = db_execution_phos$differential_results,
                                                                         enrichR_custom_DB = T,
                                                                         enrich_filter_DBs=input$DB_enrichment_phos,    
                                                                         overlap_size_enrich_thr=as.double(input$os_enrich_phos),
@@ -3770,7 +3980,7 @@ server <- function(input, output, session) {
                                     "Enrichment with background: "=input$enrich_with_background_phos)
         
         
-        plots_down <- enrichment_figure(enr_df = db_execution_phos$enrichmnent_results,
+        plots_down <- enrichment_figure(enr_df = db_execution_phos$enrichment_results,
                                         category = c("down","up"), 
                                         enrich_filter_term = terms_enrich,
                                         save=F)
@@ -3778,7 +3988,7 @@ server <- function(input, output, session) {
         #LOAD category EnrichR
         dbs_default <- read_tsv("data/dbs_enrichR.txt", col_names = FALSE) %>% as.data.frame()
         dbs_category <- dbs_default %>% split(f = as.factor(.$X2))
-        category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution_phos$enrichmnent_results$anno_class), input$DB_enrichment_phos))})
+        category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution_phos$enrichment_results$anno_class), input$DB_enrichment_phos))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(plots_down)) {
@@ -4150,10 +4360,10 @@ server <- function(input, output, session) {
             }
             setProgress(value = 0.75)
             
-            if(length(db_execution_phos$enrichmnent_results)>0){
+            if(length(db_execution_phos$enrichment_results)>0){
               terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",
                                                                  str = input$terms_enrich_phos), regex=","))
-              plots_down <- enrichment_figure(enr_df = db_execution_phos$enrichmnent_results,
+              plots_down <- enrichment_figure(enr_df = db_execution_phos$enrichment_results,
                                               category = c("down","up"), 
                                               enrich_filter_term = terms_enrich,
                                               save=T, 
@@ -4390,7 +4600,60 @@ server <- function(input, output, session) {
         checkboxInput("kinase_tree_analysis_phos_protn", "Execute PhosR kinase tree", FALSE),
         uiOutput("kinase_tree_params_ui_phos_protn")
       )
-    } 
+    } else{
+      # Reset UI elements
+      updateCheckboxInput(session, "enrichment_analysis_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "stringdb_analysis_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "kinase_tree_analysis_phos_protn", value = FALSE)
+      
+      db_execution_phos_protn$formule_contrast <- list()
+      db_execution_phos_protn$dt_formule_contrast <- data.table("Name"=c("","","",""),"Formule"=c("","","",""))
+      db_execution_phos_protn$differential_results <- list()
+      
+      updateCheckboxInput(session, "protein_diff_barplot_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "peptide_diff_barplot_phos_protn",  value = FALSE)
+      updateCheckboxInput(session, "protein_diff_table_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "peptide_diff_table_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "protein_upset_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "peptide_upset_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "protein_vulcano_phos_protn",  value =  FALSE)
+      updateCheckboxInput(session, "peptide_vulcano_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "protein_ma_plot_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "peptide_ma_plot_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "mds_diff_protein_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "mds_diff_peptide_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "pca_diff_protein_phos_protn", value = FALSE)
+      updateCheckboxInput(session, "pca_diff_peptide_phos_protn", value = FALSE)
+      
+      db_execution_phos_protn$protein_differential_barplot <- NULL
+      db_execution_phos_protn$peptide_differential_barplot <- NULL
+      db_execution_phos_protn$protein_upset_plot <- NULL
+      db_execution_phos_protn$peptide_upset_plot <- NULL
+      db_execution_phos_protn$protein_ma_plot <- NULL
+      db_execution_phos_protn$peptide_ma_plot <- NULL
+      db_execution_phos_protn$protein_vulcano <- NULL
+      db_execution_phos_protn$peptide_vulcano <- NULL
+      db_execution_phos_protn$protein_differential_MDS <- NULL
+      db_execution_phos_protn$peptide_differential_MDS <- NULL
+      db_execution_phos_protn$protein_differential_PCA <- NULL
+      db_execution_phos_protn$peptide_differential_PCA <- NULL
+      
+      output$render_differential_analysis_phos_protn <- renderUI({NULL})
+      output$render_protein_diff_table_phos_protn <- renderUI({NULL})
+      output$render_peptide_diff_table_phos_protn <- renderUI({NULL})
+      output$render_protein_diff_barplot_phos_protn <- renderUI({NULL})
+      output$render_peptide_diff_barplot_phos_protn <- renderUI({NULL})
+      output$render_protein_upset_phos_protn <- renderUI({NULL})
+      output$render_peptide_upset_phos_protn <- renderUI({NULL})
+      output$render_protein_ma_plot_phos_protn <- renderUI({NULL})
+      output$render_peptide_ma_plot_phos_protn <- renderUI({NULL})
+      output$render_protein_vulcano_phos_protn <- renderUI({NULL})
+      output$render_peptide_vulcano_phos_protn <- renderUI({NULL})
+      output$render_mds_protein_diff_phos_protn <- renderUI({NULL})
+      output$render_mds_peptide_diff_phos_protn <- renderUI({NULL})
+      output$render_pca_protein_diff_phos_protn <- renderUI({NULL})
+      output$render_pca_peptide_diff_phos_protn <- renderUI({NULL})
+    }
   })
   
   output$render_formule_contrast_table_phos_protn <- renderRHandsontable({
@@ -4416,7 +4679,10 @@ server <- function(input, output, session) {
         checkboxInput("enrich_with_background_phos_protn", "Enrichment with background", FALSE),
         actionButton("execute_enrichment_analysis_btn_phos_protn", "Run!")
       )
-    } 
+    } else{
+      db_execution_phos_protn$enrichment_results <- list()
+      output$render_enrichement_analysis_phos_protn <- renderUI({NULL})
+    }
   })
   
   ## PhosProTN_with_prot: show stringdb parameter ----
@@ -4430,6 +4696,9 @@ server <- function(input, output, session) {
         actionButton("execute_stringdb_analysis_btn_phos_protn", "Run!"),
         tags$br()
       )
+    } else{
+      db_execution_phos_protn$stringdb_res <- list()
+      output$render_stringdb_phos_protn <- renderUI({NULL})
     }
   })
   ## PhosProTN_with_prot: show kinase_tree parameter ----
@@ -4460,6 +4729,9 @@ server <- function(input, output, session) {
           actionButton("execute_kinase_tree_analysis_btn_phos_protn", "Run!"),
           tags$br()
         )
+      } else{
+        db_execution_phos_protn$kinase_tree_res <- list()
+        output$render_kinase_tree_phos_protn <- renderUI({NULL})
       }
     }
   })
@@ -4728,6 +5000,10 @@ server <- function(input, output, session) {
         tryCatch(
           {
             withProgress(message = "Rendering, please wait!", {
+              # Reset other analysis
+              db_execution_phos$parameter <- list()
+              updateCheckboxInput(session, "differential_analysis_checkbox_phos_protn", value = FALSE)
+              
               message(session$token)
               message(tempdir())
               #Creation directory for the results
@@ -4930,6 +5206,8 @@ server <- function(input, output, session) {
             plotOutput("small_phospho_percentage_plot_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$phospho_percentage = NULL
       }
     })
     output$small_phospho_percentage_plot_phos_protn <- renderPlot({
@@ -4960,6 +5238,8 @@ server <- function(input, output, session) {
             )
           )
         )
+      } else{
+        db_execution_phos_protn$generate_abundance = NULL
       }
     })
     output$small_abundance_plot_phos_protn_prot <- renderPlot({
@@ -4994,6 +5274,8 @@ server <- function(input, output, session) {
             )
           )
         )
+      } else{
+        db_execution_phos_protn$generate_peptide_distribution = NULL
       }
     })
     output$small_peptide_distribution_phos_protn_prot <- renderPlot({
@@ -5013,6 +5295,8 @@ server <- function(input, output, session) {
             plotOutput("small_raw_violin_pep_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$raw_phospho_abundance_distribution = NULL
       }
     })
     output$small_raw_violin_pep_phos_protn <- renderPlot({
@@ -5028,6 +5312,8 @@ server <- function(input, output, session) {
             plotOutput("small_raw_violin_prot_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$raw_proteome_abundance_distribution = NULL
       }
     })
     output$small_raw_violin_prot_phos_protn <- renderPlot({
@@ -5058,6 +5344,8 @@ server <- function(input, output, session) {
             )
           )
         )
+      } else{
+        db_execution_phos_protn$generate_complexity = NULL
       }
     })
     output$small_complexity_plot_phos_protn_prot <- renderPlot({
@@ -5077,6 +5365,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_violin_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$protein_abundance_distribution = NULL
       }
     })
     output$small_protein_violin_phos_protn <- renderPlot({
@@ -5093,6 +5383,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_violin_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$peptide_abundance_distirbution = NULL
       }
     })
     output$small_peptide_violin_phos_protn <- renderPlot({
@@ -5109,6 +5401,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_protein_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$protein_MDS = NULL
       }
     })
     output$small_mds_protein_phos_protn <- renderPlot({
@@ -5125,6 +5419,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_peptide_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$peptide_MDS = NULL
       }
     })
     output$small_mds_peptide_phos_protn <- renderPlot({
@@ -5141,6 +5437,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_protein_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$protein_PCA = NULL
       }
     })
     output$small_pca_protein_phos_protn <- renderPlot({
@@ -5157,6 +5455,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_peptide_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$peptide_PCA = NULL
       }
     })
     output$small_pca_peptide_phos_protn <- renderPlot({
@@ -5174,6 +5474,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_boxplot_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$protein_boxplot = NULL
       }
     })
     output$small_protein_boxplot_phos_protn <- renderPlot({
@@ -5191,6 +5493,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_heatmap_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$protein_heatmap = NULL
       }
     })
     output$small_protein_heatmap_phos_protn <- renderPlot({
@@ -5258,6 +5562,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_diff_barplot_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$peptide_differential_barplot = NULL
       }
     })
     output$small_peptide_diff_barplot_phos_protn <- renderPlot({
@@ -5274,6 +5580,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_upset_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$peptide_upset_plot = NULL
       }
     })
     output$small_peptide_upset_phos_protn <- renderPlot({
@@ -5379,6 +5687,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_peptide_diff_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$peptide_differential_MDS = NULL
       }
     })
     output$small_mds_peptide_diff_phos_protn <- renderPlot({
@@ -5395,6 +5705,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_peptide_diff_phos_protn")
           )
         )
+      } else{
+        db_execution_phos_protn$peptide_differential_PCA = NULL
       }
     })
     output$small_pca_peptide_diff_phos_protn <- renderPlot({
@@ -5408,7 +5720,7 @@ server <- function(input, output, session) {
     output$render_enrichement_analysis_phos_protn <- renderUI({
       isolate({
         # TODO: gallery of plots
-        db_execution_phos_protn$enrichmnent_results <- perform_enrichment_analysis(differential_results = db_execution_phos_protn$differential_results,
+        db_execution_phos_protn$enrichment_results <- perform_enrichment_analysis(differential_results = db_execution_phos_protn$differential_results,
                                                                         enrichR_custom_DB = T,
                                                                         enrich_filter_DBs=input$DB_enrichment_phos_protn,    
                                                                         overlap_size_enrich_thr=as.double(input$os_enrich_phos_protn),
@@ -5428,7 +5740,7 @@ server <- function(input, output, session) {
                                          "Enrichment with background: "=input$enrich_with_background_phos_protn)
         
         
-        plots_down <- enrichment_figure(enr_df = db_execution_phos_protn$enrichmnent_results,
+        plots_down <- enrichment_figure(enr_df = db_execution_phos_protn$enrichment_results,
                                         category = c("down","up"), 
                                         enrich_filter_term = terms_enrich,
                                         save=F)
@@ -5436,7 +5748,7 @@ server <- function(input, output, session) {
         #LOAD category EnrichR
         dbs_default <- read_tsv("data/dbs_enrichR.txt", col_names = FALSE) %>% as.data.frame()
         dbs_category <- dbs_default %>% split(f = as.factor(.$X2))
-        category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution_phos_protn$enrichmnent_results$anno_class), input$DB_enrichment_phos_protn))})
+        category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution_phos_protn$enrichment_results$anno_class), input$DB_enrichment_phos_protn))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(plots_down)) {
@@ -5891,10 +6203,10 @@ server <- function(input, output, session) {
             }
             setProgress(value = 0.75)
             
-            if(length(db_execution_phos_protn$enrichmnent_results)>0){
+            if(length(db_execution_phos_protn$enrichment_results)>0){
               terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",
                                                                  str = input$terms_enrich_phos_protn), regex=","))
-              plots_down <- enrichment_figure(enr_df = db_execution_phos_protn$enrichmnent_results,
+              plots_down <- enrichment_figure(enr_df = db_execution_phos_protn$enrichment_results,
                                               category = c("down","up"), 
                                               enrich_filter_term = terms_enrich,
                                               save=T, 
@@ -6154,7 +6466,59 @@ server <- function(input, output, session) {
         checkboxInput("stringdb_analysis_interactn", "Execute STRINGdb", FALSE),
         uiOutput("stringdb_params_ui_interactn")
       )
-    } 
+    } else{
+      # Reset UI elements
+      updateCheckboxInput(session, "enrichment_analysis_interactn", value = FALSE)
+      updateCheckboxInput(session, "stringdb_analysis_interactn", value = FALSE)
+      
+      db_execution_interactn$formule_contrast <- list()
+      db_execution_interactn$dt_formule_contrast <- data.table("Name"=c("","","",""),"Formule"=c("","","",""))
+      db_execution_interactn$differential_results <- list()
+      
+      updateCheckboxInput(session, "protein_diff_barplot_interactn", value = FALSE)
+      updateCheckboxInput(session, "peptide_diff_barplot_interactn",  value = FALSE)
+      updateCheckboxInput(session, "protein_diff_table_interactn", value = FALSE)
+      updateCheckboxInput(session, "peptide_diff_table_interactn", value = FALSE)
+      updateCheckboxInput(session, "protein_upset_interactn", value = FALSE)
+      updateCheckboxInput(session, "peptide_upset_interactn", value = FALSE)
+      updateCheckboxInput(session, "protein_vulcano_interactn",  value =  FALSE)
+      updateCheckboxInput(session, "peptide_vulcano_interactn", value = FALSE)
+      updateCheckboxInput(session, "protein_ma_plot_interactn", value = FALSE)
+      updateCheckboxInput(session, "peptide_ma_plot_interactn", value = FALSE)
+      updateCheckboxInput(session, "mds_diff_protein_interactn", value = FALSE)
+      updateCheckboxInput(session, "mds_diff_peptide_interactn", value = FALSE)
+      updateCheckboxInput(session, "pca_diff_protein_interactn", value = FALSE)
+      updateCheckboxInput(session, "pca_diff_peptide_interactn", value = FALSE)
+      
+      db_execution_interactn$protein_differential_barplot <- NULL
+      db_execution_interactn$peptide_differential_barplot <- NULL
+      db_execution_interactn$protein_upset_plot <- NULL
+      db_execution_interactn$peptide_upset_plot <- NULL
+      db_execution_interactn$protein_ma_plot <- NULL
+      db_execution_interactn$peptide_ma_plot <- NULL
+      db_execution_interactn$protein_vulcano <- NULL
+      db_execution_interactn$peptide_vulcano <- NULL
+      db_execution_interactn$protein_differential_MDS <- NULL
+      db_execution_interactn$peptide_differential_MDS <- NULL
+      db_execution_interactn$protein_differential_PCA <- NULL
+      db_execution_interactn$peptide_differential_PCA <- NULL
+      
+      output$render_differential_analysis_interactn <- renderUI({NULL})
+      output$render_protein_diff_table_interactn <- renderUI({NULL})
+      output$render_peptide_diff_table_interactn <- renderUI({NULL})
+      output$render_protein_diff_barplot_interactn <- renderUI({NULL})
+      output$render_peptide_diff_barplot_interactn <- renderUI({NULL})
+      output$render_protein_upset_interactn <- renderUI({NULL})
+      output$render_peptide_upset_interactn <- renderUI({NULL})
+      output$render_protein_ma_plot_interactn <- renderUI({NULL})
+      output$render_peptide_ma_plot_interactn <- renderUI({NULL})
+      output$render_protein_vulcano_interactn <- renderUI({NULL})
+      output$render_peptide_vulcano_interactn <- renderUI({NULL})
+      output$render_mds_protein_diff_interactn <- renderUI({NULL})
+      output$render_mds_peptide_diff_interactn <- renderUI({NULL})
+      output$render_pca_protein_diff_interactn <- renderUI({NULL})
+      output$render_pca_peptide_diff_interactn <- renderUI({NULL})
+    }
   })
   
   output$render_formule_contrast_table_interactn <- renderRHandsontable({
@@ -6180,7 +6544,10 @@ server <- function(input, output, session) {
         checkboxInput("enrich_with_background_interactn", "Enrichment with background", FALSE),
         actionButton("execute_enrichment_analysis_btn_interactn", "Run!")
       )
-    } 
+    } else{
+      db_execution_interactn$enrichment_results <- list()
+      output$render_enrichement_analysis_interactn <- renderUI({NULL})
+    }
   })
   
   ## InteracTN: show stringdb parameter ----
@@ -6194,6 +6561,9 @@ server <- function(input, output, session) {
         actionButton("execute_stringdb_analysis_btn_interactn", "Run!"),
         tags$br()
       )
+    } else{
+      db_execution_interactn$stringdb_res <- list()
+      output$render_stringdb_interactn <- renderUI({NULL})
     }
   })
   
@@ -6454,6 +6824,10 @@ server <- function(input, output, session) {
         tryCatch(
           {
             withProgress(message = "Rendering, please wait!", {
+              # Reset other analysis
+              db_execution_interactn$parameter <- list()
+              updateCheckboxInput(session, "differential_analysis_checkbox_interactn", value = FALSE)
+              
               message(session$token)
               message(tempdir())
               #Creation directory for the results
@@ -6653,6 +7027,8 @@ server <- function(input, output, session) {
             plotOutput("small_abundance_plot_interactn")
           )
         )
+      } else{
+        db_execution_interactn$generate_abundance = NULL
       }
     })
     output$small_abundance_plot_interactn <- renderPlot({
@@ -6669,6 +7045,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_distribution_interactn")
           )
         )
+      } else{
+        db_execution_interactn$generate_peptide_distribution = NULL
       }
     })
     output$small_peptide_distribution_interactn <- renderPlot({
@@ -6686,6 +7064,8 @@ server <- function(input, output, session) {
             plotOutput("small_raw_violin_interactn")
           )
         )
+      } else{
+        db_execution_interactn$raw_abundance_distribution = NULL
       }
     })
     output$small_raw_violin_interactn <- renderPlot({
@@ -6704,6 +7084,8 @@ server <- function(input, output, session) {
             plotOutput("small_complexity_plot_interactn")
           )
         )
+      } else{
+        db_execution_interactn$generate_complexity = NULL
       }
     })
     output$small_complexity_plot_interactn <- renderPlot({
@@ -6721,6 +7103,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_violin_interactn")
           )
         )
+      } else{
+        db_execution_interactn$protein_abundance_distribution = NULL
       }
     })
     output$small_protein_violin_interactn <- renderPlot({
@@ -6737,6 +7121,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_violin_interactn")
           )
         )
+      } else{
+        db_execution_interactn$peptide_abundance_distirbution = NULL
       }
     })
     output$small_peptide_violin_interactn <- renderPlot({
@@ -6753,6 +7139,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_protein_interactn")
           )
         )
+      } else{
+        db_execution_interactn$protein_MDS = NULL
       }
     })
     output$small_mds_protein_interactn <- renderPlot({
@@ -6769,6 +7157,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_peptide_interactn")
           )
         )
+      } else{
+        db_execution_interactn$peptide_MDS = NULL
       }
     })
     output$small_mds_peptide_interactn <- renderPlot({
@@ -6785,6 +7175,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_protein_interactn")
           )
         )
+      } else{
+        db_execution_interactn$protein_PCA = NULL
       }
     })
     output$small_pca_protein_interactn <- renderPlot({
@@ -6801,6 +7193,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_peptide_interactn")
           )
         )
+      } else{
+        db_execution_interactn$peptide_PCA = NULL
       }
     })
     output$small_pca_peptide_interactn <- renderPlot({
@@ -6818,6 +7212,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_boxplot_interactn")
           )
         )
+      } else{
+        db_execution_interactn$protein_boxplot = NULL
       }
     })
     output$small_protein_boxplot_interactn <- renderPlot({
@@ -6835,6 +7231,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_heatmap_interactn")
           )
         )
+      } else{
+        db_execution_interactn$protein_heatmap = NULL
       }
     })
     output$small_protein_heatmap_interactn <- renderPlot({
@@ -6846,6 +7244,9 @@ server <- function(input, output, session) {
   observeEvent(input$execute_differential_analysis_btn_interactn, {
     output$render_differential_analysis_interactn <- renderUI({
       isolate({
+        updateCheckboxInput(session, "enrichment_analysis_interactn", value = FALSE)
+        updateCheckboxInput(session, "stringdb_analysis_interactn", value = FALSE)
+        
         db_execution_interactn$dt_formule_contrast <- as.data.table(hot_to_r(input$render_formule_contrast_table_interactn))
         db_execution_interactn$dt_formule_contrast <- db_execution_interactn$dt_formule_contrast[Formule!=""]
         print(db_execution_interactn$dt_formule_contrast)
@@ -6911,6 +7312,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_diff_barplot_interactn")
           )
         )
+      } else{
+        db_execution_interactn$protein_differential_barplot = NULL
       }
     })
     output$small_protein_diff_barplot_interactn <- renderPlot({
@@ -6927,6 +7330,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_diff_barplot_interactn")
           )
         )
+      } else{
+        db_execution_interactn$peptide_differential_barplot = NULL
       }
     })
     output$small_peptide_diff_barplot_interactn <- renderPlot({
@@ -6943,6 +7348,8 @@ server <- function(input, output, session) {
             plotOutput("small_protein_upset_interactn")
           )
         )
+      } else{
+        db_execution_interactn$protein_upset_plot = NULL
       }
     })
     output$small_protein_upset_interactn <- renderPlot({
@@ -6959,6 +7366,8 @@ server <- function(input, output, session) {
             plotOutput("small_peptide_upset_interactn")
           )
         )
+      } else{
+        db_execution_interactn$peptide_upset_plot = NULL
       }
     })
     output$small_peptide_upset_interactn <- renderPlot({
@@ -7154,6 +7563,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_protein_diff_interactn")
           )
         )
+      } else{
+        db_execution_interactn$protein_differential_MDS = NULL
       }
     })
     output$small_mds_protein_diff_interactn <- renderPlot({
@@ -7170,6 +7581,8 @@ server <- function(input, output, session) {
             plotOutput("small_mds_peptide_diff_interactn")
           )
         )
+      } else{
+        db_execution_interactn$peptide_differential_MDS = NULL
       }
     })
     output$small_mds_peptide_diff_interactn <- renderPlot({
@@ -7186,6 +7599,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_protein_diff_interactn")
           )
         )
+      } else{
+        db_execution_interactn$protein_differential_PCA = NULL
       }
     })
     output$small_pca_protein_diff_interactn <- renderPlot({
@@ -7202,6 +7617,8 @@ server <- function(input, output, session) {
             plotOutput("small_pca_peptide_diff_interactn")
           )
         )
+      } else{
+        db_execution_interactn$peptide_differential_PCA = NULL
       }
     })
     output$small_pca_peptide_diff_interactn <- renderPlot({
@@ -7215,7 +7632,7 @@ server <- function(input, output, session) {
     output$render_enrichement_analysis_interactn <- renderUI({
       isolate({
         # TODO: gallery of plots
-        db_execution_interactn$enrichmnent_results <- perform_enrichment_analysis(differential_results = db_execution_interactn$differential_results,
+        db_execution_interactn$enrichment_results <- perform_enrichment_analysis(differential_results = db_execution_interactn$differential_results,
                                                                         enrichR_custom_DB = T,
                                                                         enrich_filter_DBs=input$DB_enrichment_interactn,    
                                                                         overlap_size_enrich_thr=as.double(input$os_enrich_interactn),
@@ -7234,7 +7651,7 @@ server <- function(input, output, session) {
                                     "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
                                     "Enrichment with background: "=input$enrich_with_background_interactn)
         
-        plots_down <- enrichment_figure(enr_df = db_execution_interactn$enrichmnent_results,
+        plots_down <- enrichment_figure(enr_df = db_execution_interactn$enrichment_results,
                                         category = c("down","up"), 
                                         enrich_filter_term = terms_enrich,
                                         save=F)
@@ -7242,7 +7659,7 @@ server <- function(input, output, session) {
         #LOAD category EnrichR
         dbs_default <- read_tsv("data/dbs_enrichR.txt", col_names = FALSE) %>% as.data.frame()
         dbs_category <- dbs_default %>% split(f = as.factor(.$X2))
-        category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution_interactn$enrichmnent_results$anno_class), input$DB_enrichment_interactn))})
+        category_db <- lapply(dbs_category, function(x){filter(x, x[,1] %in% intersect(unique(db_execution_interactn$enrichment_results$anno_class), input$DB_enrichment_interactn))})
         # Generate tabPanels in a for loop
         tabs <- list()
         for (i in seq_along(plots_down)) {
@@ -7649,10 +8066,10 @@ server <- function(input, output, session) {
             }
             setProgress(value = 0.75)
             
-            if(length(db_execution_interactn$enrichmnent_results)>0){
+            if(length(db_execution_interactn$enrichment_results)>0){
               terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",
                                                                  str = input$terms_enrich_interactn), regex=","))
-              plots_down <- enrichment_figure(enr_df = db_execution_interactn$enrichmnent_results,
+              plots_down <- enrichment_figure(enr_df = db_execution_interactn$enrichment_results,
                                               category = c("down","up"), 
                                               enrich_filter_term = terms_enrich,
                                               save=T, 

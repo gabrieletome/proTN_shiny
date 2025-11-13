@@ -2,7 +2,7 @@
 
 # ProTN
 
-Version: 0.3.1.1
+Version: 0.3.2
 
 ProTN is now a Shiny app that provides an integrated pipeline for the complete downstream analysis of proteomics, phospho-proteomics, and interactomics data following peptide quantification. The app features four distinct workflows—proTN, phosproTN, phosproTN with proteome background, and interacTN—each accessible through a separate tab in the application menu.
 
@@ -10,7 +10,7 @@ ProTN is compatible with MS-based proteomic experiments processed using Proteome
 
 Designed to be user-friendly, fast, and comprehensive, ProTN delivers high-quality visualizations and tables to facilitate the biological interpretation of results across a range of experimental setups.
 
-All the required information can be found on the info page of the web app.
+All required information can be found on the info page of the web app.
 
 ## Before starting
 
@@ -18,44 +18,44 @@ All the required information can be found on the info page of the web app.
 
 ProTN requires R version \>= 4.1 and RStudio.
 
-The app should automatically started installing all the required package. Otherwise the manual installation can be done via the `INSTALL.R` script. Before execute the shiny app verify the correct installation.
+The app should automatically start installing all required packages. Otherwise, manual installation can be done via the `INSTALL.R` script. Before executing the Shiny app, verify the correct installation.
 
-## How execute the app
+## How to execute the app
 
 1.  Open the file **app.R**.
 2.  Click **Run App**
 
 ## Getting help
 
-The menu is on the left of the web page, it contain the guide pages for all the workflows and the tabs for the execution of the pipelines. Last tab are the contacts.
+The menu is on the left of the web page and contains guide pages for all workflows and tabs for executing the pipelines. The last tab contains contact information.
 
-The two info tabs containt information about the workflow and detailed information about the input and output files.
+The two info tabs contain information about the workflow and detailed information about input and output files.
 
 ![image](www/images/ProTN_UI.png)
 
 ## Case study example
 
-**Note**: the case study reported is the comparison of polysome-associated proteins with total proteins in human MCF7 cells. (PRIDE: PXD009417) (Clamer M, Tebaldi T, Lauria F, et al. Active Ribosome Profiling with RiboLace. Cell Rep. 2018;25(4):1097-1108.e5.)
+**Note**: The case study presented is the comparison of polysome-associated proteins with total proteins in human MCF7 cells. (PRIDE: PXD009417) (Clamer M, Tebaldi T, Lauria F, et al. Active Ribosome Profiling with RiboLace. Cell Rep. 2018;25(4):1097-1108.e5.)
 
 ## Workflow description
 
 ### ProTN
 
-ProTN is an integrative pipeline that analyze DDA proteomics data obtained from MS. It perform a complete analysis of the raw files from different software, with their biological interpretation with enrichement and network analysis. ProTN executes a dual level analysis, at protein and peptide level.
+ProTN is an integrative pipeline that analyzes DDA proteomics data obtained from MS. It performs a complete analysis of raw files from different software, including their biological interpretation with enrichment and network analysis. ProTN executes a dual-level analysis at the protein and peptide levels.
 
 ![image](www/images/Workflow_ProTN.svg)
 
 #### Set settings for the execution and read the raw data from loaded files {#set-settings-for-the-execution-and-read-the-raw-data-from-loaded-files}
 
-ProTN analyse the results of Proteome Discoverer and MaxQuant. The essential parameters and files to run ProTN are: (additional details on the input can be found in the ProTN info tab)
+ProTN analyzes the results of Proteome Discoverer and MaxQuant. The essential parameters and files to run ProTN are: (additional details on the input can be found in the ProTN info tab)
 
--   **Software Analyzer**: determine with software was use to identify peptides and proteins.
+-   **Software Analyzer**: Determines which software was used to identify peptides and proteins.
     -   **PD**: Proteome Discoverer
     -   **MQ**: MaxQuant
     -   **SP**: Spectronaut
     -   **FP**: FragPipe
 
-##### File required for Proteome Discoverer
+##### Files required for Proteome Discoverer
 
 -   `Annotation file`: This file provides metadata for the samples analyzed. It must be an Excel file with the following required columns:
 
@@ -71,20 +71,20 @@ ProTN analyse the results of Proteome Discoverer and MaxQuant. The essential par
 
     | Column Name                    | Description                                                 |
     |------------------------|------------------------------------------------|
-    | `Master Protein Accessions`    | Maps peptide to protein; only first ID is kept.             |
+    | `Master Protein Accessions`    | Maps peptide to protein; only the first ID is kept.         |
     | `Annotated Sequence`           | Amino acid sequence including PTM annotations.              |
     | `Modifications`                | Post-translational modifications.                           |
     | `Positions in Master Proteins` | Position of peptide in the protein sequence.                |
     | `Abundance: <File ID>`         | Intensity/abundance for each sample. One column per sample. |
 
--   `Proteins file`: Excel table contain descriptive and accession information for proteins.
+-   `Proteins file`: Excel table containing descriptive and accession information for proteins.
 
     | Column Name   | Description                                                |
     |----------------|-------------------------------------------------------|
     | `Accession`   | Unique protein identifier, used to join with peptide file. |
     | `Description` | Descriptive string, e.g., from UniProt.                    |
 
-##### File required for MaxQuant
+##### Files required for MaxQuant
 
 -   `Annotation file`: This file provides metadata for the samples analyzed. It must be an Excel file with the following required columns:
 
@@ -129,7 +129,7 @@ ProTN analyse the results of Proteome Discoverer and MaxQuant. The essential par
         | `Majority protein IDs` | Used to extract the `Leading razor protein`. |
         | `Fasta headers`        | Used for protein description.                |
 
-##### File required for Spectronaut
+##### Files required for Spectronaut
 
 -   `Annotation file`: (Optional) If provided, this file should contain metadata for each sample. If not provided, the pipeline will extract sample annotations directly from the peptide file.
 
@@ -151,7 +151,7 @@ ProTN analyse the results of Proteome Discoverer and MaxQuant. The essential par
     | `R.FileName`           | Sample identifier (column used is defined by `sample_col`).           |
     | `R.Condition`          | Condition identifier (column used if `annotation file` not provided). |
 
-##### File required for FragPipe
+##### Files required for FragPipe
 
 -   `Annotation file`: This file provides metadata for the samples analyzed. It must be an Excel file with the following required columns:
 
@@ -170,19 +170,19 @@ ProTN analyse the results of Proteome Discoverer and MaxQuant. The essential par
     | `Protein Description`    | Descriptive name of the protein.                       |
     | `Gene`                   | Gene symbol.                                           |
     | `Peptide Sequence`       | Amino acid sequence of the peptide.                    |
-    | `Assigned Modifications` | Sequence with nuclotide modifications.                 |
+    | `Assigned Modifications` | Sequence with nucleotide modifications.                |
     | `Prev AA`                | Used to determine tryptic condition.                   |
     | `Next AA`                | Used to determine tryptic condition.                   |
     | `<Sample> Intensity`     | One column per sample named like `<Sample> Intensity`. |
 
 #### Normalization and imputation of the intensities
 
-The intensities are log2 transformed and normalized with DEqMS (Zhu 2022). Two methods are applied because a double normalization is required, one for peptides and one for proteins. At the peptide level, the normalization is done by the function equalMedianNormalization, which normalizes intensity distributions in samples so that they have median equal to 0.
+The intensities are log2 transformed and normalized with DEqMS (Zhu 2022). Two methods are applied because double normalization is required—one for peptides and one for proteins. At the peptide level, normalization is done by the function equalMedianNormalization, which normalizes intensity distributions in samples so that they have a median equal to 0.
 
-At the protein level, this operation is executed by the function medianSweeping. It applies the same median normalization used for peptides, but also it summarizes the peptide intensities into protein relative abundance by the median sweeping method.
+At the protein level, this operation is executed by the function medianSweeping. It applies the same median normalization used for peptides, and also summarizes the peptide intensities into protein relative abundance by the median sweeping method.
 
 Imputation: 
-- PhosR: Imputation is performed on peptide and protein abundances with the Bioconductor package PhosR. Round imputation is performed in absence of replicates. ProTN uses two functions of PhosR for the imputation: Imputes the missing values for a peptide across replicates within a single condition and Tail-based imputation approach as implemented in Perseus.
+- PhosR: Imputation is performed on peptide and protein abundances with the Bioconductor package PhosR. Round imputation is performed in the absence of replicates. ProTN uses two functions of PhosR for imputation: one imputes the missing values for a peptide across replicates within a single condition, and another applies a tail-based imputation approach as implemented in Perseus.
 - Gaussian Estimation: Imputation is performed on peptide and protein abundances using Gaussian estimation, where missing values are sampled from a normal distribution defined by the mean and standard deviation of observed intensities. This preserves data variance and reduces bias from missingness within conditions.
 - missForest: Imputation is performed on peptide and protein abundances using the missForest R package, which applies a non-parametric random forest algorithm to predict missing values. This approach captures nonlinear relationships between features, preserving complex data structures.
 - pcaMethods: Imputation is performed on peptide and protein abundances using the pcaMethods R package with the svdImpute function, which estimates missing values by reconstructing the data matrix from its leading singular vectors. This approach leverages global correlation structures to provide consistent estimates.
@@ -194,28 +194,27 @@ Imputation:
 | **missForest** | [missForest](https://doi.org/10.32614/CRAN.package.missForest) (R) | Non-parametric iterative imputation using random forests. Predicts missing entries using nonlinear relationships between features. | General proteomics where missingness relates to multiple covariates, or when structure is complex. |
 | **pcaMethods `svdImpute`** | [pcaMethods](https://bioconductor.org/packages/release/bioc/html/pcaMethods.html) (Bioconductor) | Uses Singular Value Decomposition to reconstruct missing values from lower-rank structure in the data. | Well-replicated datasets with high correlation between samples. |
 
-
 In this step, two MDSs and two PCAs (proteins and peptides) are generated.
 
 <img src="www/images/figures/PCA_readme_protn.png" width="45%"/> <img src="www/images/figures/MDS_readme_protn.png" width="45%"/>
 
 #### Statistical differential analysis
 
-The workflow continue with the differential analysis. This phase is applied to proteins and peptides, to obtain the significant proteins and peptides. Two slightly different methodologies are applyed since for proteins is used the DEqMS package (Zhu 2022), instead, for peptides is used the usual Limma package (Ritchie et al. 2015). DEqMS is developed on top of Limma, but the method estimates different prior variances for proteins quantified by different numbers of PSMs/peptides per protein, therefore achieving better accuracy.
+The workflow continues with differential analysis. This phase is applied to proteins and peptides to obtain the significant proteins and peptides. Two slightly different methodologies are applied: for proteins, the DEqMS package (Zhu 2022) is used, while for peptides, the Limma package (Ritchie et al. 2015) is used. DEqMS is developed on top of Limma, but the method estimates different prior variances for proteins quantified by different numbers of PSMs/peptides per protein, thereby achieving better accuracy.
 
-Limma and DEqMS calculate DEPs for each comparison in the design file parameter. Each peptide or protein has different parameters: the log2 Fold Change, the P.Value, the adjusted P.Value and the log2 expression. In this pipeline, a protein/peptide is significant if passing 3 thresholds. A protein/peptide for each comparison can be Up-regulated or Down-regulated. It is Up-regulated if:
+Limma and DEqMS calculate DEPs for each comparison in the design file parameter. Each peptide or protein has different parameters: the log2 Fold Change, the P.Value, the adjusted P.Value, and the log2 expression. In this pipeline, a protein/peptide is significant if it passes three thresholds. A protein/peptide for each comparison can be up-regulated or down-regulated. It is up-regulated if:
 
 -   the log2 FC is higher than the Fold Change threshold (FC \> Log2 FC thr),
 -   the P.Value is lower than the threshold (P.Value \< P.Value thr).
 
-It is Down-regulated if:
+It is down-regulated if:
 
--   the log2 FC is lower of the Fold Change threshold (FC \< -Log2 FC thr),
+-   the log2 FC is lower than the Fold Change threshold (FC \< -Log2 FC thr),
 -   the P.Value is lower than the threshold (P.Value \< P.Value thr).
 
-In the output, for each comparison, this distinction is reported in the “class” column, which assumes value “+” if is up-regulated, “-” if down-regulated and “=” if it is not significant.
+In the output, for each comparison, this distinction is reported in the "class" column, which assumes the value "+" if up-regulated, "-" if down-regulated, and "=" if not significant.
 
-Various figures are generated, first a bar plot that graphically represents the DEPs identified. Followed by comparison-specific volcano plots.
+Various figures are generated, first a bar plot that graphically represents the DEPs identified, followed by comparison-specific volcano plots.
 
 <img src="www/images/figures/DEPs_readme_protn.png" width="100%"/>
 
@@ -225,7 +224,7 @@ Various figures are generated, first a bar plot that graphically represents the 
 
 #### Report creation and download of the results
 
-The results are summarized in a web-page HTML report. Other than this, the experiment is described by a large number of files, a description of each file generated can be found in section 4. Details on the output files. All the files are group in a zip file and downloaded.
+The results are summarized in an HTML web-page report. Furthermore, the experiment is described by a large number of files; a description of each generated file can be found in section 4. Details on the output files. All files are grouped in a zip file and downloaded.
 
 ![image](www/images/figures/protn_report.html(screen).png)
 
@@ -233,50 +232,50 @@ The results are summarized in a web-page HTML report. Other than this, the exper
 
 ##### B1. Batch Effect correction
 
-If required by the experiment, a batch correction step can be applyed using proBatch (Cuklina et al. 2018). The batches need to be defined in the Sample_Annotation file where column MS_batch is required.
+If required by the experiment, a batch correction step can be applied using proBatch (Cuklina et al. 2018). The batches need to be defined in the Sample_Annotation file, where the column MS_batch is required.
 
 ##### E1. Enrichment analysis of the Differentially Expressed Proteins
 
-The biological interpretation of the Differentially Expressed Proteins starts with the enrichment step. To execute this analysis, ProTN uses EnrichR (Jawaid 2022), a widely used tool that search on a large number of data sets to obtain information about many categories. EnrichR organises its hundreds of data sets in 8 sections: Transcription, Pathways, Ontologies, Diseases/Drugs, Cell Types, Misc, Legacy, and Crowd.
+The biological interpretation of the Differentially Expressed Proteins starts with the enrichment step. To execute this analysis, ProTN uses EnrichR (Jawaid 2022), a widely used tool that searches a large number of datasets to obtain information about many categories. EnrichR organizes its hundreds of datasets into 8 sections: Transcription, Pathways, Ontologies, Diseases/Drugs, Cell Types, Misc, Legacy, and Crowd.
 
-Since the analysis that a user wants to perform can be different, each comparison has 3 sets of proteins: the Up-regulated (called Up), the Down-regulated (called Down), and the set (called all) obtained by the merge of Up- and Down-regulated proteins. EnrichR provides for each term much information. It returns the statistical parameters, like P.Value, fdr, odds ratio and combined score. At the same time, it gives the overlap size, the number of genes in the term and the genes of the input list find in the term.
+Since the analysis that a user wants to perform can be different, each comparison has 3 sets of proteins: the up-regulated (called Up), the down-regulated (called Down), and the set (called all) obtained by merging up- and down-regulated proteins. EnrichR provides much information for each term. It returns statistical parameters, such as P.Value, fdr, odds ratio, and combined score. At the same time, it gives the overlap size, the number of genes in the term, and the genes of the input list found in the term.
 
-The tons of data downloaded from EnrichR are exported in two modalities. The tool creates an RData of the complete data frame, in this way the user can easily import in R to perform further analysis and plots. But also, it generates an Excel file with only the significant terms. The process uses the filters define in the options file to differentiate the relevant terms from the globality.
+The data downloaded from EnrichR are exported in two formats. The tool creates an RData file of the complete data frame, so the user can easily import it into R to perform further analysis and plots. Additionally, it generates an Excel file with only the significant terms. The process uses the filters defined in the options file to differentiate relevant terms from the overall dataset.
 
-A term to be significative need to have: - a P.Value lower of P.Value thr for enrichment (P.Value \< P.Value thr for enrichment), - an Overlap Size higher than Overlap size thr for enrichment (Overlap Size \> Overlap size thr for enrichment).
+A term is significant if it has: - a P.Value lower than P.Value thr for enrichment (P.Value \< P.Value thr for enrichment), - an Overlap Size higher than Overlap size thr for enrichment (Overlap Size \> Overlap size thr for enrichment).
 
-Besides that, the pipeline plots the enrichment results in different figures. The 4 plots can be split into 2 categories. The first two are filtered on the data-sets, they illustrate only the data-sets written in the column DB to analyse of the options file. The other 2 are filtered on words to search on the term description, it uses the list of words in column Terms to search.
+Besides that, the pipeline plots the enrichment results in different figures. The 4 plots can be split into 2 categories. The first two are filtered on the datasets, showing only the datasets written in the column DB to analyze of the options file. The other 2 are filtered on words to search in the term description, using the list of words in column Terms to search.
 
 <img src="www/images/figures/enrichment_readme_protn.png" width="75%"/>
 
 ###### E1.1. Enrichment analysis of the whole set of proteins discovered by the experiment
 
-In same cases can be usefull have the enrichment of the whole proteome discovered by the experiment. For example it can be used as negative control of the differentially expressed proteins. So, the entire proteome is analysed with EnrichR, and saved in an RData and in an Excel file. Also, as before, 4 plots can be generated, in this case adding as last dot column the negative control provided by the whole proteome.
+In some cases, it can be useful to analyze the enrichment of the whole proteome discovered by the experiment. For example, it can be used as a negative control for the differentially expressed proteins. So, the entire proteome is analyzed with EnrichR and saved in an RData and an Excel file. Also, as before, 4 plots can be generated; in this case, the negative control provided by the whole proteome is added as the last column.
 
 ##### N1. Protein-Protein Interaction network analysis of Differentially Expressed Proteins
 
-Last analitical step is the Protein-Protein Interaction (PPI) network analysis, since PPIs are essential in almost all processes of the cell, and it is crucial for understanding cell physiology in different states. For each comparison, ProTN analyses the interaction between the DEPs using STRING (Szklarczyk et al. 2021).
+The last analytical step is the Protein-Protein Interaction (PPI) network analysis, since PPIs are essential in almost all cellular processes and crucial for understanding cell physiology in different states. For each comparison, ProTN analyzes the interaction between the DEPs using STRING (Szklarczyk et al. 2021).
 
 <img src="www/images/figures/stringdb_readme_protn.png" width="75%"/>
 
 ### PhosProTN
 
-PhosProTN is an integrative pipeline for phosphoproteomic analysis of DDA experimental data obtained from MS. It perform a complete analysis of the raw files from Proteome Discoverer (PD) or MaxQuant (MQ), with their biological interpretation, enrichement and network analysis. PhosProTN analyse the phosphoproteomic data at peptide level.
+PhosProTN is an integrative pipeline for phosphoproteomic analysis of DDA experimental data obtained from MS. It performs a complete analysis of raw files from Proteome Discoverer (PD) or MaxQuant (MQ), including their biological interpretation, enrichment, and network analysis. PhosProTN analyzes phosphoproteomic data at the peptide level.
 
 ![image](www/images/Workflow_PhosProTN.svg)
 
-*The phospho-workflow is similar to the one described previously, below are reported only the different steps.*
+*The phospho-workflow is similar to the one described previously; below are reported only the different steps.*
 
 #### Set settings for the execution and read the raw phospho data from loaded files {#set-settings-for-the-execution-and-read-the-raw-phospho-data-from-loaded-files}
 
-ProTN analyse the results of Proteome Discoverer and MaxQuant. The essential parameters and files to run ProTN are: (additional details on the input can be found in the ProTN info tab)
+ProTN analyzes the results of Proteome Discoverer and MaxQuant. The essential parameters and files to run ProTN are: (additional details on the input can be found in the ProTN info tab)
 
--   **Software Analyzer**: determine with software was use to identify peptides and proteins.
+-   **Software Analyzer**: Determines which software was used to identify peptides and proteins.
 
     -   **PD**: Proteome Discoverer
     -   **MQ**: MaxQuant
 
-##### File required for Proteome Discoverer
+##### Files required for Proteome Discoverer
 
 -   `Annotation file`: This file provides metadata for the samples analyzed. It must be an Excel file with the following required columns:
 
@@ -292,13 +291,13 @@ ProTN analyse the results of Proteome Discoverer and MaxQuant. The essential par
 
     | Column Name                    | Description                                                 |
     |------------------------|------------------------------------------------|
-    | `Master Protein Accessions`    | Maps peptide to protein; only first ID is kept.             |
+    | `Master Protein Accessions`    | Maps peptide to protein; only the first ID is kept.         |
     | `Annotated Sequence`           | Amino acid sequence including PTM annotations.              |
     | `Modifications`                | Post-translational modifications.                           |
     | `Positions in Master Proteins` | Position of peptide in the protein sequence.                |
     | `Abundance: <File ID>`         | Intensity/abundance for each sample. One column per sample. |
 
--   `Proteins file`: Excel table contain descriptive and accession information for proteins.
+-   `Proteins file`: Excel table containing descriptive and accession information for proteins.
 
     | Column Name   | Description                                                |
     |----------------|-------------------------------------------------------|
@@ -314,7 +313,7 @@ ProTN analyse the results of Proteome Discoverer and MaxQuant. The essential par
     | `Master Protein Accessions`      | Matches protein IDs for mapping.                |
     | `Annotated Sequence`             | Used to resolve conflicting PTM assignments.    |
 
-##### File required for MaxQuant
+##### Files required for MaxQuant
 
 -   `Annotation file`: This file provides metadata for the samples analyzed. It must be an Excel file with the following required columns:
 
@@ -341,23 +340,23 @@ ProTN analyse the results of Proteome Discoverer and MaxQuant. The essential par
 
 ##### K1. Activity kinase tree analysis of the Differentially Expressed Phosphosite
 
-Last analitical step is the kinase tree analysis. In phospho-proteomic it extremely useful to study the activation status of the kinase based on the differentially expressed substrate idenfied by the differential analysis. For each comparison, PhosProTN predicts the activation state of the kinases using PhosR (Kim et al. 2021). PhosR provides a kinase-substrate relationship score, and on that it prioritises potential kinases that could be responsible for the phosphorylation change of phosphosite on the basis of kinase recognition motif and phosphoproteomic dynamics.
+The last analytical step is the kinase tree analysis. In phospho-proteomics, it is extremely useful to study the activation status of kinases based on differentially expressed substrates identified by differential analysis. For each comparison, PhosProTN predicts the activation state of kinases using PhosR (Kim et al. 2021). PhosR provides a kinase-substrate relationship score and, based on that, prioritizes potential kinases that could be responsible for the phosphorylation change of phosphosites based on kinase recognition motifs and phosphoproteomic dynamics.
 
-The activity score provide by PhosR is used to generated a graphical versione of the human kinome tree using CORAL (Metz K.S. et al. 2018), a web shiny app for visualizing both quantitative and qualitative data. It generates high-resolution scalable vector graphic files suitable for publication without the need for refinement in graphic editing software.
+The activity score provided by PhosR is used to generate a graphical version of the human kinome tree using CORAL (Metz K.S. et al. 2018), a web Shiny app for visualizing both quantitative and qualitative data. It generates high-resolution scalable vector graphic files suitable for publication without the need for refinement in graphic editing software.
 
 <img src="www/images/figures/kinase_Tree.png" width="75%"/>
 
 ### PhosProTN with proteome background
 
-PhosProTN with proteome backgorund is an integrative pipeline for phosphoproteomic analysis of DDA experimental data obtained from MS. It perform a complete analysis of the raw files from Proteome Discoverer (PD) or MaxQuant (MQ), with their biological interpretation, enrichement and network analysis. PhosProTN analyse the phosphoproteomic data at peptide level using as background the proteome analysis of the same conditions.
+PhosProTN with proteome background is an integrative pipeline for phosphoproteomic analysis of DDA experimental data obtained from MS. It performs a complete analysis of raw files from Proteome Discoverer (PD) or MaxQuant (MQ), including their biological interpretation, enrichment, and network analysis. PhosProTN analyzes phosphoproteomic data at the peptide level using the proteome analysis of the same conditions as background.
 
 ![image](www/images/Workflow_PhosProTN.svg)
 
-*The phospho-workflow is similar to the one described previously, below are reported only the different steps.*
+*The phospho-workflow is similar to the one described previously; below are reported only the different steps.*
 
 #### Set settings for the execution and read the raw data from loaded files
 
-This workflow required both files for phosphoproteomic, as described in [previously](#set-settings-for-the-execution-and-read-the-raw-phospho-data-from-loaded-files), and the proteome file, as described [here](#set-settings-for-the-execution-and-read-the-raw-data-from-loaded-files).
+This workflow requires both files for phosphoproteomics, as described [previously](#set-settings-for-the-execution-and-read-the-raw-phospho-data-from-loaded-files), and the proteome file, as described [here](#set-settings-for-the-execution-and-read-the-raw-data-from-loaded-files).
 
 ### InteracTN
 
@@ -365,7 +364,7 @@ InteracTN is an integrated pipeline for the analysis of interactomics data deriv
 
 ## Getting help
 
-Bugs and errors can be reported at the issues page on GitHub. Before filing new issues, please read the documentation and take a look at currently open and already closed discussions.
+Bugs and errors can be reported on the issues page on GitHub. Before filing new issues, please read the documentation and take a look at currently open and already closed discussions.
 
 ## Contacts
 

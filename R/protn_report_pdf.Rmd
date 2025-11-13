@@ -165,7 +165,7 @@ cat(paste0("- Statistical significance threshold: p.val < ",pval_thr," "))
 cat(" \n")
 if(filt_absent_value != 0){cat(paste0("- Threshold of acceptable missing values for condition = ",filt_absent_value," "))}
 cat(" \n \n ")
-if(length(db_execution$enrichmnent_results)>0){
+if(length(db_execution$enrichment_results)>0){
   cat("**Enrichment analysis** \n ")
   cat(" \n")
   cat(paste0("- Statistical significance threshold: p.val < ",pval_enrich_thr," "))
@@ -415,7 +415,7 @@ cat("\n \n")
 db_execution$peptide_differential_PCA
 ```
 
-```{r enrichment_sms,message=F, warning=F,echo=F, eval=length(db_execution$enrichmnent_results)>0, results='asis'}
+```{r enrichment_sms,message=F, warning=F,echo=F, eval=length(db_execution$enrichment_results)>0, results='asis'}
 cat("## Functional enrichment analysis \n")
 cat("Annotation enrichment analysis is performed using the web-based application [EnrichR](https://maayanlab.cloud/Enrichr/), against an updated collection of 98 databases covering Transcription, Pathways, Ontologies, Diseases, Drugs, Cell Types, Experimental Datasets. \n \n ")
 cat("For each comparison enrichment is calculate over up-regulated proteins (UP), down-regulated proteins (DOWN), and their union (ALL). \n")
@@ -425,14 +425,14 @@ cat(" \n")
 cat(paste0("- Overlap size threshold for enrichment analysis: OverlapSize > ",overlap_size_enrich_thr," "))
 cat(" \n")
 def_val_height=  knitr::opts_chunk$get("fig.height")
-run_enrich <- length(db_execution$enrichmnent_results)>0
+run_enrich <- length(db_execution$enrichment_results)>0
 ```
 
-```{r enrichment, echo=F, message=F, warning=F, eval = length(db_execution$enrichmnent_results)>0, results='asis'}
+```{r enrichment, echo=F, message=F, warning=F, eval = length(db_execution$enrichment_results)>0, results='asis'}
 
 terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",
                                                    str = enrich_filter_term), regex=","))
-plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
+plots_down <- enrichment_figure(enr_df = db_execution$enrichment_results,
                                 category = c("down","up"), 
                                 enrich_filter_term = terms_enrich,
                                 save=F)
@@ -441,7 +441,7 @@ plots_down <- enrichment_figure(enr_df = db_execution$enrichmnent_results,
 dbs_default <- read_tsv(system.file("extdata", 
                                     "dbs_enrichR.txt", package = "proTN"), col_names = FALSE) %>% as.data.frame()
 dbs_category <- dbs_default %>% split(f = as.factor(.$X2))
-category_db <- lapply(dbs_category, function(x){as.data.table(x)[X1 %in% intersect(unique(db_execution$enrichmnent_results$anno_class), enrich_filter_DBs)]})
+category_db <- lapply(dbs_category, function(x){as.data.table(x)[X1 %in% intersect(unique(db_execution$enrichment_results$anno_class), enrich_filter_DBs)]})
 
 
 cat("#### Top enrichments in selected annotation databases. {.tabset}  \n")
