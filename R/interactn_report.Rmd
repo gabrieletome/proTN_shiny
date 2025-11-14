@@ -229,30 +229,26 @@ cat(" \n")
 
 ```{r preprocess_figure_1, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_abundance)}
 cat("#### Percentage of missing values with respect to detected abundance \n ")
-cat("Barplot showing the percentage of peptides with available abundances for each sample. \n ")
+cat("This barplot displays, for each sample, the percentage of peptides with measured abundance values. Red bars indicate the proportion of missing values that will be imputed during preprocessing. This visualization helps assess data completeness and the extent of imputation required. \n ")
 cat("\n \n")
-# Avalaible abundance. The red percentage will be imputed.
 db_execution$generate_abundance
 ```
 
 ```{r preprocess_figure_2, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_peptide_distribution)}
 cat("#### Number of peptides per protein \n")
-cat("Barplot showing the number of peptides per protein \n ")
-# Number peptide per each protein
+cat("This barplot shows the distribution of the number of peptides identified for each protein across the dataset. Proteins with more peptides generally have more reliable quantification. This plot helps evaluate proteome coverage and peptide assignment. \n ")
 db_execution$generate_peptide_distribution
 ```
 
 ```{r normalized_plot_raw, fig.height=5, fig.width=7,results='asis', echo=FALSE, warning=FALSE, eval=!is.null(db_execution$raw_abundance_distribution)}
 cat("#### Distribution of raw abundance \n")
-cat("Violin plot showing sample distributions of log2 raw abundances. \n ")
-#Abundance per raw
+cat("Violin plots illustrate the distribution of log2-transformed raw abundance values for each sample before normalization and imputation. This visualization highlights sample-to-sample variability and potential batch effects in the raw data. \n ")
 db_execution$raw_abundance_distribution
 ```
 
 ```{r preprocess_figure_3, fig.height=8, fig.width=12,results='asis', echo=FALSE, eval=!is.null(db_execution$generate_complexity)}
 cat("#### Complexity plot of raw abundance \n")
-cat("Sorted raw abundance of each peptides detected reporting the number of peptides for each quantile \n ")
-# Number peptide per each protein
+cat("This plot presents the sorted raw abundance values for all detected peptides, reporting the number of peptides within each quantile. It provides an overview of the dynamic range and complexity of the dataset, helping to identify low-abundance peptides and overall data structure. \n ")
 db_execution$generate_complexity
 ```
 
@@ -293,43 +289,37 @@ cat(" \n")
 
 ```{r normalized_plot_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_abundance_distribution)}
 cat("#### Distribution of protein normalized abundance \n")
-cat("Violin plot showing sample distributions of log2 normalized and imputed abundances. \n ")
-#Abundance per Protein
+cat("Violin plots display the distribution of log2-transformed, normalized, and imputed protein abundance values for each sample. This visualization allows assessment of normalization effectiveness and protein-level data quality. \n ")
 db_execution$protein_abundance_distribution
 ```
 
 ```{r normalized_plot_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_abundance_distirbution)}
 cat("#### Distribution of peptide normalized abundance \n")
-cat("Violin plot showing sample distributions of log2 normalized and imputed abundances. \n ")
-#Abundance per Peptide
+cat("Violin plots display the distribution of log2-transformed, normalized, and imputed peptide abundance values for each sample. \n ")
 db_execution$peptide_abundance_distirbution
 ```
 
 ```{r mds_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_MDS)}
 cat("#### MDS based on protein normalized data \n ")
-cat("Multidimensional scaling (MDS) takes a set of dissimilarities and returns a set of points such that the distances between the points are approximately equal to the dissimilarities. Classical multidimensional scaling is also known as principal coordinates analysis. \n \n ")
-#Abundance per Protein
+cat("Multidimensional scaling (MDS) plot visualizes the similarity between samples based on normalized protein abundance profiles. Samples that cluster together have similar protein expression patterns, aiding in the detection of outliers and batch effects. \n ")
 db_execution$protein_MDS
 ```
 
 ```{r mds_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_MDS)}
 cat("#### MDS based on peptide normalized data \n")
-cat("Multidimensional scaling (MDS) takes a set of dissimilarities and returns a set of points such that the distances between the points are approximately equal to the dissimilarities. Classical multidimensional scaling is also known as principal coordinates analysis. \n  \n ")
-#Abundance per Peptide
+cat("Multidimensional scaling (MDS) plot visualizes the similarity between samples based on normalized peptide abundance profiles. This helps assess sample clustering and overall data structure at the peptide level. \n ")
 db_execution$peptide_MDS
 ```
 
 ```{r pca_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_PCA)}
 cat("#### PCA based on protein normalized data \n")
-cat("Principal component analysis (PCA) is performed on normalized Protein and Peptide abundances. \n \n ")
-#Abundance per Protein
+cat("Principal component analysis (PCA) plot summarizes the major sources of variation in normalized protein abundance data. Samples are projected onto principal components, revealing clustering patterns and potential batch effects. \n ")
 db_execution$protein_PCA
 ```
 
 ```{r pca_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_PCA)}
 cat("#### PCA based on peptide normalized data \n")
-cat("Principal component analysis (PCA) is performed on normalized Protein and Peptide abundances. \n \n ")
-#Abundance per Peptide
+cat("Principal component analysis (PCA) plot summarizes the major sources of variation in normalized peptide abundance data. This visualization helps identify sample clusters and sources of technical or biological variation. \n ")
 db_execution$peptide_PCA
 ```
 
@@ -337,7 +327,7 @@ db_execution$peptide_PCA
 ```{r boxplot_protein, fig.height=7, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_boxplot)}
 if(length(list_proteins[[1]])>0){
   cat("#### Boxplot abundances of selected proteins \n")
-  cat("Normalized log2 abundances are displayed for proteins selected in the input. Abundances are grouped per condition. \n \n ")
+  cat("Boxplots show normalized log2 abundance values for user-selected proteins, grouped by condition. This plot enables comparison of protein expression across experimental groups. \n ")
   cat("Selected proteins with available abundances: \n")
   cat(paste(list_proteins[[1]], sep = ", "))
   cat(" \n \n ")
@@ -349,7 +339,7 @@ if(length(list_proteins[[1]])>0){
 ```{r heatmap_protein, fig.height=7, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_heatmap)}
 if(length(list_proteins[[1]])>0){
   cat("#### Heatmap abundances of selected proteins \n")
-  cat("Normalized log2 abundances are displayed for proteins selected in the input. \n ")
+  cat("Heatmap visualizes normalized log2 abundance values for user-selected proteins across all samples. This plot highlights patterns of protein expression and clustering among samples and proteins. \n ")
   cat("Selected proteins with available abundances: \n")
   cat(paste(list_proteins[[1]], sep = ", "))
   cat(" \n \n ")
@@ -390,27 +380,31 @@ cat(" \n")
 
 ```{r differentiated_protein, fig.height=6, fig.width=17, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_differential_barplot))}
 cat("#### Number of differentially expressed proteins for each comparison \n")
+cat("Barplot showing the count of proteins identified as differentially expressed for each contrast. This helps quantify the impact of experimental conditions on protein expression. \n ")
 db_execution$protein_differential_barplot
 ```
 
 ```{r differentiated_peptide, fig.height=6, fig.width=17, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_differential_barplot))}
 cat("#### Number of differentially expressed peptides for each comparison \n")
+cat("Barplot showing the count of peptides identified as differentially expressed for each contrast. This quantifies peptide-level changes across conditions. \n ")
 db_execution$peptide_differential_barplot
 ```
 
 ```{r upset_protein,  fig.height=6, fig.width=10, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_upset_plot))}
 cat("#### Upset plot between comparison in proteins \n")
+cat("Upset plot visualizes the intersection of differentially expressed proteins across multiple contrasts, highlighting shared and unique protein changes between conditions. \n ")
 db_execution$protein_upset_plot
 ```
 
 ```{r upset_peptide,  fig.height=6, fig.width=10, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_upset_plot))}
 cat("#### Upset plot between comparison in peptides \n")
+cat("Upset plot visualizes the intersection of differentially expressed peptides across multiple contrasts, highlighting shared and unique peptide changes between conditions. \n ")
 db_execution$peptide_upset_plot
 ```
 
 ```{r ma_plot_protein, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_ma_plot))}
 cat("#### MA plots of Proteins {.tabset} \n")
-cat("MA plot log2 FC vs mean of abundance of the conditions in the comparison. \n ")
+cat("MA plots display log2 fold change versus mean abundance for proteins in each contrast. These plots help identify proteins with significant changes and visualize the relationship between expression level and differential expression. \n ")
 cat(" \n \n")
 in_tabs(db_execution$protein_ma_plot, labels = names(db_execution$protein_ma_plot), level = 4L)
 cat(" \n \n")
@@ -418,7 +412,7 @@ cat(" \n \n")
 
 ```{r ma_plot_peptide, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_ma_plot))}
 cat("#### MA plots of Peptides {.tabset} \n")
-cat("MA plot log2 FC vs mean of abundance of the conditions in the comparison. \n ")
+cat("MA plots display log2 fold change versus mean abundance for peptides in each contrast. These plots help identify peptides with significant changes and visualize the relationship between expression level and differential expression. \n ")
 cat(" \n \n")
 in_tabs(db_execution$peptide_ma_plot, labels = names(db_execution$peptide_ma_plot), level = 4L)
 cat(" \n \n")
@@ -426,10 +420,7 @@ cat(" \n \n")
 
 ```{r volcano_protein, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$protein_vulcano))}
 cat("#### Volcano plots of Proteins {.tabset} \n")
-cat("Differentially expressed proteins are displayed according to the thresholds set in the input. \n ")
-cat("\n - \"+\" up-regulated protein \n ")
-cat("\n - \"=\" invariant protein \n \n ")
-cat("Top enriched proteins are labeled. \n")
+cat("Volcano plots show log2 fold change versus statistical significance (p-value) for proteins in each contrast. Proteins are colored by regulation status (up, down, invariant), and top hits are labeled. \n ")
 cat(" \n \n")
 in_tabs(db_execution$protein_vulcano, labels = names(db_execution$protein_vulcano), level = 4L)
 cat(" \n \n")
@@ -437,10 +428,7 @@ cat(" \n \n")
 
 ```{r volcano_peptide, fig.height=6, fig.width=6, warning=FALSE, echo=FALSE, results='asis', eval=(length(db_execution$differential_results)>0 & !is.null(db_execution$peptide_vulcano))}
 cat("#### Volcano plots of Peptides {.tabset} \n")
-cat("Differentially expressed peptides are displayed according to the thresholds set in the input. \n ")
-cat("\n - \"+\" up-regulated peptide \n ")
-cat("\n - \"=\" invariant peptide \n \n ")
-cat("Top enriched peptides are labeled. \n")
+cat("Volcano plots show log2 fold change versus statistical significance (p-value) for peptides in each contrast. Peptides are colored by regulation status (up, down, invariant), and top hits are labeled. \n ")
 cat(" \n \n")
 in_tabs(db_execution$peptide_vulcano, labels = names(db_execution$peptide_vulcano), level = 4L)
 cat(" \n \n")
@@ -449,29 +437,25 @@ cat(" \n \n")
 
 ```{r mds_differential_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_differential_MDS)}
 cat("#### MDS based on differentially expressed proteins \n")
-cat("Multidimensional scaling (MDS) are performed on normalized abundances of differentially expressed Proteins. \n")
-#Abundance per Protein
+cat("MDS plot visualizes sample similarity based on normalized abundances of differentially expressed proteins. This helps assess clustering and separation between experimental groups after differential analysis. \n")
 db_execution$protein_differential_MDS
 ```
 
 ```{r mds_differential_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_differential_MDS)}
 cat("#### MDS based on differentially expressed peptides \n")
-cat("Multidimensional scaling (MDS) are performed on normalized abundances of differentially expressed Peptides. \n")
-#Abundance per Peptide
+cat("MDS plot visualizes sample similarity based on normalized abundances of differentially expressed peptides. This helps assess clustering and separation between experimental groups after differential analysis. \n")
 db_execution$peptide_differential_MDS
 ```
 
 ```{r pca_differential_normalized_prot, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$protein_differential_PCA)}
 cat("#### PCA based on differentially expressed proteins \n")
-cat("Principal component analysis (PCA) are performed on normalized abundances of differentially expressed Proteins. \n")
-#Abundance per Protein
+cat("PCA plot summarizes the major sources of variation in normalized abundances of differentially expressed proteins, highlighting sample clustering and separation between conditions. \n")
 db_execution$protein_differential_PCA
 ```
 
 ```{r pca_differential_normalized_pep, fig.height=5, fig.width=7,results='asis', echo=FALSE, eval=!is.null(db_execution$peptide_differential_PCA)}
 cat("#### PCA based on differentially expressed peptides \n")
-cat("Principal component analysis (PCA) are performed on normalized abundances of differentially expressed  Peptides. \n")
-#Abundance per Peptide
+cat("PCA plot summarizes the major sources of variation in normalized abundances of differentially expressed peptides, highlighting sample clustering and separation between conditions. \n")
 db_execution$peptide_differential_PCA
 ```
 

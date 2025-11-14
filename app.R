@@ -1,9 +1,7 @@
-# ProTN v0.3.1.1: an integrative pipeline for complete analysis of proteomics    # 
-# data from mass spectrometry                                                  #
-# Laboratory of RNA and Disease Data Science, University of Trento             #
-# Developer: Gabriele Tomè                                                     #
-# PI: Dr. Toma Tebaldi, PhD                                                    #
-#                                                                              #
+# ProTN v0.3.3: An integrative pipeline for comprehensive analysis of proteomics data from mass spectrometry
+# Laboratory of RNA and Disease Data Science, University of Trento
+# Developer: Gabriele Tomè
+# PI: Dr. Toma Tebaldi, PhD
 list.of.packages <- c("shiny","tidyverse","markdown","knitr","shinydashboard",
                       "shinydashboardPlus","shinymaterial","shinyjs","magrittr",
                       "dplyr","stringr","shinyBS","DT","bslib","readr",
@@ -171,16 +169,6 @@ ui <- tagList(
                 tags$br(),
                 # textOutput("messagge_read"),
                 uiOutput("protn_results_ui"),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_abundance_plot")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_peptide_distribution")
-                #   )
-                # ),
                 fluidRow(
                   column(
                     width = 11,
@@ -241,36 +229,6 @@ ui <- tagList(
                     uiOutput("render_pca_peptide")
                   )
                 ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_protein_violin")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_peptide_violin")
-                #   )
-                # ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_mds_protein")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_mds_peptide")
-                #   )
-                # ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_pca_protein")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_pca_peptide")
-                #   )
-                # ),
                 uiOutput("render_protein_boxplot"),
                 uiOutput("render_protein_heatmap"),
                 uiOutput("render_differential_analysis"),
@@ -318,36 +276,6 @@ ui <- tagList(
                     uiOutput("render_pca_peptide_diff")
                   )
                 ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_protein_vulcano")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_peptide_vulcano")
-                #   )
-                # ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_mds_protein_diff")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_mds_peptide_diff")
-                #   )
-                # ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_pca_protein_diff")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_pca_peptide_diff")
-                #   )
-                # ),
                 uiOutput("render_enrichement_analysis"),
                 uiOutput("render_stringdb")
               )
@@ -417,19 +345,8 @@ ui <- tagList(
                 id="panel_results_phos",
                 width = 9,
                 tags$br(),
-                # textOutput("messagge_read_phos"),
                 uiOutput("protn_results_ui_phos"),
                 uiOutput("render_phospho_percentage_plot_phos"),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_abundance_plot_phos")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_peptide_distribution_phos")
-                #   )
-                # ),
                 fluidRow(
                   column(
                     width = 11,
@@ -571,7 +488,6 @@ ui <- tagList(
                 id="panel_results_phos_protn",
                 width = 9,
                 tags$br(),
-                # textOutput("messagge_read_phos_protn"),
                 uiOutput("protn_results_ui_phos_protn"),
                 uiOutput("render_phospho_percentage_plot_phos_protn"),
                 uiOutput("render_abundance_plot_phos_protn"),
@@ -706,18 +622,7 @@ ui <- tagList(
                 id="panel_results_interactn",
                 width = 9,
                 tags$br(),
-                # textOutput("messagge_read"),
                 uiOutput("protn_results_ui_interactn"),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_abundance_plot_interactn")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_peptide_distribution_interactn")
-                #   )
-                # ),
                 fluidRow(
                   column(
                     width = 11,
@@ -778,36 +683,6 @@ ui <- tagList(
                     uiOutput("render_pca_peptide_interactn")
                   )
                 ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_protein_violin_interactn")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_peptide_violin_interactn")
-                #   )
-                # ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_mds_protein_interactn")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_mds_peptide_interactn")
-                #   )
-                # ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_pca_protein_interactn")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_pca_peptide_interactn")
-                #   )
-                # ),
                 uiOutput("render_protein_boxplot_interactn"),
                 uiOutput("render_protein_heatmap_interactn"),
                 uiOutput("render_differential_analysis_interactn"),
@@ -855,36 +730,6 @@ ui <- tagList(
                     uiOutput("render_pca_peptide_diff_interactn")
                   )
                 ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_protein_vulcano_interactn")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_peptide_vulcano_interactn")
-                #   )
-                # ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_mds_protein_diff_interactn")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_mds_peptide_diff_interactn")
-                #   )
-                # ),
-                # fluidRow(
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_pca_protein_diff_interactn")
-                #   ),
-                #   column(
-                #     width = 6,
-                #     uiOutput("render_pca_peptide_diff_interactn")
-                #   )
-                # ),
                 uiOutput("render_enrichement_analysis_interactn"),
                 uiOutput("render_stringdb_interactn")
               )
@@ -1104,7 +949,7 @@ server <- function(input, output, session) {
   ## PROTN: textbox for batch correction----
   output$batch_correction_ui <- renderUI({ 
     if(input$batch_correction){
-      textInput("batch_correction_col", "Column in Annotation file with the batch:")
+      textInput("batch_correction_col", "Column in annotation file containing batch information:")
     } 
   })
   ## PROTN: advance filters----
@@ -1131,7 +976,7 @@ server <- function(input, output, session) {
   ## PROTN: textbox for list proteins ----
   output$list_protein_ui <- renderUI({ 
     if(input$boxplot_protein | input$heatmap_protein){
-      textInput("list_proteins", "List proteins to show (separate by: \",\"):")
+      textInput("list_proteins", "List of proteins to display (separate by commas):")
     } 
   })
   
@@ -4729,10 +4574,10 @@ server <- function(input, output, session) {
           actionButton("execute_kinase_tree_analysis_btn_phos_protn", "Run!"),
           tags$br()
         )
-      } else{
+      } 
+    } else{
         db_execution_phos_protn$kinase_tree_res <- list()
         output$render_kinase_tree_phos_protn <- renderUI({NULL})
-      }
     }
   })
   
@@ -5219,16 +5064,18 @@ server <- function(input, output, session) {
         tagList(
           fluidRow(
             column(
-              width = 6,
+              width = 11,
               tags$h3("Percentage missing values respect detected abundance - Proteomics"),
               tags$div(
                 style = "cursor:pointer;",
                 onclick = "showFullscreenPlot_phos_protn('abundance_plot_phos_protn_prot')",
                 plotOutput("small_abundance_plot_phos_protn_prot")
               )
-            ),
+            )
+          ),
+          fluidRow(
             column(
-              width = 6,
+              width = 11,
               tags$h3("Percentage missing values respect detected abundance - Phospho-proteomics"),
               tags$div(
                 style = "cursor:pointer;",
@@ -5255,16 +5102,18 @@ server <- function(input, output, session) {
           
           fluidRow(
             column(
-              width = 6,
+              width = 11,
               tags$h3("N° peptides per proteins - Proteomics"),
               tags$div(
                 style = "cursor:pointer;",
                 onclick = "showFullscreenPlot_phos_protn('peptide_distribution_plot_phos_protn_prot')",
                 plotOutput("small_peptide_distribution_phos_protn_prot")
               )
-            ),
+            )
+          ),
+          fluidRow(
             column(
-              width = 6,
+              width = 11,
               tags$h3("N° peptides per proteins - Phospho-proteomics"),
               tags$div(
                 style = "cursor:pointer;",
@@ -5325,16 +5174,18 @@ server <- function(input, output, session) {
         tagList(
           fluidRow(
             column(
-              width = 6,
+              width = 11,
               tags$h3("Complexity plot of raw abundance - Proteomics"),
               tags$div(
                 style = "cursor:pointer;",
                 onclick = "showFullscreenPlot_phos_protn('complexity_plot_phos_protn_prot')",
                 plotOutput("small_complexity_plot_phos_protn_prot")
               )
-            ),
+            )
+          ),
+          fluidRow(
             column(
-              width = 6,
+              width = 11,
               tags$h3("Complexity plot of raw abundance - Phospho-proteomics"),
               tags$div(
                 style = "cursor:pointer;",
