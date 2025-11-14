@@ -1,4 +1,4 @@
-# ProTN v0.3.3: An integrative pipeline for comprehensive analysis of proteomics data from mass spectrometry
+# ProTN v0.3.3.1: An integrative pipeline for comprehensive analysis of proteomics data from mass spectrometry
 # Laboratory of RNA and Disease Data Science, University of Trento
 # Developer: Gabriele Tomè
 # PI: Dr. Toma Tebaldi, PhD
@@ -100,7 +100,7 @@ ui <- tagList(
       includeScript("www/js/materialize.js"),
       includeScript("www/js/full_screen_plot.js"),
       extendShinyjs(text = jsCode_STRINGdb, functions = c("loadStringData")),
-
+      
       #Busy panel when app is running
       conditionalPanel(
         condition = "$(\'html\').hasClass(\'shiny-busy\')",
@@ -136,7 +136,7 @@ ui <- tagList(
                                             "MaxQuant by peptides.txt and proteinGroups.txt" = "MQ_prot",
                                             "Spectronaut" = "SP",
                                             "FragPipe" = "FP"),
-                                 selected = "PD", multiple = FALSE
+                              selected = "PD", multiple = FALSE
                   ),
                 ),
                 uiOutput("input_proteome"),
@@ -856,31 +856,31 @@ server <- function(input, output, session) {
   # InteracTN: db variable analysis ----
   db_execution_interactn <- reactiveValues(session = session$token,
                                            parameter = list(),
-                                 data_loaded = FALSE,
-                                 dirOutput = "",
-                                 proteome_data = list(),
-                                 imputed_data = list(),
-                                 normalized_data = list(),
-                                 formule_contrast = list(),
-                                 dt_formule_contrast = data.table("Name"=c("","","",""),"Formule"=c("","","","")),
-                                 differential_results = list(),
-                                 enrichment_results = list(),
-                                 stringdb_res = list(),
-                                 kinase_tree_res = list(),
-                                 phospho_percentage = NULL,
-                                 generate_abundance = NULL,
-                                 generate_peptide_distribution = NULL, raw_abundance_distribution = NULL,
-                                 generate_complexity = NULL,
-                                 protein_abundance_distribution = NULL, peptide_abundance_distirbution = NULL,
-                                 protein_MDS = NULL, peptide_MDS = NULL,
-                                 protein_PCA = NULL, peptide_PCA = NULL,
-                                 protein_boxplot = NULL, protein_heatmap = NULL,
-                                 protein_differential_barplot = NULL, peptide_differential_barplot = NULL,
-                                 protein_upset_plot = NULL, peptide_upset_plot = NULL,
-                                 protein_ma_plot = NULL, peptide_ma_plot = NULL,
-                                 protein_vulcano = NULL, peptide_vulcano = NULL,
-                                 protein_differential_MDS = NULL, peptide_differential_MDS = NULL,
-                                 protein_differential_PCA = NULL, peptide_differential_PCA = NULL)
+                                           data_loaded = FALSE,
+                                           dirOutput = "",
+                                           proteome_data = list(),
+                                           imputed_data = list(),
+                                           normalized_data = list(),
+                                           formule_contrast = list(),
+                                           dt_formule_contrast = data.table("Name"=c("","","",""),"Formule"=c("","","","")),
+                                           differential_results = list(),
+                                           enrichment_results = list(),
+                                           stringdb_res = list(),
+                                           kinase_tree_res = list(),
+                                           phospho_percentage = NULL,
+                                           generate_abundance = NULL,
+                                           generate_peptide_distribution = NULL, raw_abundance_distribution = NULL,
+                                           generate_complexity = NULL,
+                                           protein_abundance_distribution = NULL, peptide_abundance_distirbution = NULL,
+                                           protein_MDS = NULL, peptide_MDS = NULL,
+                                           protein_PCA = NULL, peptide_PCA = NULL,
+                                           protein_boxplot = NULL, protein_heatmap = NULL,
+                                           protein_differential_barplot = NULL, peptide_differential_barplot = NULL,
+                                           protein_upset_plot = NULL, peptide_upset_plot = NULL,
+                                           protein_ma_plot = NULL, peptide_ma_plot = NULL,
+                                           protein_vulcano = NULL, peptide_vulcano = NULL,
+                                           protein_differential_MDS = NULL, peptide_differential_MDS = NULL,
+                                           protein_differential_PCA = NULL, peptide_differential_PCA = NULL)
   ##############################################################################
   ### PROTN ----
   # Optional visibility based on the selection ----
@@ -976,7 +976,10 @@ server <- function(input, output, session) {
   ## PROTN: textbox for list proteins ----
   output$list_protein_ui <- renderUI({ 
     if(input$boxplot_protein | input$heatmap_protein){
-      textInput("list_proteins", "List of proteins to display (separate by commas):")
+      tagList(
+        textInput("list_proteins", "List of proteins to display (separate by commas):", updateOn = "blur"),
+        actionButton("execute_protein_plots", "Plot!")
+      )
     } 
   })
   
@@ -1038,7 +1041,7 @@ server <- function(input, output, session) {
       updateCheckboxInput(session, "pca_diff_protein", value = FALSE)
       updateCheckboxInput(session, "pca_diff_peptide", value = FALSE)
       
-
+      
       db_execution$protein_differential_barplot <- NULL
       db_execution$peptide_differential_barplot <- NULL
       db_execution$protein_upset_plot <- NULL
@@ -1052,7 +1055,7 @@ server <- function(input, output, session) {
       db_execution$protein_differential_PCA <- NULL
       db_execution$peptide_differential_PCA <- NULL
       
-
+      
       output$render_differential_analysis <- renderUI({NULL})
       output$render_protein_diff_table <- renderUI({NULL})
       output$render_peptide_diff_table <- renderUI({NULL})
@@ -1241,7 +1244,7 @@ server <- function(input, output, session) {
       db_execution$parameter <- c(db_execution$parameter, "List proteins boxplot abundance: "=input$list_proteins)
       list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins), regex=",")
       boxplot_protein_fig <- plot_selected_proteins(proteome_data = db_execution$normalized_data,
-                                             list_protein = unlist(list_proteins))$plot
+                                                    list_protein = unlist(list_proteins))$plot
       db_execution$protein_boxplot = boxplot_protein_fig
       boxplot_protein_fig
     } else{
@@ -1250,9 +1253,9 @@ server <- function(input, output, session) {
   })
   
   generate_protein_heatmap <- reactive({
-    req(input$heatmap_protein)
+    # req(input$heatmap_protein)
     if(input$heatmap_protein){
-      req(input$list_proteins)
+      # req(input$list_proteins)
       db_execution$parameter <- c(db_execution$parameter, "List proteins heatmap abundance: "=input$list_proteins)
       list_proteins <- stri_split(stri_replace_all(regex = " ",replacement = "",str = input$list_proteins), regex=",")
       heatmap_protein_fig <- heatmap_selected_proteins(proteome_data = db_execution$normalized_data, list_protein = unlist(list_proteins))$plot
@@ -1379,7 +1382,7 @@ server <- function(input, output, session) {
               # Reset other analysis
               db_execution$parameter <- list()
               updateCheckboxInput(session, "differential_analysis_checkbox", value = FALSE)
-
+              
               
               message(session$token)
               message(tempdir())
@@ -1752,42 +1755,53 @@ server <- function(input, output, session) {
       generate_pca_peptide()
     })
     
-    output$render_protein_boxplot <- renderUI({
-      if (input$boxplot_protein) {
-        req(input$list_proteins)
-        tagList(
-          tags$h3("Boxplot selected proteins"),
-          tags$div(
-            style = "cursor:pointer;",
-            onclick = "showFullscreenPlot('protein_boxplot')",
-            plotOutput("small_protein_boxplot")
-          )
-        )
-      } else{
-        db_execution$protein_boxplot = NULL
-      }
-    })
-    output$small_protein_boxplot <- renderPlot({
-      generate_protein_boxplot()
-    })
     
-    output$render_protein_heatmap <- renderUI({
-      if (input$heatmap_protein) {
-        req(input$list_proteins)
-        tagList(
-          tags$h3("Heatmap selected proteins"),
-          tags$div(
-            style = "cursor:pointer;",
-            onclick = "showFullscreenPlot('protein_heatmap')",
-            plotOutput("small_protein_heatmap")
+    observeEvent(input$execute_protein_plots, {
+      
+      output$render_protein_boxplot <- renderUI({
+        if (input$boxplot_protein) {
+          req(input$list_proteins)
+          tagList(
+            tags$h3("Boxplot selected proteins"),
+            tags$div(
+              style = "cursor:pointer;",
+              onclick = "showFullscreenPlot('protein_boxplot')",
+              plotOutput("small_protein_boxplot")
+            )
           )
-        )
-      } else{
-        db_execution$protein_heatmap = NULL
-      }
-    })
-    output$small_protein_heatmap <- renderPlot({
-      generate_protein_heatmap()
+        } else{
+          db_execution$protein_boxplot = NULL
+        }
+      })
+      output$small_protein_boxplot <- renderPlot({
+        isolate({
+          generate_protein_boxplot()
+        })
+      })
+      
+      
+      output$render_protein_heatmap <- renderUI({
+        isolate({
+          if (input$heatmap_protein) {
+            # req(input$list_proteins)
+            tagList(
+              tags$h3("Heatmap selected proteins"),
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot('protein_heatmap')",
+                plotOutput("small_protein_heatmap")
+              )
+            )
+          } else{
+            db_execution$protein_heatmap = NULL
+          }
+        })
+      })
+      output$small_protein_heatmap <- renderPlot({
+        isolate({
+          generate_protein_heatmap()
+        })
+      })
     })
     
   })
@@ -1814,11 +1828,11 @@ server <- function(input, output, session) {
         })
         db_execution$formule_contrast <- formule_diff
         message(db_execution$formule_contrast)
-
+        
         withProgress(message = "Differential analysis in process, please wait!", {
           message(session$token)
           message(tempdir())
-
+          
           db_execution$differential_results <- differential_analysis(proteome_data = db_execution$normalized_data,
                                                                      formule_contrast = db_execution$formule_contrast,
                                                                      fc_thr=as.double(input$FC_thr),
@@ -1829,9 +1843,9 @@ server <- function(input, output, session) {
                                                                                       db_execution$differential_results$peptide_results_long$comp))]
         })
         db_execution$parameter<-c(db_execution$parameter,
-                                      "Fold change threshold for significance: "=input$FC_thr,
-                                      "P.value type used: "=input$pval_fdr,
-                                      "P.value threshold for significance: "=input$pval_thr)
+                                  "Fold change threshold for significance: "=input$FC_thr,
+                                  "P.value type used: "=input$pval_fdr,
+                                  "P.value threshold for significance: "=input$pval_thr)
         
         
         tags$h2("Differential Analysis")
@@ -1940,8 +1954,8 @@ server <- function(input, output, session) {
           message(conds)
           
           generate_ma_plots_protein[[comp]] <- ma_plot(differential_results = db_execution$differential_results, 
-                                                    proteome_data = db_execution$normalized_data,
-                                                    type="protein", comparison = comp, condition = conds)$plot
+                                                       proteome_data = db_execution$normalized_data,
+                                                       type="protein", comparison = comp, condition = conds)$plot
         }
         db_execution$protein_ma_plot = lapply(generate_ma_plots_protein, function(x){ggplotly(x, tooltip = c("text"))})
         # Generate tabPanels in a for loop
@@ -2018,18 +2032,18 @@ server <- function(input, output, session) {
         db_execution$peptide_ma_plot = NULL
       }
     })
-  
+    
     output$render_protein_vulcano <- renderUI({
       if(input$protein_vulcano){
         generate_volcano_plots_protein <- list()
         for(comp in names(db_execution$formule_contrast)){
           generate_volcano_plots_protein<-c(generate_volcano_plots_protein,
                                             generate_volcano_plots(db_execution$differential_results,
-                                                                 data_type="protein",
-                                                                 comparison=comp,
-                                                                 fc_thr=as.double(input$FC_thr),
-                                                                 pval_fdr = input$pval_fdr,
-                                                                 pval_thr=as.double(input$pval_thr)))
+                                                                   data_type="protein",
+                                                                   comparison=comp,
+                                                                   fc_thr=as.double(input$FC_thr),
+                                                                   pval_fdr = input$pval_fdr,
+                                                                   pval_thr=as.double(input$pval_thr)))
         }
         db_execution$protein_vulcano = generate_volcano_plots_protein
         # Generate tabPanels in a for loop
@@ -2179,23 +2193,23 @@ server <- function(input, output, session) {
     output$render_enrichement_analysis <- renderUI({
       isolate({
         db_execution$enrichment_results <- perform_enrichment_analysis(differential_results = db_execution$differential_results,
-                                                          enrichR_custom_DB = T,
-                                                          enrich_filter_DBs=input$DB_enrichment,    
-                                                          overlap_size_enrich_thr=as.double(input$os_enrich),
-                                                          pval_fdr_enrich = input$pval_fdr,
-                                                          pval_enrich_thr=as.double(input$pval_thr),
-                                                          dirOutput=db_execution$dirOutput, 
-                                                          with_background = input$enrich_with_background)
+                                                                       enrichR_custom_DB = T,
+                                                                       enrich_filter_DBs=input$DB_enrichment,    
+                                                                       overlap_size_enrich_thr=as.double(input$os_enrich),
+                                                                       pval_fdr_enrich = input$pval_fdr,
+                                                                       pval_enrich_thr=as.double(input$pval_thr),
+                                                                       dirOutput=db_execution$dirOutput, 
+                                                                       with_background = input$enrich_with_background)
         
         terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich), regex=","))
         
         db_execution$parameter <- c(db_execution$parameter,
-                                       "Enrichment databases selected: "=paste(input$DB_enrichment, collapse = ", "),
-                                       "P.value type used for enrichment: "=input$pval_fdr,
-                                       "P.value threshold for enrichment significance: "=input$pval_thr,
-                                       "Overlap size threshold for enrichment significance: "=input$os_enrich,
-                                       "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
-                                       "Enrichment with background: "=input$enrich_with_background)
+                                    "Enrichment databases selected: "=paste(input$DB_enrichment, collapse = ", "),
+                                    "P.value type used for enrichment: "=input$pval_fdr,
+                                    "P.value threshold for enrichment significance: "=input$pval_thr,
+                                    "Overlap size threshold for enrichment significance: "=input$os_enrich,
+                                    "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
+                                    "Enrichment with background: "=input$enrich_with_background)
         
         plots_down <- enrichment_figure(enr_df = db_execution$enrichment_results,
                                         category = c("down","up"), 
@@ -2247,9 +2261,9 @@ server <- function(input, output, session) {
                                                         score_thr=input$score_thr_stringdb,
                                                         shiny = T)
           db_execution$parameter <- c(db_execution$parameter,
-                                         "STRINGdb taxonomy: "=input$taxonomy,
-                                         "STRINGdb score threshold: "=input$score_thr_stringdb)
-            
+                                      "STRINGdb taxonomy: "=input$taxonomy,
+                                      "STRINGdb score threshold: "=input$score_thr_stringdb)
+          
           tagList(
             tags$h2("STRINGdb analysis"),
             fluidRow(
@@ -2560,7 +2574,7 @@ server <- function(input, output, session) {
                 # plotly::save_image(db_execution$protein_vulcano[[comp]], 
                 #                         file = paste0(str_replace_all(db_execution$dirOutput, pattern="\\\\", replacement="/"),"pics/protein_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution$protein_vulcano[[comp]], 
-                                   file = paste0(db_execution$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.html"))
+                                        file = paste0(db_execution$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.html"))
                 webshot2::webshot(url = paste0(db_execution$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.html"), 
                                   file = paste0(db_execution$dirOutput,"pics/protein_vulcano/",comp,"_protein_vulcano.png"), delay = 1, zoom = 4)
               }
@@ -2576,7 +2590,7 @@ server <- function(input, output, session) {
                 # plotly::save_image(db_execution$peptide_vulcano[[comp]], 
                 #              file = paste0(str_replace_all(db_execution$dirOutput, pattern="\\\\", replacement="/"),"pics/peptide_vulcano/",comp,"_protein_vulcano.png"))
                 htmlwidgets::saveWidget(db_execution$peptide_vulcano[[comp]], 
-                                   file = paste0(db_execution$dirOutput,"pics/peptide_vulcano/",comp,"_peptide_vulcano.html"))
+                                        file = paste0(db_execution$dirOutput,"pics/peptide_vulcano/",comp,"_peptide_vulcano.html"))
                 webshot2::webshot(url = paste0(db_execution$dirOutput,"pics/peptide_vulcano/",comp,"_peptide_vulcano.html"), 
                                   file = paste0(db_execution$dirOutput,"pics/peptide_vulcano/",comp,"_peptide_vulcano.png"), delay = 1, zoom = 4)
               }
@@ -2639,10 +2653,10 @@ server <- function(input, output, session) {
             
             if(length(db_execution$stringdb_res)>0){
               tmp_res <- STRINGdb_network(differential_results = db_execution$differential_results,
-                                                            species=input$taxonomy, 
-                                                            dirOutput=db_execution$dirOutput,
-                                                            score_thr=input$score_thr_stringdb,
-                                                            shiny = F)
+                                          species=input$taxonomy, 
+                                          dirOutput=db_execution$dirOutput,
+                                          score_thr=input$score_thr_stringdb,
+                                          shiny = F)
               
             } 
             setProgress(value = 0.95)
@@ -2840,7 +2854,10 @@ server <- function(input, output, session) {
   ## PHOSPROTN: textbox for list proteins ----
   output$list_protein_ui_phos <- renderUI({ 
     if(input$boxplot_protein_phos | input$heatmap_protein_phos){
-      textInput("list_proteins_phos", "List proteins to show (separate by: \",\"):")
+      tagList(
+        textInput("list_proteins_phos", "List proteins to show (separate by: \",\"):"),
+        actionButton("execute_protein_plots_phos", "Plot!")
+      )
     } 
   })
   
@@ -3314,28 +3331,28 @@ server <- function(input, output, session) {
                   shinyjs::html("text", "")
                   if(software == "PD"){
                     db_execution_phos$proteome_data <-read_phosphoproteomics(software = "PD",
-                                                                        folder = dir_input,
-                                                                        peptide_filename = "PEP_",
-                                                                        annotation_filename = "ANNOTATION_",
-                                                                        proteinGroup_filename = "PROT_", 
-                                                                        psm_filename = "PSM_",
-                                                                        sample_col = sample_column,
-                                                                        batch_corr_exe = batch_corr, 
-                                                                        batch_col = batch_correction_col,
-                                                                        phospho_thr = input$phos_thr/100, 
-                                                                        filt_absent_value = NA_allow_condition, 
-                                                                        min_peptide_protein = min_peptide_protein)
+                                                                             folder = dir_input,
+                                                                             peptide_filename = "PEP_",
+                                                                             annotation_filename = "ANNOTATION_",
+                                                                             proteinGroup_filename = "PROT_", 
+                                                                             psm_filename = "PSM_",
+                                                                             sample_col = sample_column,
+                                                                             batch_corr_exe = batch_corr, 
+                                                                             batch_col = batch_correction_col,
+                                                                             phospho_thr = input$phos_thr/100, 
+                                                                             filt_absent_value = NA_allow_condition, 
+                                                                             min_peptide_protein = min_peptide_protein)
                   } else if(software == "MQ"){
                     db_execution_phos$proteome_data <- read_phosphoproteomics(software = "MQ",
-                                                                         folder = dir_input,
-                                                                         peptide_filename = "PEP_",
-                                                                         annotation_filename = "ANNOTATION_", 
-                                                                         sample_col = sample_column,
-                                                                         batch_corr_exe = batch_corr, 
-                                                                         batch_col = batch_correction_col,
-                                                                         phospho_thr = input$phos_thr/100, 
-                                                                         filt_absent_value = NA_allow_condition, 
-                                                                         min_peptide_protein = min_peptide_protein)
+                                                                              folder = dir_input,
+                                                                              peptide_filename = "PEP_",
+                                                                              annotation_filename = "ANNOTATION_", 
+                                                                              sample_col = sample_column,
+                                                                              batch_corr_exe = batch_corr, 
+                                                                              batch_col = batch_correction_col,
+                                                                              phospho_thr = input$phos_thr/100, 
+                                                                              filt_absent_value = NA_allow_condition, 
+                                                                              min_peptide_protein = min_peptide_protein)
                   }
                 },
                 message = function(m) {
@@ -3365,15 +3382,15 @@ server <- function(input, output, session) {
               if(batch_corr){
                 message("Executing batch correction...")
                 db_execution_phos$normalized_data <- batch_correction(proteome_data = db_execution_phos$normalized_data, 
-                                                                 batch_col = str_to_lower(batch_correction_col))
+                                                                      batch_col = str_to_lower(batch_correction_col))
               }
               
               db_execution_phos$parameter<-list("Imputation and normalization algorithm: " = ifelse(impute_algorithm[1] != "norm", impute_algorithm[1], impute_algorithm[2]), 
-                                           "Sample column in annotation file: " = sample_column, 
-                                           "Batch correction: " = ifelse(batch_corr, batch_correction_col, "FALSE"), 
-                                           "N° missing value allow per condition: " = NA_allow_condition, 
-                                           "Minimum peptide per protein: " = min_peptide_protein,
-                                           "Phospho site threshold: " = input$phos_thr)
+                                                "Sample column in annotation file: " = sample_column, 
+                                                "Batch correction: " = ifelse(batch_corr, batch_correction_col, "FALSE"), 
+                                                "N° missing value allow per condition: " = NA_allow_condition, 
+                                                "Minimum peptide per protein: " = min_peptide_protein,
+                                                "Phospho site threshold: " = input$phos_thr)
               
               output$c_anno_phos <- DT::renderDT(db_execution_phos$proteome_data$c_anno)
               tagList(
@@ -3529,7 +3546,7 @@ server <- function(input, output, session) {
     output$small_mds_peptide_phos <- renderPlot({
       generate_mds_peptide_phos()
     })
-
+    
     output$render_pca_peptide_phos <- renderUI({
       if (input$pca_peptide_phos) {
         tagList(
@@ -3548,42 +3565,52 @@ server <- function(input, output, session) {
       generate_pca_peptide_phos()
     })
     
-    output$render_protein_boxplot_phos <- renderUI({
-      if (input$boxplot_protein_phos) {
-        req(input$list_proteins_phos)
-        tagList(
-          tags$h3("Boxplot selected proteins"),
-          tags$div(
-            style = "cursor:pointer;",
-            onclick = "showFullscreenPlot_phos('protein_boxplot_phos')",
-            plotOutput("small_protein_boxplot_phos")
-          )
-        )
-      } else{
-        db_execution_phos$protein_boxplot = NULL
-      }
-    })
-    output$small_protein_boxplot_phos <- renderPlot({
-      generate_protein_boxplot_phos()
-    })
-    
-    output$render_protein_heatmap_phos <- renderUI({
-      if (input$heatmap_protein_phos) {
-        req(input$list_proteins_phos)
-        tagList(
-          tags$h3("Heatmap selected proteins"),
-          tags$div(
-            style = "cursor:pointer;",
-            onclick = "showFullscreenPlot_phos('protein_heatmap_phos')",
-            plotOutput("small_protein_heatmap_phos")
-          )
-        )
-      } else{
-        db_execution_phos$protein_heatmap = NULL
-      }
-    })
-    output$small_protein_heatmap_phos <- renderPlot({
-      generate_protein_heatmap_phos()
+    observeEvent(input$execute_protein_plots_phos, {
+      output$render_protein_boxplot_phos <- renderUI({
+        isolate({
+          if (input$boxplot_protein_phos) {
+            req(input$list_proteins_phos)
+            tagList(
+              tags$h3("Boxplot selected proteins"),
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_phos('protein_boxplot_phos')",
+                plotOutput("small_protein_boxplot_phos")
+              )
+            )
+          } else{
+            db_execution_phos$protein_boxplot = NULL
+          }
+        })
+      })
+      output$small_protein_boxplot_phos <- renderPlot({
+        isolate({
+          generate_protein_boxplot_phos()
+        })
+      })
+      
+      output$render_protein_heatmap_phos <- renderUI({
+        isolate({
+          if (input$heatmap_protein_phos) {
+            req(input$list_proteins_phos)
+            tagList(
+              tags$h3("Heatmap selected proteins"),
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_phos('protein_heatmap_phos')",
+                plotOutput("small_protein_heatmap_phos")
+              )
+            )
+          } else{
+            db_execution_phos$protein_heatmap = NULL
+          }
+        })
+      })
+      output$small_protein_heatmap_phos <- renderPlot({
+        isolate({
+          generate_protein_heatmap_phos()
+        })
+      })
     })
   })
   
@@ -3616,11 +3643,11 @@ server <- function(input, output, session) {
           message(tempdir())
           
           db_execution_phos$differential_results <- differential_analysis(proteome_data = db_execution_phos$normalized_data,
-                                                                     formule_contrast = db_execution_phos$formule_contrast,
-                                                                     fc_thr=as.double(input$FC_thr_phos),
-                                                                     pval_fdr = input$pval_fdr_phos,
-                                                                     pval_thr=as.double(input$pval_thr_phos),
-                                                                     signal_thr=0)
+                                                                          formule_contrast = db_execution_phos$formule_contrast,
+                                                                          fc_thr=as.double(input$FC_thr_phos),
+                                                                          pval_fdr = input$pval_fdr_phos,
+                                                                          pval_thr=as.double(input$pval_thr_phos),
+                                                                          signal_thr=0)
           db_execution_phos$formule_contrast <- db_execution_phos$formule_contrast[unique(union(db_execution_phos$differential_results$protein_results_long$comp, 
                                                                                                 db_execution_phos$differential_results$peptide_results_long$comp))]
           db_execution_phos$parameter <- c(db_execution_phos$parameter,
@@ -3806,23 +3833,23 @@ server <- function(input, output, session) {
       isolate({
         # TODO: gallery of plots
         db_execution_phos$enrichment_results <- perform_enrichment_analysis(differential_results = db_execution_phos$differential_results,
-                                                                        enrichR_custom_DB = T,
-                                                                        enrich_filter_DBs=input$DB_enrichment_phos,    
-                                                                        overlap_size_enrich_thr=as.double(input$os_enrich_phos),
-                                                                        pval_fdr_enrich = input$pval_fdr_phos,
-                                                                        pval_enrich_thr=as.double(input$pval_thr_phos),
-                                                                        dirOutput=db_execution_phos$dirOutput, 
-                                                                        with_background = input$enrich_with_background_phos)
+                                                                            enrichR_custom_DB = T,
+                                                                            enrich_filter_DBs=input$DB_enrichment_phos,    
+                                                                            overlap_size_enrich_thr=as.double(input$os_enrich_phos),
+                                                                            pval_fdr_enrich = input$pval_fdr_phos,
+                                                                            pval_enrich_thr=as.double(input$pval_thr_phos),
+                                                                            dirOutput=db_execution_phos$dirOutput, 
+                                                                            with_background = input$enrich_with_background_phos)
         
         terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich_phos), regex=","))
         
         db_execution_phos$parameter <- c(db_execution_phos$parameter,
-                                    "Enrichment databases selected: "=paste(input$DB_enrichment_phos, collapse = ", "),
-                                    "P.value type used for enrichment: "=input$pval_fdr_phos,
-                                    "P.value threshold for enrichment significance: "=input$pval_thr_phos,
-                                    "Overlap size threshold for enrichment significance: "=input$os_enrich_phos,
-                                    "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
-                                    "Enrichment with background: "=input$enrich_with_background_phos)
+                                         "Enrichment databases selected: "=paste(input$DB_enrichment_phos, collapse = ", "),
+                                         "P.value type used for enrichment: "=input$pval_fdr_phos,
+                                         "P.value threshold for enrichment significance: "=input$pval_thr_phos,
+                                         "Overlap size threshold for enrichment significance: "=input$os_enrich_phos,
+                                         "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
+                                         "Enrichment with background: "=input$enrich_with_background_phos)
         
         
         plots_down <- enrichment_figure(enr_df = db_execution_phos$enrichment_results,
@@ -3870,13 +3897,13 @@ server <- function(input, output, session) {
         withProgress(message = "STRINGdb analysis in process, please wait!", {
           
           db_execution_phos$stringdb_res <- STRINGdb_network(differential_results = db_execution_phos$differential_results,
-                                                        species=input$taxonomy_phos, 
-                                                        dirOutput=db_execution_phos$dirOutput, 
-                                                        score_thr=input$score_thr_stringdb_phos,
-                                                        shiny = T)
+                                                             species=input$taxonomy_phos, 
+                                                             dirOutput=db_execution_phos$dirOutput, 
+                                                             score_thr=input$score_thr_stringdb_phos,
+                                                             shiny = T)
           db_execution_phos$parameter <- c(db_execution_phos$parameter,
-                                      "STRINGdb taxonomy: "=input$taxonomy_phos,
-                                      "STRINGdb score threshold: "=input$score_thr_stringdb_phos)
+                                           "STRINGdb taxonomy: "=input$taxonomy_phos,
+                                           "STRINGdb score threshold: "=input$score_thr_stringdb_phos)
           
           tagList(
             tags$h2("STRINGdb analysis"),
@@ -3903,14 +3930,14 @@ server <- function(input, output, session) {
         withProgress(message = "Kinase Tree analysis in process, please wait! (Can take several minutes)", {
           
           db_execution_phos$kinase_tree_res <- kinase_tree(proteome_data = db_execution_phos$normalized_data, 
-                                                      differential_results = db_execution_phos$differential_results, 
-                                                      formule_CORAL = db_execution_phos$formule_contrast, 
-                                                      dirOutput=db_execution_phos$dirOutput, 
-                                                      phosR_thr = input$score_thr_phosr_phos, 
-                                                      species = input$taxonomy_kinase_phos)
+                                                           differential_results = db_execution_phos$differential_results, 
+                                                           formule_CORAL = db_execution_phos$formule_contrast, 
+                                                           dirOutput=db_execution_phos$dirOutput, 
+                                                           phosR_thr = input$score_thr_phosr_phos, 
+                                                           species = input$taxonomy_kinase_phos)
           db_execution_phos$parameter <- c(db_execution_phos$parameter,
-                                      "Kinase tree taxonomy: "=input$taxonomy_kinase_phos,
-                                      "Score thr for PhosR: "=input$score_thr_phosr_phos)
+                                           "Kinase tree taxonomy: "=input$taxonomy_kinase_phos,
+                                           "Score thr for PhosR: "=input$score_thr_phosr_phos)
           
           if(input$taxonomy_kinase_phos == "Homo sapiens"){
             tagList(
@@ -4410,7 +4437,10 @@ server <- function(input, output, session) {
   ## PhosProTN_with_prot: textbox for list proteins ----
   output$list_protein_ui_phos_protn <- renderUI({ 
     if(input$boxplot_protein_phos_protn | input$heatmap_protein_phos_protn){
-      textInput("list_proteins_phos_protn", "List proteins to show (separate by: \",\"):")
+      tagList(
+        textInput("list_proteins_phos_protn", "List proteins to show (separate by: \",\"):"),
+        actionButton("execute_protein_plots_phos_protn", "Plot!")
+      )
     } 
   })
   
@@ -4576,8 +4606,8 @@ server <- function(input, output, session) {
         )
       } 
     } else{
-        db_execution_phos_protn$kinase_tree_res <- list()
-        output$render_kinase_tree_phos_protn <- renderUI({NULL})
+      db_execution_phos_protn$kinase_tree_res <- list()
+      output$render_kinase_tree_phos_protn <- renderUI({NULL})
     }
   })
   
@@ -4899,7 +4929,7 @@ server <- function(input, output, session) {
                 NA_allow_condition <- input$NA_allow_condition_phos_protn
                 min_peptide_protein <- input$min_peptide_protein_phos_protn
                 impute_algorithm <- unlist(tstrsplit(input$impute_algorithm_phos_protn, "_"))
-
+                
                 if(input$sample_column_phos_protn == "Sample"){
                   sample_column <- input$sample_column_phos_protn
                 } else{
@@ -4939,38 +4969,38 @@ server <- function(input, output, session) {
                   shinyjs::html("text", "")
                   if(software == "PD"){
                     db_execution_phos_protn$proteome_data <- read_phospho_proteome_proteomics(software = "PD", 
-                                                                                   folder_proteome = dir_input_proteome,
-                                                                                   folder_phospho = dir_input_phospho,
-                                                                                   peptide_proteome_filename = "PEP_", 
-                                                                                   peptide_phospho_filename = "PEP_", 
-                                                                                   annotation_proteome_filename = "ANNOTATION_",
-                                                                                   proteinGroup_proteome_filename = "PROT_", 
-                                                                                   annotation_phospho_filename = "ANNOTATION_",
-                                                                                   proteinGroup_phospho_filename = "PROT_", 
-                                                                                   psm_phospho_filename = "PSM_", 
-                                                                                   sample_proteome_col = sample_column, 
-                                                                                   sample_phospho_col = sample_column,
-                                                                                   batch_corr_exe = batch_corr, 
-                                                                                   batch_col = batch_correction_col,
-                                                                                   phospho_thr = input$phos_thr_phos_protn/100, 
-                                                                                   filt_absent_value = NA_allow_condition, 
-                                                                                   min_peptide_protein = min_peptide_protein)
-
+                                                                                              folder_proteome = dir_input_proteome,
+                                                                                              folder_phospho = dir_input_phospho,
+                                                                                              peptide_proteome_filename = "PEP_", 
+                                                                                              peptide_phospho_filename = "PEP_", 
+                                                                                              annotation_proteome_filename = "ANNOTATION_",
+                                                                                              proteinGroup_proteome_filename = "PROT_", 
+                                                                                              annotation_phospho_filename = "ANNOTATION_",
+                                                                                              proteinGroup_phospho_filename = "PROT_", 
+                                                                                              psm_phospho_filename = "PSM_", 
+                                                                                              sample_proteome_col = sample_column, 
+                                                                                              sample_phospho_col = sample_column,
+                                                                                              batch_corr_exe = batch_corr, 
+                                                                                              batch_col = batch_correction_col,
+                                                                                              phospho_thr = input$phos_thr_phos_protn/100, 
+                                                                                              filt_absent_value = NA_allow_condition, 
+                                                                                              min_peptide_protein = min_peptide_protein)
+                    
                   } else if(software == "MQ"){
                     db_execution_phos_protn$proteome_data <- read_phospho_proteome_proteomics(software = "MQ", 
-                                                                                   folder_proteome = dir_input_proteome,
-                                                                                   folder_phospho = dir_input_phospho,
-                                                                                   peptide_proteome_filename = "PEP_", 
-                                                                                   peptide_phospho_filename = "PEP_", 
-                                                                                   annotation_proteome_filename = "ANNOTATION_",
-                                                                                   annotation_phospho_filename = "ANNOTATION_",
-                                                                                   sample_proteome_col = sample_column, 
-                                                                                   sample_phospho_col = sample_column,
-                                                                                   batch_corr_exe = batch_corr, 
-                                                                                   batch_col = batch_correction_col,
-                                                                                   phospho_thr = input$phos_thr_phos_protn/100, 
-                                                                                   filt_absent_value = NA_allow_condition, 
-                                                                                   min_peptide_protein = min_peptide_protein)
+                                                                                              folder_proteome = dir_input_proteome,
+                                                                                              folder_phospho = dir_input_phospho,
+                                                                                              peptide_proteome_filename = "PEP_", 
+                                                                                              peptide_phospho_filename = "PEP_", 
+                                                                                              annotation_proteome_filename = "ANNOTATION_",
+                                                                                              annotation_phospho_filename = "ANNOTATION_",
+                                                                                              sample_proteome_col = sample_column, 
+                                                                                              sample_phospho_col = sample_column,
+                                                                                              batch_corr_exe = batch_corr, 
+                                                                                              batch_col = batch_correction_col,
+                                                                                              phospho_thr = input$phos_thr_phos_protn/100, 
+                                                                                              filt_absent_value = NA_allow_condition, 
+                                                                                              min_peptide_protein = min_peptide_protein)
                   }
                 },
                 message = function(m) {
@@ -5001,15 +5031,15 @@ server <- function(input, output, session) {
               if(batch_corr){
                 message("Executing batch correction...")
                 db_execution_phos_protn$normalized_data <- batch_correction(proteome_data = db_execution_phos_protn$normalized_data, 
-                                                                 batch_col = str_to_lower(batch_correction_col))
+                                                                            batch_col = str_to_lower(batch_correction_col))
               }
               
               db_execution_phos_protn$parameter<-list("Imputation and normalization algorithm: " = ifelse(impute_algorithm[1] != "norm", impute_algorithm[1], impute_algorithm[2]), 
-                                                "Sample column in annotation file: " = sample_column, 
-                                                "Batch correction: " = ifelse(batch_corr, batch_correction_col, "FALSE"), 
-                                                "N° missing value allow per condition: " = NA_allow_condition, 
-                                                "Minimum peptide per protein: " = min_peptide_protein,
-                                                "Phospho site threshold: " = input$phos_thr_phos_protn)
+                                                      "Sample column in annotation file: " = sample_column, 
+                                                      "Batch correction: " = ifelse(batch_corr, batch_correction_col, "FALSE"), 
+                                                      "N° missing value allow per condition: " = NA_allow_condition, 
+                                                      "Minimum peptide per protein: " = min_peptide_protein,
+                                                      "Phospho site threshold: " = input$phos_thr_phos_protn)
               
               
               output$c_anno_phos_protn <- DT::renderDT(db_execution_phos_protn$proteome_data$c_anno)
@@ -5314,43 +5344,54 @@ server <- function(input, output, session) {
       generate_pca_peptide_phos_protn()
     })
     
-    output$render_protein_boxplot_phos_protn <- renderUI({
-      if (input$boxplot_protein_phos_protn) {
-        req(input$list_proteins_phos_protn)
-        tagList(
-          tags$h3("Boxplot selected proteins"),
-          tags$div(
-            style = "cursor:pointer;",
-            onclick = "showFullscreenPlot_phos_protn('protein_boxplot_phos_protn')",
-            plotOutput("small_protein_boxplot_phos_protn")
-          )
-        )
-      } else{
-        db_execution_phos_protn$protein_boxplot = NULL
-      }
-    })
-    output$small_protein_boxplot_phos_protn <- renderPlot({
-      generate_protein_boxplot_phos_protn()
+    observeEvent(input$execute_protein_plots_phos_protn, {
+      output$render_protein_boxplot_phos_protn <- renderUI({
+        isolate({
+          if (input$boxplot_protein_phos_protn) {
+            req(input$list_proteins_phos_protn)
+            tagList(
+              tags$h3("Boxplot selected proteins"),
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_phos_protn('protein_boxplot_phos_protn')",
+                plotOutput("small_protein_boxplot_phos_protn")
+              )
+            )
+          } else{
+            db_execution_phos_protn$protein_boxplot = NULL
+          }
+        })
+      })
+      output$small_protein_boxplot_phos_protn <- renderPlot({
+        isolate({
+          generate_protein_boxplot_phos_protn()
+        })
+      })
+      
+      output$render_protein_heatmap_phos_protn <- renderUI({
+        isolate({
+          if (input$heatmap_protein_phos_protn) {
+            req(input$list_proteins_phos_protn)
+            tagList(
+              tags$h3("Heatmap selected proteins"),
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_phos_protn('protein_heatmap_phos_protn')",
+                plotOutput("small_protein_heatmap_phos_protn")
+              )
+            )
+          } else{
+            db_execution_phos_protn$protein_heatmap = NULL
+          }
+        })
+      })
+      output$small_protein_heatmap_phos_protn <- renderPlot({
+        isolate({
+          generate_protein_heatmap_phos_protn()
+        })
+      })
     })
     
-    output$render_protein_heatmap_phos_protn <- renderUI({
-      if (input$heatmap_protein_phos_protn) {
-        req(input$list_proteins_phos_protn)
-        tagList(
-          tags$h3("Heatmap selected proteins"),
-          tags$div(
-            style = "cursor:pointer;",
-            onclick = "showFullscreenPlot_phos_protn('protein_heatmap_phos_protn')",
-            plotOutput("small_protein_heatmap_phos_protn")
-          )
-        )
-      } else{
-        db_execution_phos_protn$protein_heatmap = NULL
-      }
-    })
-    output$small_protein_heatmap_phos_protn <- renderPlot({
-      generate_protein_heatmap_phos_protn()
-    })
   })
   
   ## PhosProTN_with_prot: differential analysis ----
@@ -5378,18 +5419,18 @@ server <- function(input, output, session) {
           message(tempdir())
           
           db_execution_phos_protn$differential_results <- differential_analysis(proteome_data = db_execution_phos_protn$normalized_data,
-                                                                     formule_contrast = db_execution_phos_protn$formule_contrast,
-                                                                     fc_thr=as.double(input$FC_thr_phos_protn),
-                                                                     pval_fdr = input$pval_fdr_phos_protn,
-                                                                     pval_thr=as.double(input$pval_thr_phos_protn),
-                                                                     signal_thr=0)
+                                                                                formule_contrast = db_execution_phos_protn$formule_contrast,
+                                                                                fc_thr=as.double(input$FC_thr_phos_protn),
+                                                                                pval_fdr = input$pval_fdr_phos_protn,
+                                                                                pval_thr=as.double(input$pval_thr_phos_protn),
+                                                                                signal_thr=0)
           ll<-reactiveValuesToList(db_execution_phos_protn)
           db_execution_phos_protn$formule_contrast <- db_execution_phos_protn$formule_contrast[names(db_execution_phos_protn$formule_contrast) %in% unique((db_execution_phos_protn$differential_results$peptide_results_long$comp))]
           
           db_execution_phos_protn$parameter <- c(db_execution_phos_protn$parameter,
-                                           "Fold change threshold for significance: "=input$FC_thr_phos_protn,
-                                           "P.value type used: "=input$pval_fdr_phos_protn,
-                                           "P.value threshold for significance: "=input$pval_thr_phos_protn)
+                                                 "Fold change threshold for significance: "=input$FC_thr_phos_protn,
+                                                 "P.value type used: "=input$pval_fdr_phos_protn,
+                                                 "P.value threshold for significance: "=input$pval_thr_phos_protn)
         })
         
         tags$h2("Differential Analysis")
@@ -5572,23 +5613,23 @@ server <- function(input, output, session) {
       isolate({
         # TODO: gallery of plots
         db_execution_phos_protn$enrichment_results <- perform_enrichment_analysis(differential_results = db_execution_phos_protn$differential_results,
-                                                                        enrichR_custom_DB = T,
-                                                                        enrich_filter_DBs=input$DB_enrichment_phos_protn,    
-                                                                        overlap_size_enrich_thr=as.double(input$os_enrich_phos_protn),
-                                                                        pval_fdr_enrich = input$pval_fdr_phos_protn,
-                                                                        pval_enrich_thr=as.double(input$pval_thr_phos_protn),
-                                                                        dirOutput=db_execution_phos_protn$dirOutput, 
-                                                                        with_background = input$enrich_with_background_phos_protn)
+                                                                                  enrichR_custom_DB = T,
+                                                                                  enrich_filter_DBs=input$DB_enrichment_phos_protn,    
+                                                                                  overlap_size_enrich_thr=as.double(input$os_enrich_phos_protn),
+                                                                                  pval_fdr_enrich = input$pval_fdr_phos_protn,
+                                                                                  pval_enrich_thr=as.double(input$pval_thr_phos_protn),
+                                                                                  dirOutput=db_execution_phos_protn$dirOutput, 
+                                                                                  with_background = input$enrich_with_background_phos_protn)
         
         terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich_phos_protn), regex=","))
         
         db_execution_phos_protn$parameter <- c(db_execution_phos_protn$parameter,
-                                         "Enrichment databases selected: "=paste(input$DB_enrichment_phos_protn, collapse = ", "),
-                                         "P.value type used for enrichment: "=input$pval_fdr_phos_protn,
-                                         "P.value threshold for enrichment significance: "=input$pval_thr_phos_protn,
-                                         "Overlap size threshold for enrichment significance: "=input$os_enrich_phos_protn,
-                                         "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
-                                         "Enrichment with background: "=input$enrich_with_background_phos_protn)
+                                               "Enrichment databases selected: "=paste(input$DB_enrichment_phos_protn, collapse = ", "),
+                                               "P.value type used for enrichment: "=input$pval_fdr_phos_protn,
+                                               "P.value threshold for enrichment significance: "=input$pval_thr_phos_protn,
+                                               "Overlap size threshold for enrichment significance: "=input$os_enrich_phos_protn,
+                                               "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
+                                               "Enrichment with background: "=input$enrich_with_background_phos_protn)
         
         
         plots_down <- enrichment_figure(enr_df = db_execution_phos_protn$enrichment_results,
@@ -5636,13 +5677,13 @@ server <- function(input, output, session) {
         withProgress(message = "STRINGdb analysis in process, please wait!", {
           
           db_execution_phos_protn$stringdb_res <- STRINGdb_network(differential_results = db_execution_phos_protn$differential_results,
-                                                        species=input$taxonomy_phos_protn, 
-                                                        dirOutput=db_execution_phos_protn$dirOutput, 
-                                                        score_thr=input$score_thr_stringdb_phos_protn,
-                                                        shiny = T)
+                                                                   species=input$taxonomy_phos_protn, 
+                                                                   dirOutput=db_execution_phos_protn$dirOutput, 
+                                                                   score_thr=input$score_thr_stringdb_phos_protn,
+                                                                   shiny = T)
           db_execution_phos_protn$parameter <- c(db_execution_phos_protn$parameter,
-                                           "STRINGdb taxonomy: "=input$taxonomy_phos_protn,
-                                           "STRINGdb score threshold: "=input$score_thr_stringdb_phos_protn)
+                                                 "STRINGdb taxonomy: "=input$taxonomy_phos_protn,
+                                                 "STRINGdb score threshold: "=input$score_thr_stringdb_phos_protn)
           tagList(
             tags$h2("STRINGdb analysis"),
             fluidRow(
@@ -5668,14 +5709,14 @@ server <- function(input, output, session) {
         withProgress(message = "Kinase Tree analysis in process, please wait!", {
           
           db_execution_phos_protn$kinase_tree_res <- kinase_tree(proteome_data = db_execution_phos_protn$normalized_data, 
-                                                      differential_results = db_execution_phos_protn$differential_results, 
-                                                      formule_CORAL = db_execution_phos_protn$formule_contrast, 
-                                                      dirOutput=db_execution_phos_protn$dirOutput, 
-                                                      phosR_thr = input$score_thr_phosr_phos_protn, 
-                                                      species = input$taxonomy_kinase_phos_protn)
+                                                                 differential_results = db_execution_phos_protn$differential_results, 
+                                                                 formule_CORAL = db_execution_phos_protn$formule_contrast, 
+                                                                 dirOutput=db_execution_phos_protn$dirOutput, 
+                                                                 phosR_thr = input$score_thr_phosr_phos_protn, 
+                                                                 species = input$taxonomy_kinase_phos_protn)
           db_execution_phos_protn$parameter <- c(db_execution_phos_protn$parameter,
-                                           "Kinase tree taxonomy: "=input$taxonomy_kinase_phos_protn,
-                                           "Score thr for PhosR: "=input$score_thr_phosr_phos_protn)
+                                                 "Kinase tree taxonomy: "=input$taxonomy_kinase_phos_protn,
+                                                 "Score thr for PhosR: "=input$score_thr_phosr_phos_protn)
           if(input$taxonomy_kinase_phos_protn == "Homo sapiens"){
             tagList(
               tags$h2("Kinase Tree analysis"),
@@ -6278,7 +6319,10 @@ server <- function(input, output, session) {
   ## InteracTN: textbox for list proteins ----
   output$list_protein_ui_interactn <- renderUI({ 
     if(input$boxplot_protein_interactn | input$heatmap_protein_interactn){
-      textInput("list_proteins_interactn", "List proteins to show (separate by: \",\"):")
+      tagList(
+        textInput("list_proteins_interactn", "List proteins to show (separate by: \",\"):"),
+        actionButton("execute_protein_plots_interactn", "Plot!")
+      )
     } 
   })
   
@@ -6750,57 +6794,57 @@ server <- function(input, output, session) {
                   shinyjs::html("text", "")
                   if(software == "PD"){
                     db_execution_interactn$proteome_data <- read_proteomics(software = "PD",
-                                                                  folder = dir_input,
-                                                                  peptide_filename = "PEP_",
-                                                                  annotation_filename = "ANNOTATION_",
-                                                                  proteinGroup_filename = "PROT_", 
-                                                                  sample_col = sample_column,
-                                                                  batch_corr_exe = batch_corr, 
-                                                                  batch_col = batch_correction_col, 
-                                                                  filt_absent_value = NA_allow_condition, 
-                                                                  min_peptide_protein = min_peptide_protein)
+                                                                            folder = dir_input,
+                                                                            peptide_filename = "PEP_",
+                                                                            annotation_filename = "ANNOTATION_",
+                                                                            proteinGroup_filename = "PROT_", 
+                                                                            sample_col = sample_column,
+                                                                            batch_corr_exe = batch_corr, 
+                                                                            batch_col = batch_correction_col, 
+                                                                            filt_absent_value = NA_allow_condition, 
+                                                                            min_peptide_protein = min_peptide_protein)
                   } else if(software == "MQ_ev"){
                     db_execution_interactn$proteome_data <- read_proteomics(software = "MQ",
-                                                                  folder = dir_input,
-                                                                  peptide_filename = "PEP_",
-                                                                  annotation_filename = "ANNOTATION_", 
-                                                                  sample_col = sample_column,
-                                                                  batch_corr_exe = batch_corr, 
-                                                                  batch_col = batch_correction_col, 
-                                                                  filt_absent_value = NA_allow_condition, 
-                                                                  min_peptide_protein = min_peptide_protein)
+                                                                            folder = dir_input,
+                                                                            peptide_filename = "PEP_",
+                                                                            annotation_filename = "ANNOTATION_", 
+                                                                            sample_col = sample_column,
+                                                                            batch_corr_exe = batch_corr, 
+                                                                            batch_col = batch_correction_col, 
+                                                                            filt_absent_value = NA_allow_condition, 
+                                                                            min_peptide_protein = min_peptide_protein)
                   } else if(software == "MQ_prot"){
                     db_execution_interactn$proteome_data <- read_proteomics(software = "MQ",
-                                                                  folder = dir_input,
-                                                                  peptide_filename = "PEP_",
-                                                                  annotation_filename = "ANNOTATION_", 
-                                                                  proteinGroup_filename = "PROT_", 
-                                                                  sample_col = sample_column,
-                                                                  use_proteinGroups_MQ = TRUE,
-                                                                  batch_corr_exe = batch_corr, 
-                                                                  batch_col = batch_correction_col, 
-                                                                  filt_absent_value = NA_allow_condition, 
-                                                                  min_peptide_protein = min_peptide_protein)
+                                                                            folder = dir_input,
+                                                                            peptide_filename = "PEP_",
+                                                                            annotation_filename = "ANNOTATION_", 
+                                                                            proteinGroup_filename = "PROT_", 
+                                                                            sample_col = sample_column,
+                                                                            use_proteinGroups_MQ = TRUE,
+                                                                            batch_corr_exe = batch_corr, 
+                                                                            batch_col = batch_correction_col, 
+                                                                            filt_absent_value = NA_allow_condition, 
+                                                                            min_peptide_protein = min_peptide_protein)
                   } else if(software == "SP"){
                     db_execution_interactn$proteome_data <- read_proteomics(software = "SP",
-                                                                  folder = dir_input,
-                                                                  peptide_filename = "PEP_",
-                                                                  sample_col = sample_column,
-                                                                  annotation_filename = "ANNOTATION_", 
-                                                                  batch_corr_exe = batch_corr, 
-                                                                  batch_col = batch_correction_col, 
-                                                                  filt_absent_value = NA_allow_condition, 
-                                                                  min_peptide_protein = min_peptide_protein)
+                                                                            folder = dir_input,
+                                                                            peptide_filename = "PEP_",
+                                                                            sample_col = sample_column,
+                                                                            annotation_filename = "ANNOTATION_", 
+                                                                            batch_corr_exe = batch_corr, 
+                                                                            batch_col = batch_correction_col, 
+                                                                            filt_absent_value = NA_allow_condition, 
+                                                                            min_peptide_protein = min_peptide_protein)
                   } else if(software == "FP"){
                     db_execution_interactn$proteome_data <- read_proteomics(software = "FP",
-                                                                  folder = dir_input,
-                                                                  peptide_filename = "PEP_",
-                                                                  annotation_filename = "ANNOTATION_", 
-                                                                  sample_col = sample_column,
-                                                                  batch_corr_exe = batch_corr, 
-                                                                  batch_col = batch_correction_col, 
-                                                                  filt_absent_value = NA_allow_condition, 
-                                                                  min_peptide_protein = min_peptide_protein)
+                                                                            folder = dir_input,
+                                                                            peptide_filename = "PEP_",
+                                                                            annotation_filename = "ANNOTATION_", 
+                                                                            sample_col = sample_column,
+                                                                            batch_corr_exe = batch_corr, 
+                                                                            batch_col = batch_correction_col, 
+                                                                            filt_absent_value = NA_allow_condition, 
+                                                                            min_peptide_protein = min_peptide_protein)
                   }
                 },
                 message = function(m) {
@@ -6830,14 +6874,14 @@ server <- function(input, output, session) {
               if(batch_corr){
                 message("Executing batch correction...")
                 db_execution_interactn$normalized_data <- batch_correction(proteome_data = db_execution_interactn$normalized_data, 
-                                                                 batch_col = str_to_lower(batch_correction_col))
+                                                                           batch_col = str_to_lower(batch_correction_col))
               }
               
               db_execution_interactn$parameter<-list("Imputation and normalization algorithm: " = ifelse(impute_algorithm[1] != "norm", impute_algorithm[1], impute_algorithm[2]), 
-                                           "Sample column in annotation file: " = sample_column, 
-                                           "Batch correction: " = ifelse(batch_corr, batch_correction_col, "FALSE"), 
-                                           "N° missing value allow per condition: " = NA_allow_condition, 
-                                           "Minimum peptide per protein: " = min_peptide_protein)
+                                                     "Sample column in annotation file: " = sample_column, 
+                                                     "Batch correction: " = ifelse(batch_corr, batch_correction_col, "FALSE"), 
+                                                     "N° missing value allow per condition: " = NA_allow_condition, 
+                                                     "Minimum peptide per protein: " = min_peptide_protein)
               
               output$c_anno_interactn <- DT::renderDT(db_execution_interactn$proteome_data$c_anno)
               tagList(
@@ -7052,43 +7096,54 @@ server <- function(input, output, session) {
       generate_pca_peptide_interactn()
     })
     
-    output$render_protein_boxplot_interactn <- renderUI({
-      if (input$boxplot_protein_interactn) {
-        req(input$list_proteins_interactn)
-        tagList(
-          tags$h3("Boxplot selected proteins"),
-          tags$div(
-            style = "cursor:pointer;",
-            onclick = "showFullscreenPlot_interactn('protein_boxplot_interactn')",
-            plotOutput("small_protein_boxplot_interactn")
-          )
-        )
-      } else{
-        db_execution_interactn$protein_boxplot = NULL
-      }
-    })
-    output$small_protein_boxplot_interactn <- renderPlot({
-      generate_protein_boxplot_interactn()
+    observeEvent(input$execute_protein_plots_interactn, {
+      output$render_protein_boxplot_interactn <- renderUI({
+        isolate({
+          if (input$boxplot_protein_interactn) {
+            req(input$list_proteins_interactn)
+            tagList(
+              tags$h3("Boxplot selected proteins"),
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_interactn('protein_boxplot_interactn')",
+                plotOutput("small_protein_boxplot_interactn")
+              )
+            )
+          } else{
+            db_execution_interactn$protein_boxplot = NULL
+          }
+        })
+      })
+      output$small_protein_boxplot_interactn <- renderPlot({
+        isolate({
+          generate_protein_boxplot_interactn()
+        })
+      })
+      
+      output$render_protein_heatmap_interactn <- renderUI({
+        isolate({
+          if (input$heatmap_protein_interactn) {
+            req(input$list_proteins_interactn)
+            tagList(
+              tags$h3("Heatmap selected proteins"),
+              tags$div(
+                style = "cursor:pointer;",
+                onclick = "showFullscreenPlot_interactn('protein_heatmap_interactn')",
+                plotOutput("small_protein_heatmap_interactn")
+              )
+            )
+          } else{
+            db_execution_interactn$protein_heatmap = NULL
+          }
+        })
+      })
+      output$small_protein_heatmap_interactn <- renderPlot({
+        isolate({
+          generate_protein_heatmap_interactn()
+        })
+      })
     })
     
-    output$render_protein_heatmap_interactn <- renderUI({
-      if (input$heatmap_protein_interactn) {
-        req(input$list_proteins_interactn)
-        tagList(
-          tags$h3("Heatmap selected proteins"),
-          tags$div(
-            style = "cursor:pointer;",
-            onclick = "showFullscreenPlot_interactn('protein_heatmap_interactn')",
-            plotOutput("small_protein_heatmap_interactn")
-          )
-        )
-      } else{
-        db_execution_interactn$protein_heatmap = NULL
-      }
-    })
-    output$small_protein_heatmap_interactn <- renderPlot({
-      generate_protein_heatmap_interactn()
-    })
   })
   
   ## InteracTN: differential analysis ----
@@ -7119,19 +7174,19 @@ server <- function(input, output, session) {
           message(tempdir())
           
           db_execution_interactn$differential_results <- differential_analysis(proteome_data = db_execution_interactn$normalized_data,
-                                                                     formule_contrast = db_execution_interactn$formule_contrast,
-                                                                     fc_thr=as.double(input$FC_thr_interactn),
-                                                                     pval_fdr = input$pval_fdr_interactn,
-                                                                     pval_thr=as.double(input$pval_thr_interactn),
-                                                                     signal_thr=0, 
-                                                                     interactomics = TRUE)
+                                                                               formule_contrast = db_execution_interactn$formule_contrast,
+                                                                               fc_thr=as.double(input$FC_thr_interactn),
+                                                                               pval_fdr = input$pval_fdr_interactn,
+                                                                               pval_thr=as.double(input$pval_thr_interactn),
+                                                                               signal_thr=0, 
+                                                                               interactomics = TRUE)
           db_execution_interactn$formule_contrast <- db_execution_interactn$formule_contrast[unique(union(db_execution_interactn$differential_results$protein_results_long$comp, 
                                                                                                           db_execution_interactn$differential_results$peptide_results_long$comp))]
           
           db_execution_interactn$parameter<-c(db_execution_interactn$parameter,
-                                    "Fold change threshold for significance: "=input$FC_thr_interactn,
-                                    "P.value type used: "=input$pval_fdr_interactn,
-                                    "P.value threshold for significance: "=input$pval_thr_interactn)
+                                              "Fold change threshold for significance: "=input$FC_thr_interactn,
+                                              "P.value type used: "=input$pval_fdr_interactn,
+                                              "P.value threshold for significance: "=input$pval_thr_interactn)
           
         })
         
@@ -7334,7 +7389,7 @@ server <- function(input, output, session) {
         }
         db_execution_interactn$protein_vulcano = generate_volcano_plots_protein
         # Generate tabPanels in a for loop
-
+        
         tabs <- list()
         for (i in seq_along(generate_volcano_plots_protein)) {
           plot_id <- paste0(names(generate_volcano_plots_protein)[i], "_prot_interactn")
@@ -7484,23 +7539,23 @@ server <- function(input, output, session) {
       isolate({
         # TODO: gallery of plots
         db_execution_interactn$enrichment_results <- perform_enrichment_analysis(differential_results = db_execution_interactn$differential_results,
-                                                                        enrichR_custom_DB = T,
-                                                                        enrich_filter_DBs=input$DB_enrichment_interactn,    
-                                                                        overlap_size_enrich_thr=as.double(input$os_enrich_interactn),
-                                                                        pval_fdr_enrich = input$pval_fdr_interactn,
-                                                                        pval_enrich_thr=as.double(input$pval_thr_interactn),
-                                                                        dirOutput=db_execution_interactn$dirOutput, 
-                                                                        with_background = input$enrich_with_background_interactn)
+                                                                                 enrichR_custom_DB = T,
+                                                                                 enrich_filter_DBs=input$DB_enrichment_interactn,    
+                                                                                 overlap_size_enrich_thr=as.double(input$os_enrich_interactn),
+                                                                                 pval_fdr_enrich = input$pval_fdr_interactn,
+                                                                                 pval_enrich_thr=as.double(input$pval_thr_interactn),
+                                                                                 dirOutput=db_execution_interactn$dirOutput, 
+                                                                                 with_background = input$enrich_with_background_interactn)
         
         terms_enrich <- unlist(stri_split(stri_replace_all(regex = "\"|;|.",replacement = "",str = input$terms_enrich_interactn), regex=","))
         
         db_execution_interactn$parameter <- c(db_execution_interactn$parameter,
-                                    "Enrichment databases selected: "=paste(input$DB_enrichment_interactn, collapse = ", "),
-                                    "P.value type used for enrichment: "=input$pval_fdr_interactn,
-                                    "P.value threshold for enrichment significance: "=input$pval_thr_interactn,
-                                    "Overlap size threshold for enrichment significance: "=input$os_enrich_interactn,
-                                    "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
-                                    "Enrichment with background: "=input$enrich_with_background_interactn)
+                                              "Enrichment databases selected: "=paste(input$DB_enrichment_interactn, collapse = ", "),
+                                              "P.value type used for enrichment: "=input$pval_fdr_interactn,
+                                              "P.value threshold for enrichment significance: "=input$pval_thr_interactn,
+                                              "Overlap size threshold for enrichment significance: "=input$os_enrich_interactn,
+                                              "Enrichment filter terms: "=if(length(terms_enrich)>0){paste(terms_enrich, collapse = ", ")}else{"None"},
+                                              "Enrichment with background: "=input$enrich_with_background_interactn)
         
         plots_down <- enrichment_figure(enr_df = db_execution_interactn$enrichment_results,
                                         category = c("down","up"), 
@@ -7547,13 +7602,13 @@ server <- function(input, output, session) {
         withProgress(message = "STRINGdb analysis in process, please wait!", {
           
           db_execution_interactn$stringdb_res <- STRINGdb_network(differential_results = db_execution_interactn$differential_results,
-                                                        species=input$taxonomy_interactn, 
-                                                        dirOutput=db_execution_interactn$dirOutput, 
-                                                        score_thr=input$score_thr_stringdb_interactn,
-                                                        shiny = T)
+                                                                  species=input$taxonomy_interactn, 
+                                                                  dirOutput=db_execution_interactn$dirOutput, 
+                                                                  score_thr=input$score_thr_stringdb_interactn,
+                                                                  shiny = T)
           db_execution_interactn$parameter <- c(db_execution_interactn$parameter,
-                                      "STRINGdb taxonomy: "=input$taxonomy_interactn,
-                                      "STRINGdb score threshold: "=input$score_thr_stringdb_interactn)
+                                                "STRINGdb taxonomy: "=input$taxonomy_interactn,
+                                                "STRINGdb score threshold: "=input$score_thr_stringdb_interactn)
           
           tagList(
             tags$h2("STRINGdb analysis"),
@@ -7976,7 +8031,7 @@ server <- function(input, output, session) {
               p_rdata$kill()
               message("RData saved.")
             }
-
+            
             # Save RData db_execution_interactn
             
             #Save folder for the download
